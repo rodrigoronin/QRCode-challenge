@@ -13,6 +13,8 @@ import player_01 from "./assets/placeholder_player_01.png";
 
   document.body.appendChild(game.canvas);
 
+  console.log("Game is running");
+
   const entities: Container = new Container();
   const playerTexture = await Assets.load(player_01);
   playerTexture.source.scaleMode = "nearest";
@@ -31,6 +33,4 @@ import player_01 from "./assets/placeholder_player_01.png";
   entities.addChild(player);
 
   game.stage.addChild(entities);
-
-  console.log("game running");
 })();
