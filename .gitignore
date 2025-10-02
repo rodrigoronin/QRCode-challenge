@@ -1,0 +1,40 @@
+# --- Node / Vite ---
+node_modules/
+dist/
+dist-ssr/
+*.local
+vite.svg
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# Editor cruft
+.DS_Store
+.vscode/
+.idea/
+
+# --- Tauri ---
+src-tauri/target/
+src-tauri/.cargo/
+src-tauri/Cargo.lock
+
+# Binaries
+*.exe
+*.app
+*.dmg
+*.deb
+*.rpm
+*.AppImage
+
+# Rust / Cargo (just in case)
+target/
+**/*.rs.bk
+
+# Env files
+.env
+.env.*
