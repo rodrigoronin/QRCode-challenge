@@ -7,17 +7,15 @@ import player_01 from "./assets/placeholder_player_01.png";
 (async () => {
   const game: Application = new Application();
   await game.init({
-    width: 640,
-    height: 360,
+    width: 1280,
+    height: 720,
     background: "#d2d2d2",
     // resizeTo: window,
   });
-
   document.body.appendChild(game.canvas);
 
-  console.log("Game is running");
-
   const entities: Container = new Container();
+
   const playerTexture = await Assets.load(player_01);
   playerTexture.source.scaleMode = "nearest";
   playerTexture.source.style.magFilter = "nearest";
@@ -31,6 +29,7 @@ import player_01 from "./assets/placeholder_player_01.png";
   player.anchor.set(0.5);
   player.x = game.screen.width / 2;
   player.y = game.screen.height / 2;
+  console.log(player.x);
 
   entities.addChild(player);
 
