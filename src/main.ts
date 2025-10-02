@@ -7,8 +7,10 @@ import player_01 from "./assets/placeholder_player_01.png";
 (async () => {
   const game: Application = new Application();
   await game.init({
+    width: 640,
+    height: 360,
     background: "#d2d2d2",
-    resizeTo: window,
+    // resizeTo: window,
   });
 
   document.body.appendChild(game.canvas);
