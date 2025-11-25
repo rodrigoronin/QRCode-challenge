@@ -33,7 +33,6 @@ import player_01 from "./assets/placeholder_player_01.png";
   player.container.x = game.screen.width / 2;
   player.container.y = game.screen.height / 2;
   player.addTo(entities);
-  console.log(player.getSpeed);
 
   game.ticker.add((ticker) => {
     player.update(ticker.deltaMS);
