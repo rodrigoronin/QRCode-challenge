@@ -22,8 +22,24 @@ import player_01 from "./assets/placeholder_player_01.png";
   game.stage.addChild(entities);
 
   const playerTexture = await Assets.load(player_01);
+  const source = playerTexture.source;
 
-  const player: Player = new Player(playerTexture, input);
+  const frames = {
+    down: new Texture({
+      source,
+      frame: new Rectangle(0, 0, 32, 32),
+    }),
+    up: new Texture({
+      source,
+      frame: new Rectangle(32, 0, 32, 32),
+    }),
+    left: new Texture({
+      source,
+      frame: new Rectangle(64, 0, 32, 32),
+    }),
+  };
+
+  const player: Player = new Player(frames, input);
   player.container.x = game.screen.width / 2;
   player.container.y = game.screen.height / 2;
   player.addTo(entities);
