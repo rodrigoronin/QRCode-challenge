@@ -1,4 +1,4 @@
-import { Sprite, Texture } from "pixi.js";
+import { Sprite, Texture, Rectangle } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { InputManager, InputAction } from "../input/InputManager";
 
@@ -12,7 +12,14 @@ export class Player extends Entity {
 
     this.input = input;
 
-    this.sprite = new Sprite(texture);
+    texture.source.style.magFilter = "nearest";
+    texture.source.style.minFilter = "nearest";
+    const frame: Texture = new Texture({
+      source: texture.source,
+      frame: new Rectangle(0, 0, 32, 32),
+    });
+
+    this.sprite = new Sprite(frame);
     this.sprite.anchor.set(0.5);
     this.sprite.scale.set(2);
 

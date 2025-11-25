@@ -12,7 +12,7 @@ import player_01 from "./assets/placeholder_player_01.png";
   await game.init({
     width: 1280,
     height: 720,
-    background: "#223222",
+    background: "#d2d2d2",
     // resizeTo: window,
   });
   document.body.appendChild(game.canvas);
@@ -22,14 +22,8 @@ import player_01 from "./assets/placeholder_player_01.png";
   game.stage.addChild(entities);
 
   const playerTexture = await Assets.load(player_01);
-  playerTexture.source.style.magFilter = "nearest";
-  playerTexture.source.style.minFilter = "nearest";
-  const frame: Texture = new Texture({
-    source: playerTexture.source,
-    frame: new Rectangle(0, 0, 32, 32),
-  });
 
-  const player: Player = new Player(frame, input);
+  const player: Player = new Player(playerTexture, input);
   player.container.x = game.screen.width / 2;
   player.container.y = game.screen.height / 2;
   player.addTo(entities);
