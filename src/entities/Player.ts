@@ -19,6 +19,13 @@ export class Player extends Entity {
     this.container.addChild(this.sprite);
   }
 
+  public get getSpeed(): number {
+    return this.speed;
+  }
+  public set setSpeed(v: number) {
+    this.speed = v;
+  }
+
   update(deltaTime: number) {
     this.move(deltaTime);
   }
