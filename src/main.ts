@@ -37,6 +37,10 @@ import player_01 from "./assets/placeholder_player_01.png";
       source,
       frame: new Rectangle(64, 0, 32, 32),
     }),
+    right: new Texture({
+      source,
+      frame: new Rectangle(64, 0, 32, 32),
+    }),
   };
 
   const player: Player = new Player(frames, input);

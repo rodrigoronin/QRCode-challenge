@@ -76,7 +76,8 @@ export class Player extends Entity {
     this.sprite.texture = this.frames[this.direction];
 
     // flip horizontal frame
-    if (this.direction === Direction.Right) this.sprite.scale.x = -2;
-    else this.sprite.scale.x = 2;
+    if (this.direction === Direction.Right) {
+      this.sprite.scale.x = -2;
+    } else this.sprite.scale.x = 2;
   }
 }
