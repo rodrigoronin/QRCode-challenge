@@ -5,13 +5,13 @@ export class InputManager {
     return this.instance;
   }
 
-  // estado final normalizado (-1 a 1)
+  //  final normalized state (-1 a 1)
   private movement = { x: 0, y: 0 };
 
-  // fontes separadas
+  // separated input sources
   private keyboard = { x: 0, y: 0 };
   private gamepad = { x: 0, y: 0 };
-  private gamepadActive = false; // só true se o stick saiu da deadzone neste frame
+  private gamepadActive = false; // true only if the stick left the deadzone this frame
   private readonly DEADZONE = 0.18;
 
   private constructor() {
@@ -70,8 +70,6 @@ export class InputManager {
         rawX = rawY = 0;
       } else {
         this.gamepadActive = true;
-        // CORREÇÃO: normaliza pra vetor unitário (magnitude=1)
-        // antes tava rawX * magnitude (bug que causava diagonal mais rápida)
         rawX /= magnitude;
         rawY /= magnitude;
       }
@@ -83,8 +81,8 @@ export class InputManager {
   }
 
   private combineSources() {
-    // Regra de ouro: se o analógico saiu da deadzone neste frame → gamepad tem prioridade total
-    // Se voltou pro centro → volta pro teclado imediatamente
+    // Golden Rule: if the stick left the deadzone in this frame -> gamepad has priority
+    // If it got back to center -> keyboard takes control immediately
     if (this.gamepadActive) {
       this.movement.x = this.gamepad.x;
       this.movement.y = this.gamepad.y;
@@ -98,9 +96,9 @@ export class InputManager {
     }
   }
 
-  // API pública
+  // public API
   public getMovementVector() {
-    return { ...this.movement }; // já vem normalizado e pronto pro Player
+    return { ...this.movement }; // already comes normalized and ready for the Player
   }
 
   public isGamepadActiveThisFrame() {

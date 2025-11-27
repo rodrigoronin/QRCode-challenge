@@ -1,6 +1,6 @@
 import { Sprite, Texture } from "pixi.js";
-import { Entity } from "../core/Entity"; // ajusta o caminho conforme tua estrutura
-import { InputManager } from "../input/InputManager"; // ajusta o caminho
+import { Entity } from "../core/Entity";
+import { InputManager } from "../input/InputManager";
 
 type Direction8 =
   | "down"
@@ -14,7 +14,7 @@ type Direction8 =
 
 export class Player extends Entity {
   private sprite: Sprite;
-  private speed = 180; // pixels/segundo
+  private speed = 180; // pixels/second
   private input = InputManager.get();
   private currentDir: Direction8 = "down";
   private frames: Record<string, Texture>;
@@ -32,11 +32,11 @@ export class Player extends Entity {
     const deltaSec = deltaTime / 1000;
     const move = this.input.getMovementVector();
 
-    // movimento
+    // moviment
     this.container.x += move.x * this.speed * deltaSec;
     this.container.y += move.y * this.speed * deltaSec;
 
-    // animação/direção
+    // animation/direction
     if (move.x !== 0 || move.y !== 0) {
       this.updateDirection(move.x, move.y);
       this.sprite.texture = this.frames[`walk_${this.currentDir}`] ?? this.frames.walk_down;
@@ -44,7 +44,7 @@ export class Player extends Entity {
       this.sprite.texture = this.frames[`idle_${this.currentDir}`] ?? this.frames.idle_down;
     }
 
-    console.log(this.currentDir); // pra debug
+    console.log(this.currentDir); // for debug
   }
 
   private updateDirection(x: number, y: number) {
