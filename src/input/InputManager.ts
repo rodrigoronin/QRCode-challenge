@@ -25,6 +25,9 @@ export class InputManager {
   constructor() {
     window.addEventListener("keydown", (e) => this.onKeyDown(e));
     window.addEventListener("keyup", (e) => this.onKeyUp(e));
+    window.addEventListener("gamepadconnected", (e) => {
+      console.log("Controle conectado:", e.gamepad);
+    });
   }
 
   private onKeyDown(event: KeyboardEvent): void {
@@ -41,5 +44,16 @@ export class InputManager {
 
   isPressed(action: InputAction) {
     return this.keys[action];
+  }
+
+  public setPressed(action: InputAction, value: boolean): void {
+    this.keys[action] = value;
+  }
+
+  public resetDirectional() {
+    this.keys.up = false;
+    this.keys.down = false;
+    this.keys.left = false;
+    this.keys.right = false;
   }
 }

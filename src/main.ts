@@ -6,6 +6,7 @@ import "./style.css";
 
 // Assets
 import player_01 from "./assets/placeholder_player_01.png";
+import { GamepadManager } from "./input/GamePadManager";
 
 (async () => {
   const game: Application = new Application();
@@ -18,11 +19,13 @@ import player_01 from "./assets/placeholder_player_01.png";
   document.body.appendChild(game.canvas);
 
   const input: InputManager = new InputManager();
+  const gamepad: GamepadManager = new GamepadManager(input);
   const entities: Container = new Container();
   game.stage.addChild(entities);
 
   const playerTexture = await Assets.load(player_01);
   const source = playerTexture.source;
+  source.scaleMode = "nearest";
 
   const frames = {
     down: new Texture({
@@ -49,6 +52,7 @@ import player_01 from "./assets/placeholder_player_01.png";
   player.addTo(entities);
 
   game.ticker.add((ticker) => {
+    gamepad.update();
     player.update(ticker.deltaMS);
   });
 })();
