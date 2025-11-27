@@ -1,4 +1,3 @@
-// src/entities/Player.ts (versão corrigida e testada)
 import { Sprite, Texture } from "pixi.js";
 import { Entity } from "../core/Entity"; // ajusta o caminho conforme tua estrutura
 import { InputManager } from "../input/InputManager"; // ajusta o caminho
@@ -61,7 +60,7 @@ export class Player extends Entity {
     else if (angle < 292.5) this.currentDir = "up";
     else this.currentDir = "up_right";
 
-    // flip horizontal pros lados esquerdo
-    this.sprite.scale.x = this.currentDir.includes("left") ? 3 : -3;
+    // horizontal flip to true right
+    this.sprite.scale.x = this.currentDir === "right" ? -3 : 3;
   }
 }

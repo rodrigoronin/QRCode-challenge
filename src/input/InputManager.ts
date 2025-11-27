@@ -1,4 +1,3 @@
-// src/input/InputManager.ts
 export class InputManager {
   private static instance: InputManager;
   public static get() {
