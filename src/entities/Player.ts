@@ -42,14 +42,14 @@ export class Player extends Entity {
       this.updateDirection(move.x, move.y);
       this.sprite.texture = this.frames[`walk_${this.currentDir}`] ?? this.frames.walk_down;
     } else {
-      this.sprite.texture = this.frames[`idle_${this.currentDir}`] ?? this.frames.walk_down;
+      this.sprite.texture = this.frames[`idle_${this.currentDir}`] ?? this.frames.idle_down;
     }
 
     console.log(this.currentDir); // pra debug
   }
 
   private updateDirection(x: number, y: number) {
-    let angle = Math.atan2(y, x) * -(180 / Math.PI);
+    let angle = Math.atan2(y, x) * (180 / Math.PI);
     if (angle < 0) angle += 360; // 0-360, 0= right, 90=down, 180=left, 270=up
 
     if (angle < 22.5 || angle >= 337.5) this.currentDir = "right";

@@ -32,7 +32,11 @@ import player_01 from "./assets/placeholder_player_01.png";
 
     // walk (temp, reutiliza)
     walk_down: new Texture({ source, frame: new Rectangle(0, 0, 32, 32) }),
+    walk_down_left: new Texture({ source, frame: new Rectangle(0, 0, 32, 32) }),
+    walk_down_right: new Texture({ source, frame: new Rectangle(0, 0, 32, 32) }),
     walk_up: new Texture({ source, frame: new Rectangle(32, 0, 32, 32) }),
+    walk_up_left: new Texture({ source, frame: new Rectangle(32, 0, 32, 32) }),
+    walk_up_right: new Texture({ source, frame: new Rectangle(32, 0, 32, 32) }),
     walk_left: new Texture({ source, frame: new Rectangle(64, 0, 32, 32) }),
     walk_right: new Texture({ source, frame: new Rectangle(64, 0, 32, 32) }),
   };
