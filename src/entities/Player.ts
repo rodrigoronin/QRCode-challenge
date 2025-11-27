@@ -27,7 +27,7 @@ export class Player extends Entity {
 
     this.sprite = new Sprite(this.frames[Direction.Down]);
     this.sprite.anchor.set(0.5);
-    this.sprite.scale.set(2);
+    this.sprite.scale.set(3);
 
     this.container.addChild(this.sprite);
   }
@@ -61,7 +61,7 @@ export class Player extends Entity {
       // determines dominant direction
       if (Math.abs(vx) > Math.abs(vy)) {
         this.direction = vx > 0 ? Direction.Right : Direction.Left;
-      } else {
+      } else if (Math.abs(vx) < Math.abs(vy)) {
         this.direction = vy > 0 ? Direction.Down : Direction.Up;
       }
 
@@ -77,7 +77,7 @@ export class Player extends Entity {
 
     // flip horizontal frame
     if (this.direction === Direction.Right) {
-      this.sprite.scale.x = -2;
-    } else this.sprite.scale.x = 2;
+      this.sprite.scale.x = -3;
+    } else this.sprite.scale.x = 3;
   }
 }
