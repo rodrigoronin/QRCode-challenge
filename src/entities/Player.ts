@@ -1,30 +1,28 @@
 import { Sprite, Texture } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { InputManager } from "../input/InputManager";
+import { AnimationController } from "../core/AnimationController";
 
-type Direction8 =
-  | "down"
-  | "down_left"
-  | "down_right"
-  | "left"
-  | "right"
-  | "up"
-  | "up_left"
-  | "up_right";
+type Direction = "up" | "down" | "left" | "right";
 
 export class Player extends Entity {
   private sprite: Sprite;
   private speed = 180; // pixels/second
   private input = InputManager.get();
-  private currentDir: Direction8 = "down";
-  private frames: Record<string, Texture>;
+  private currentDir: Direction = "down";
+  private frames: Record<string, Texture[]>;
+  private anim: AnimationController;
 
-  constructor(frames: Record<string, Texture>) {
+  constructor(frames: Record<string, Texture[]>) {
     super();
     this.frames = frames;
-    this.sprite = new Sprite(this.frames.walk_down);
+
+    this.sprite = new Sprite(this.frames["idle_down"][0]);
     this.sprite.anchor.set(0.5);
     this.sprite.scale.set(3); // y positivo pra garantir
+    this.anim = new AnimationController(this.sprite);
+    this.setupAnimations();
+
     this.container.addChild(this.sprite);
   }
 
@@ -36,31 +34,30 @@ export class Player extends Entity {
     this.container.x += move.x * this.speed * deltaSec;
     this.container.y += move.y * this.speed * deltaSec;
 
-    // animation/direction
+    this.updateDirection(move);
+
     if (move.x !== 0 || move.y !== 0) {
-      this.updateDirection(move.x, move.y);
-      this.sprite.texture = this.frames[`walk_${this.currentDir}`] ?? this.frames.walk_down;
+      this.anim.play(`walk_${this.currentDir}`);
     } else {
-      this.sprite.texture = this.frames[`idle_${this.currentDir}`] ?? this.frames.idle_down;
+      this.anim.play(`idle_${this.currentDir}`);
     }
 
-    console.log(this.currentDir); // for debug
+    this.anim.update(deltaTime);
   }
 
-  private updateDirection(x: number, y: number) {
-    let angle = Math.atan2(y, x) * (180 / Math.PI);
-    if (angle < 0) angle += 360; // 0-360, 0= right, 90=down, 180=left, 270=up
+  setupAnimations() {
+    for (const key in this.frames) {
+      this.anim.addAnimation(key, this.frames[key]);
+    }
+  }
 
-    if (angle < 22.5 || angle >= 337.5) this.currentDir = "right";
-    else if (angle < 67.5) this.currentDir = "down_right";
-    else if (angle < 112.5) this.currentDir = "down";
-    else if (angle < 157.5) this.currentDir = "down_left";
-    else if (angle < 202.5) this.currentDir = "left";
-    else if (angle < 247.5) this.currentDir = "up_left";
-    else if (angle < 292.5) this.currentDir = "up";
-    else this.currentDir = "up_right";
-
-    // horizontal flip to true right
-    this.sprite.scale.x = this.currentDir === "right" ? -3 : 3;
+  private updateDirection(m: { x: number; y: number }) {
+    if (Math.abs(m.x) > Math.abs(m.y)) {
+      this.currentDir = m.x > 0 ? "right" : "left";
+    } else if (m.y !== 0) {
+      this.currentDir = m.y > 0 ? "down" : "up";
+    }
+    // horizontal flip
+    // s.sprite.scale.x = this.currentDir === "right" ? -3 : 3;
   }
 }

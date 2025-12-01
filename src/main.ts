@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Texture, Rectangle } from "pixi.js";
+import { Application, Assets, Container, Texture, Rectangle, TextureSource } from "pixi.js";
 import { Player } from "./entities/Player";
 
 import "./style.css";
@@ -12,7 +12,7 @@ import player_01 from "./assets/placeholder_player_01.png";
     width: 1280,
     height: 720,
     background: "#d2d2d2",
-    // resizeTo: window,
+    resizeTo: window,
   });
   document.body.appendChild(game.canvas);
 
@@ -23,23 +23,22 @@ import player_01 from "./assets/placeholder_player_01.png";
   const source = playerTexture.source;
   source.scaleMode = "nearest";
 
-  const frames = {
-    // idle
-    idle_down: new Texture({ source, frame: new Rectangle(0, 0, 32, 32) }),
-    idle_up: new Texture({ source, frame: new Rectangle(32, 0, 32, 32) }),
-    idle_left: new Texture({ source, frame: new Rectangle(64, 0, 32, 32) }),
-    idle_right: new Texture({ source, frame: new Rectangle(64, 0, 32, 32) }),
+  const frameSize: number = 32;
 
-    // walk (temp, reutiliza)
-    walk_down: new Texture({ source, frame: new Rectangle(0, 0, 32, 32) }),
-    walk_down_left: new Texture({ source, frame: new Rectangle(0, 0, 32, 32) }),
-    walk_down_right: new Texture({ source, frame: new Rectangle(0, 0, 32, 32) }),
-    walk_up: new Texture({ source, frame: new Rectangle(32, 0, 32, 32) }),
-    walk_up_left: new Texture({ source, frame: new Rectangle(32, 0, 32, 32) }),
-    walk_up_right: new Texture({ source, frame: new Rectangle(32, 0, 32, 32) }),
-    walk_left: new Texture({ source, frame: new Rectangle(64, 0, 32, 32) }),
-    walk_right: new Texture({ source, frame: new Rectangle(64, 0, 32, 32) }),
+  const frames = {
+    idle_down: frameSlicer(source, frameSize, 5, 0, true, 4, 14),
+    walk_down: frameSlicer(source, frameSize, 4, 2),
+
+    idle_up: frameSlicer(source, frameSize, 1, 3),
+    walk_up: frameSlicer(source, frameSize, 4, 3),
+
+    idle_left: frameSlicer(source, frameSize, 1, 1),
+    walk_left: frameSlicer(source, frameSize, 4, 1),
+
+    idle_right: frameSlicer(source, frameSize, 1, 1),
+    walk_right: frameSlicer(source, frameSize, 4, 1),
   };
+
   const player: Player = new Player(frames);
   player.container.x = game.screen.width / 2;
   player.container.y = game.screen.height / 2;
@@ -49,3 +48,43 @@ import player_01 from "./assets/placeholder_player_01.png";
     player.update(ticker.deltaMS);
   });
 })();
+
+// to help speed animations during MVP
+function frameSlicer(
+  s: TextureSource<any>,
+  frameSize: number,
+  frameCount: number,
+  startLine: number,
+  repeat: boolean = false,
+  frameToRepeat: number = 0,
+  timesToRepeat: number = 0
+): Texture[] {
+  const frames: Texture[] = [];
+
+  for (let i = 0; i < frameCount; i++) {
+    frames.push(
+      new Texture({
+        source: s,
+        frame: new Rectangle(i * frameSize, startLine * frameSize, frameSize, frameSize),
+      })
+    );
+
+    if (repeat && i === frameToRepeat) {
+      for (let j = 0; j <= timesToRepeat; j++) {
+        frames.push(
+          new Texture({
+            source: s,
+            frame: new Rectangle(
+              frameToRepeat * frameSize,
+              startLine * frameSize,
+              frameSize,
+              frameSize
+            ),
+          })
+        );
+      }
+    }
+  }
+
+  return frames;
+}
