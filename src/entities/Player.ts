@@ -1,4 +1,4 @@
-import { Sprite, Texture } from "pixi.js";
+import { Graphics, Point, Sprite, Texture } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
@@ -10,6 +10,7 @@ export class Player extends Entity {
   private sprite: Sprite;
   private speed = 180; // pixels/second
   private hitbox: Collider;
+  private hitboxDebug: Graphics;
   private input = InputManager.get();
   private currentDir: Direction = "down";
   private frames: Record<string, Texture[]>;
@@ -25,9 +26,11 @@ export class Player extends Entity {
     this.anim = new AnimationController(this.sprite);
     this.setupAnimations();
 
-    this.hitbox = new Collider({ width: 16, height: 15 });
+    this.hitbox = new Collider({ width: 16, height: 15, scale: this.sprite.scale.x });
+    this.hitboxDebug = new Graphics(); // For visual debug
 
     this.container.addChild(this.sprite);
+    this.container.addChild(this.hitboxDebug);
   }
 
   update(deltaTime: number) {
@@ -50,6 +53,8 @@ export class Player extends Entity {
     }
 
     this.anim.update(deltaTime);
+
+    this.drawDebug();
   }
 
   setupAnimations() {
@@ -66,5 +71,14 @@ export class Player extends Entity {
     }
     // horizontal flip
     // s.sprite.scale.x = this.currentDir === "right" ? -3 : 3;
+  }
+
+  private drawDebug() {
+    const { x, y, width, height } = this.hitbox.getBounds();
+    this.hitboxDebug.clear();
+    this.hitboxDebug
+      .rect(x - 22, y - 22, width, height)
+      .fill({ color: 0xff0000, alpha: 0.2 })
+      .stroke({ width: 1, color: 0xff0000 });
   }
 }
