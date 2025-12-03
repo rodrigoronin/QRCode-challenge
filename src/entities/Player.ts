@@ -2,12 +2,14 @@ import { Sprite, Texture } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
+import { Collider } from "../core/Collider";
 
 type Direction = "up" | "down" | "left" | "right";
 
 export class Player extends Entity {
   private sprite: Sprite;
   private speed = 180; // pixels/second
+  private hitbox: Collider;
   private input = InputManager.get();
   private currentDir: Direction = "down";
   private frames: Record<string, Texture[]>;
@@ -23,6 +25,8 @@ export class Player extends Entity {
     this.anim = new AnimationController(this.sprite);
     this.setupAnimations();
 
+    this.hitbox = new Collider({ width: 16, height: 15 });
+
     this.container.addChild(this.sprite);
   }
 
@@ -30,11 +34,14 @@ export class Player extends Entity {
     const deltaSec = deltaTime / 1000;
     const move = this.input.getMovementVector();
 
-    // moviment
+    // movement
     this.container.x += move.x * this.speed * deltaSec;
     this.container.y += move.y * this.speed * deltaSec;
 
     this.updateDirection(move);
+
+    // update player hitbox position
+    this.hitbox.updateFromEntity(this.container);
 
     if (move.x !== 0 || move.y !== 0) {
       this.anim.play(`walk_${this.currentDir}`);
