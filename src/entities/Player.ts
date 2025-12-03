@@ -1,4 +1,4 @@
-import { Graphics, Point, Sprite, Texture } from "pixi.js";
+import { Graphics, Sprite, Texture } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
@@ -16,6 +16,16 @@ export class Player extends Entity {
   private anim: AnimationController;
   private speed = 180; // pixels/second
 
+  // Dash variables
+  private isDashing: boolean = false;
+  private dashTime: number = 0;
+  // how many frames is the dash in millisecons (60 = 1 frame)
+  private dashDuration: number = 180;
+  private dashCooldown: number = 1000; // in milliseconds (1000 = 1 second)
+  private dashCooldownTimer: number = 0;
+  private dashSpeed: number;
+  private dashDirection = { x: 0, y: 0 };
+
   constructor(frames: Record<string, Texture[]>) {
     super();
     this.frames = frames;
@@ -29,6 +39,8 @@ export class Player extends Entity {
     this.hitbox = new Collider({ width: 15, height: 17, scale: this.sprite.scale.x });
     this.hitboxDebug = new Graphics(); // For visual debug
 
+    this.dashSpeed = this.speed * 3;
+
     this.container.addChild(this.sprite);
     this.container.addChild(this.hitboxDebug);
   }
@@ -36,6 +48,15 @@ export class Player extends Entity {
   update(deltaTime: number) {
     const deltaSec = deltaTime / 1000;
     const move = this.input.getMovementVector();
+
+    if (this.input.wasJustPressed("Space")) {
+      this.tryStartDash();
+    }
+
+    if (this.isDashing) {
+      this.updateDash(deltaTime);
+      return; // doesn't let the player move during dash
+    }
 
     // movement
     this.container.x += move.x * this.speed * deltaSec;
@@ -54,9 +75,9 @@ export class Player extends Entity {
 
     this.anim.update(deltaTime);
 
-    if (this.input.isPressed("ShiftLeft")) console.log("DASH: isPressed");
-    if (this.input.wasJustPressed("ShiftLeft")) console.log("DASH: wasJustPressed");
-    if (this.input.wasJustReleased("ShiftLeft")) console.log("DASH: wasJustReleased");
+    if (this.dashCooldownTimer > 0) {
+      this.dashCooldownTimer -= deltaTime;
+    }
 
     this.drawDebug();
   }
@@ -64,6 +85,32 @@ export class Player extends Entity {
   setupAnimations() {
     for (const key in this.frames) {
       this.anim.addAnimation(key, this.frames[key]);
+    }
+  }
+
+  tryStartDash() {
+    if (this.isDashing || this.dashCooldownTimer > 0) return;
+
+    this.dashDirection = this.input.getMovementVector();
+    this.isDashing = true;
+    this.dashTime = 0;
+
+    this.anim.play(`walk_${this.currentDir}`);
+
+    console.log(this.currentDir);
+  }
+
+  updateDash(deltaTime: number) {
+    const deltaSec = deltaTime / 1000;
+
+    this.container.x += this.dashDirection.x * this.dashSpeed * deltaSec;
+    this.container.y += this.dashDirection.y * this.dashSpeed * deltaSec;
+
+    this.dashTime += deltaTime;
+
+    if (this.dashTime >= this.dashDuration) {
+      this.isDashing = false;
+      this.dashCooldownTimer = this.dashCooldown;
     }
   }
 

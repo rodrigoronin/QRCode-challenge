@@ -37,8 +37,8 @@ import player_01 from "./assets/placeholder_player_01.png";
     idle_left: frameSlicer(source, frameSize, 1, 1),
     walk_left: frameSlicer(source, frameSize, 4, 1),
 
-    idle_right: frameSlicer(source, frameSize, 1, 1),
-    walk_right: frameSlicer(source, frameSize, 4, 1),
+    idle_right: frameSlicer(source, frameSize, 1, 4),
+    walk_right: frameSlicer(source, frameSize, 4, 4),
   };
 
   const player: Player = new Player(frames);
