@@ -1,4 +1,6 @@
 export class InputManager {
+  private buttons: Record<string, boolean> = {};
+  private prevButtons: Record<string, boolean> = {};
   private static instance: InputManager;
   public static get() {
     if (!this.instance) this.instance = new InputManager();
@@ -32,15 +34,21 @@ export class InputManager {
     };
 
     window.addEventListener("keydown", (e) => {
-      if (e.repeat) return;
       const v = map[e.code];
+
+      if (e.repeat) return;
+
       if (v) {
         this.keyboard.x += v.x;
         this.keyboard.y += v.y;
       }
+
+      this.buttons[e.code] = true;
     });
 
     window.addEventListener("keyup", (e) => {
+      this.buttons[e.code] = false;
+
       const v = map[e.code];
       if (v) {
         this.keyboard.x -= v.x;
@@ -53,6 +61,8 @@ export class InputManager {
     this.pollGamepad();
     this.combineSources();
     requestAnimationFrame(() => this.loop());
+
+    this.prevButtons = { ...this.buttons };
   }
 
   private pollGamepad() {
@@ -94,6 +104,22 @@ export class InputManager {
       this.movement.x = kmag > 0 ? kx / kmag : 0;
       this.movement.y = kmag > 0 ? ky / kmag : 0;
     }
+  }
+
+  isPressed(key: string) {
+    return !!this.buttons[key];
+  }
+
+  wasJustPressed(key: string): boolean {
+    const prev = !!this.prevButtons[key];
+    const cur = !!this.buttons[key];
+    return !prev && cur;
+  }
+
+  wasJustReleased(key: string) {
+    const prev = !!this.prevButtons[key];
+    const cur = !!this.buttons[key];
+    return prev && !cur;
   }
 
   // public API

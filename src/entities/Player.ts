@@ -15,13 +15,6 @@ export class Player extends Entity {
   private frames: Record<string, Texture[]>;
   private anim: AnimationController;
   private speed = 180; // pixels/second
-  // Dash variables
-  private isDashing: boolean;
-  private dashTime: number;
-  private dashDuration: number;
-  private dashCooldown: number;
-  private dashCooldownTime: number;
-  private dashDirection: number;
 
   constructor(frames: Record<string, Texture[]>) {
     super();
@@ -60,6 +53,10 @@ export class Player extends Entity {
     }
 
     this.anim.update(deltaTime);
+
+    if (this.input.isPressed("ShiftLeft")) console.log("DASH: isPressed");
+    if (this.input.wasJustPressed("ShiftLeft")) console.log("DASH: wasJustPressed");
+    if (this.input.wasJustReleased("ShiftLeft")) console.log("DASH: wasJustReleased");
 
     this.drawDebug();
   }
