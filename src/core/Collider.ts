@@ -1,26 +1,33 @@
-import type { Container } from "pixi.js";
+import { Point, type Container } from "pixi.js";
 
 interface ColliderParams {
   width: number;
   height: number;
   position?: { x: number; y: number };
+  scale?: number;
 }
 
 export class Collider {
   private width: number;
   private height: number;
   private position: { x: number; y: number };
+  private scale: number;
 
-  constructor({ width, height, position }: ColliderParams) {
+  constructor({ width, height, position, scale = 1 }: ColliderParams) {
     this.position = position ?? { x: 0, y: 0 };
-    this.width = width;
-    this.height = height;
+    this.scale = scale;
+    this.width = width * this.scale;
+    this.height = height * this.scale;
   }
 
   updateFromEntity(container: Container) {
     if (!container) return;
-    this.position.x = container.position.x;
-    this.position.y = container.position.y;
+
+    const entityPosition = container.getGlobalPosition();
+    const localPosition = container.toLocal(new Point(entityPosition.x, entityPosition.y));
+
+    this.position.x = localPosition.x;
+    this.position.y = localPosition.y;
   }
 
   getBounds() {
