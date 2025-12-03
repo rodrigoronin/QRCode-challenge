@@ -1,4 +1,4 @@
-import { Point, type Container } from "pixi.js";
+import { type Container } from "pixi.js";
 
 interface ColliderParams {
   width: number;
@@ -23,17 +23,16 @@ export class Collider {
   updateFromEntity(container: Container) {
     if (!container) return;
 
-    const entityPosition = container.getGlobalPosition();
-    const localPosition = container.toLocal(new Point(entityPosition.x, entityPosition.y));
+    const globalPos = container.getGlobalPosition();
 
-    this.position.x = localPosition.x;
-    this.position.y = localPosition.y;
+    this.position.x = globalPos.x;
+    this.position.y = globalPos.y;
   }
 
   getBounds() {
     return {
-      x: this.position.x,
-      y: this.position.y,
+      x: this.position.x - this.width / 2,
+      y: this.position.y - this.height / 2,
       width: this.width,
       height: this.height,
     };

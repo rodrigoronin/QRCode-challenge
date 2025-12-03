@@ -8,13 +8,20 @@ type Direction = "up" | "down" | "left" | "right";
 
 export class Player extends Entity {
   private sprite: Sprite;
-  private speed = 180; // pixels/second
   private hitbox: Collider;
   private hitboxDebug: Graphics;
   private input = InputManager.get();
   private currentDir: Direction = "down";
   private frames: Record<string, Texture[]>;
   private anim: AnimationController;
+  private speed = 180; // pixels/second
+  // Dash variables
+  private isDashing: boolean;
+  private dashTime: number;
+  private dashDuration: number;
+  private dashCooldown: number;
+  private dashCooldownTime: number;
+  private dashDirection: number;
 
   constructor(frames: Record<string, Texture[]>) {
     super();
@@ -26,7 +33,7 @@ export class Player extends Entity {
     this.anim = new AnimationController(this.sprite);
     this.setupAnimations();
 
-    this.hitbox = new Collider({ width: 16, height: 15, scale: this.sprite.scale.x });
+    this.hitbox = new Collider({ width: 15, height: 17, scale: this.sprite.scale.x });
     this.hitboxDebug = new Graphics(); // For visual debug
 
     this.container.addChild(this.sprite);
@@ -75,9 +82,10 @@ export class Player extends Entity {
 
   private drawDebug() {
     const { x, y, width, height } = this.hitbox.getBounds();
+    const localPos = this.container.toLocal({ x, y });
     this.hitboxDebug.clear();
     this.hitboxDebug
-      .rect(x - 22, y - 22, width, height)
+      .rect(localPos.x, localPos.y, width, height)
       .fill({ color: 0xff0000, alpha: 0.2 })
       .stroke({ width: 1, color: 0xff0000 });
   }
