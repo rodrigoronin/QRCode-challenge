@@ -5,6 +5,7 @@ import "./style.css";
 
 // Assets
 import player_01 from "./assets/placeholder_player_01.png";
+import { WorldCollider } from "./core/WordlCollider";
 
 (async () => {
   const game: Application = new Application();
@@ -45,6 +46,17 @@ import player_01 from "./assets/placeholder_player_01.png";
   player.container.x = game.screen.width / 2;
   player.container.y = game.screen.height / 2;
   player.addTo(entities);
+
+  const wall = new WorldCollider({
+    posX: 200,
+    posY: 200,
+    width: 32 * 3,
+    height: 32 * 3,
+  });
+
+  player.setWorldColliders([wall]);
+
+  game.stage.addChild(wall.container);
 
   game.ticker.add((ticker) => {
     player.update(ticker.deltaMS);
