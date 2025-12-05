@@ -3,6 +3,7 @@ import { Entity } from "../core/Entity";
 import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
 import { Collider } from "../core/Collider";
+import type { WorldCollider } from "../core/WordlCollider";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -15,6 +16,7 @@ export class Player extends Entity {
   private frames: Record<string, Texture[]>;
   private anim: AnimationController;
   private speed = 180; // pixels/second
+  private worldColliders: WorldCollider[] = [];
 
   // Dash variables
   private isDashing: boolean = false;
@@ -59,8 +61,19 @@ export class Player extends Entity {
     }
 
     // movement
-    this.container.x += move.x * this.speed * deltaSec;
-    this.container.y += move.y * this.speed * deltaSec;
+    const futureX = this.container.x + move.x * this.speed * deltaSec;
+    const futureY = this.container.y + move.y * this.speed * deltaSec;
+
+    const hit = this.checkCollisions(futureX, futureY);
+
+    if (!hit) {
+      this.container.x = futureX;
+      this.container.y = futureY;
+    } else {
+      this.isDashing = false;
+      this.dashCooldownTimer = this.dashCooldown;
+      return;
+    }
 
     this.updateDirection(move);
 
@@ -96,8 +109,6 @@ export class Player extends Entity {
     this.dashTime = 0;
 
     this.anim.play(`walk_${this.currentDir}`);
-
-    console.log(this.currentDir);
   }
 
   updateDash(deltaTime: number) {
@@ -112,6 +123,32 @@ export class Player extends Entity {
       this.isDashing = false;
       this.dashCooldownTimer = this.dashCooldown;
     }
+  }
+
+  setWorldColliders(list: WorldCollider[]) {
+    this.worldColliders = list;
+  }
+
+  private checkCollisions(newX: number, newY: number): WorldCollider | null {
+    const { width: hitboxWidth, height: hitboxHeight } = this.hitbox.getBounds();
+    const offsetX = hitboxWidth / 2;
+    const offsetY = hitboxHeight / 2;
+
+    for (const wall of this.worldColliders) {
+      const bounds = wall.getBounds();
+
+      if (
+        newX + offsetX > bounds.x &&
+        newY + offsetY > bounds.y &&
+        newX - offsetX < bounds.x + bounds.width &&
+        newY - offsetY < bounds.y + bounds.height
+      ) {
+        console.log("hit");
+        return this.worldColliders[0];
+      }
+    }
+
+    return null;
   }
 
   private updateDirection(m: { x: number; y: number }) {
