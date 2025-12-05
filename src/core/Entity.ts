@@ -7,7 +7,7 @@ export abstract class Entity {
     this.container = new Container();
   }
 
-  update(deltaTime: number): void {}
+  update(_deltaTime: number): void {}
 
   addTo(parent: Container): void {
     parent.addChild(this.container);
