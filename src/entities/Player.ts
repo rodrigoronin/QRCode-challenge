@@ -41,7 +41,7 @@ export class Player extends Entity {
     this.hitbox = new Collider({ width: 15, height: 17, scale: this.sprite.scale.x });
     this.hitboxDebug = new Graphics(); // For visual debug
 
-    this.dashSpeed = this.speed * 3;
+    this.dashSpeed = this.speed * 6;
 
     this.container.addChild(this.sprite);
     this.container.addChild(this.hitboxDebug);
@@ -64,6 +64,7 @@ export class Player extends Entity {
     const futureX = this.container.x + move.x * this.speed * deltaSec;
     const futureY = this.container.y + move.y * this.speed * deltaSec;
 
+    // checking the axis isolated enable player do slide on walls
     if (!this.checkCollisions(futureX, this.container.y)) {
       this.container.x = futureX;
     }
