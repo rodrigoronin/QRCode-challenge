@@ -1,11 +1,11 @@
 import { Application, Assets, Container, Texture, Rectangle, TextureSource } from "pixi.js";
 import { Player } from "./entities/Player";
+import { WorldCollider } from "./core/WordlCollider";
 
 import "./style.css";
 
 // Assets
 import player_01 from "./assets/placeholder_player_01.png";
-import { WorldCollider } from "./core/WordlCollider";
 
 (async () => {
   const game: Application = new Application();
@@ -17,8 +17,7 @@ import { WorldCollider } from "./core/WordlCollider";
   });
   document.body.appendChild(game.canvas);
 
-  const entities: Container = new Container();
-  game.stage.addChild(entities);
+  const camera: Container = new Container();
 
   const playerTexture = await Assets.load(player_01);
   const source = playerTexture.source;
@@ -43,9 +42,8 @@ import { WorldCollider } from "./core/WordlCollider";
   };
 
   const player: Player = new Player(frames);
-  player.container.x = game.screen.width / 2;
-  player.container.y = game.screen.height / 2;
-  player.addTo(entities);
+  player.container.x = 640;
+  player.container.y = 360;
 
   const wall = new WorldCollider({
     posX: 200,
@@ -56,10 +54,14 @@ import { WorldCollider } from "./core/WordlCollider";
 
   player.setWorldColliders([wall]);
 
-  game.stage.addChild(wall.container);
+  camera.addChild(player.container, wall.container);
+  game.stage.addChild(camera);
 
   game.ticker.add((ticker) => {
     player.update(ticker.deltaMS);
+
+    camera.x = -player.container.x + game.screen.width / 2;
+    camera.y = -player.container.y + game.screen.height / 2;
   });
 })();
 
