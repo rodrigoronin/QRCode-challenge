@@ -1,4 +1,5 @@
 import { type Container } from "pixi.js";
+import * as Constants from "../utils/Constants";
 
 interface ColliderParams {
   width: number;
@@ -13,7 +14,7 @@ export class Collider {
   private position: { x: number; y: number };
   private scale: number;
 
-  constructor({ width, height, position, scale = 1 }: ColliderParams) {
+  constructor({ width, height, position, scale = Constants.SCALE_FACTOR }: ColliderParams) {
     this.position = position ?? { x: 0, y: 0 };
     this.scale = scale;
     this.width = width * this.scale;

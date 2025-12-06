@@ -4,6 +4,7 @@ import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
 import { Collider } from "../core/Collider";
 import type { WorldCollider } from "../core/WordlCollider";
+import * as Constants from "../utils/Constants";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -34,11 +35,11 @@ export class Player extends Entity {
 
     this.sprite = new Sprite(this.frames["idle_down"][0]);
     this.sprite.anchor.set(0.5);
-    this.sprite.scale.set(3); // y positivo pra garantir
+    this.sprite.scale.set(Constants.SCALE_FACTOR);
     this.anim = new AnimationController(this.sprite);
     this.setupAnimations();
 
-    this.hitbox = new Collider({ width: 15, height: 17, scale: this.sprite.scale.x });
+    this.hitbox = new Collider({ width: 15, height: 17 });
     this.hitboxDebug = new Graphics(); // For visual debug
 
     this.dashSpeed = this.speed * 6;
@@ -163,8 +164,6 @@ export class Player extends Entity {
     } else if (m.y !== 0) {
       this.currentDir = m.y > 0 ? "down" : "up";
     }
-    // horizontal flip
-    // s.sprite.scale.x = this.currentDir === "right" ? -3 : 3;
   }
 
   private drawDebug() {
