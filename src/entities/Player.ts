@@ -64,15 +64,11 @@ export class Player extends Entity {
     const futureX = this.container.x + move.x * this.speed * deltaSec;
     const futureY = this.container.y + move.y * this.speed * deltaSec;
 
-    const hit = this.checkCollisions(futureX, futureY);
-
-    if (!hit) {
+    if (!this.checkCollisions(futureX, this.container.y)) {
       this.container.x = futureX;
+    }
+    if (!this.checkCollisions(this.container.x, futureY)) {
       this.container.y = futureY;
-    } else {
-      this.isDashing = false;
-      this.dashCooldownTimer = this.dashCooldown;
-      return;
     }
 
     this.updateDirection(move);
@@ -114,8 +110,18 @@ export class Player extends Entity {
   updateDash(deltaTime: number) {
     const deltaSec = deltaTime / 1000;
 
-    this.container.x += this.dashDirection.x * this.dashSpeed * deltaSec;
-    this.container.y += this.dashDirection.y * this.dashSpeed * deltaSec;
+    const futureX = this.container.x + this.dashDirection.x * this.dashSpeed * deltaSec;
+    const futureY = this.container.y + this.dashDirection.y * this.dashSpeed * deltaSec;
+
+    const hit = this.checkCollisions(futureX, futureY);
+
+    if (!hit) {
+      this.container.x = futureX;
+      this.container.y = futureY;
+    } else {
+      this.isDashing = false;
+      this.dashCooldownTimer = this.dashCooldown;
+    }
 
     this.dashTime += deltaTime;
 
@@ -143,8 +149,7 @@ export class Player extends Entity {
         newX - offsetX < bounds.x + bounds.width &&
         newY - offsetY < bounds.y + bounds.height
       ) {
-        console.log("hit");
-        return this.worldColliders[0];
+        return wall;
       }
     }
 
