@@ -8,24 +8,20 @@ interface WorldColliderProps {
 }
 
 export class WorldCollider {
-  private posX: number;
-  private posY: number;
   private width: number;
   private height: number;
   private debugGraphics: Graphics;
   public container: Container;
 
   constructor({ posX, posY, width, height }: WorldColliderProps) {
-    this.posX = posX;
-    this.posY = posY;
     this.width = width;
     this.height = height;
 
     this.container = new Container();
-    this.debugGraphics = new Graphics();
+    this.container.x = posX;
+    this.container.y = posY;
 
-    this.container.x = this.posX;
-    this.container.y = this.posY;
+    this.debugGraphics = new Graphics();
 
     this.container.addChild(this.debugGraphics);
     this.drawDebug();
@@ -33,8 +29,8 @@ export class WorldCollider {
 
   getBounds() {
     return {
-      x: this.posX,
-      y: this.posY,
+      x: this.container.x,
+      y: this.container.y,
       width: this.width,
       height: this.height,
     };
