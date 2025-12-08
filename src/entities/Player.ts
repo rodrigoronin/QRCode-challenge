@@ -3,6 +3,7 @@ import { Entity } from "../core/Entity";
 import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
 import { Collider } from "../core/Collider";
+import { AttackCollider } from "../core/AttackCollider";
 import type { WorldCollider } from "../core/WordlCollider";
 import * as Constants from "../utils/Constants";
 
@@ -28,6 +29,8 @@ export class Player extends Entity {
   private dashCooldownTimer: number = 0;
   private dashSpeed: number;
   private dashDirection = { x: 0, y: 0 };
+  // attack
+  private attackCollider: AttackCollider | null = null;
 
   constructor(frames: Record<string, Texture[]>) {
     super();
@@ -42,6 +45,12 @@ export class Player extends Entity {
     this.hitbox = new Collider({ width: 15, height: 17 });
     this.hitboxDebug = new Graphics(); // For visual debug
 
+    this.attackCollider = new AttackCollider({
+      width: 12 * Constants.SCALE_FACTOR,
+      height: 12 * Constants.SCALE_FACTOR,
+      duration: 0.2,
+    });
+
     this.dashSpeed = this.speed * 6;
 
     this.container.addChild(this.sprite);
@@ -54,6 +63,10 @@ export class Player extends Entity {
 
     if (this.input.wasJustPressed("Space")) {
       this.tryStartDash();
+    }
+
+    if (!this.isDashing && this.input.wasJustPressed("KeyJ")) {
+      this.basicAttack();
     }
 
     if (this.isDashing) {
@@ -89,6 +102,11 @@ export class Player extends Entity {
     if (this.dashCooldownTimer > 0) {
       this.dashCooldownTimer -= deltaTime;
     }
+
+    this.attackCollider?.updatePosition(this.container);
+    this.attackCollider?.update(deltaSec);
+    this.container.addChild(this.attackCollider?.debugGraphics);
+    this.attackCollider?.drawDebug();
 
     this.drawDebug();
   }
@@ -164,6 +182,14 @@ export class Player extends Entity {
     } else if (m.y !== 0) {
       this.currentDir = m.y > 0 ? "down" : "up";
     }
+  }
+
+  private basicAttack() {
+    console.log("is attacking");
+
+    if (this.attackCollider?.active) return;
+
+    this.attackCollider?.activate(this.currentDir);
   }
 
   private drawDebug() {

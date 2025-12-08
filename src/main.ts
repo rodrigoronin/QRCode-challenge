@@ -8,6 +8,7 @@ import "./style.css";
 // Assets
 import player_01 from "./assets/placeholder_player_01.png";
 import mockup_map from "./assets/map_1024x1024.png";
+import map_01_colliders from "./assets/maps/mock_map_01.json";
 
 (async () => {
   const game: Application = new Application();
@@ -16,6 +17,7 @@ import mockup_map from "./assets/map_1024x1024.png";
     height: Constants.VIEWPORT_HEIGHT,
     background: "#d2d2d2",
     // resizeTo: window,
+    resolution: 16 / 9,
   });
   document.body.appendChild(game.canvas);
 
@@ -54,34 +56,12 @@ import mockup_map from "./assets/map_1024x1024.png";
     })
   );
 
-  const walls = createWalls(4, [
-    {
-      x: 789,
-      y: 320,
-      width: 28,
-      height: 16,
-    },
-    {
-      x: 755,
-      y: 355,
-      width: 12,
-      height: 12,
-    },
-    {
-      x: 320,
-      y: 355,
-      width: 28,
-      height: 16,
-    },
-    {
-      x: 388,
-      y: 388,
-      width: 12,
-      height: 12,
-    },
-  ]);
+  const colliders: { x: number; y: number; width: number; height: number }[] =
+    map_01_colliders.colliders;
 
-  player.setWorldColliders(walls);
+  const walls = createWalls(colliders);
+
+  player.setWorldColliders(walls ?? []);
 
   game.stage.addChild(camera);
   camera.addChild(world);
@@ -91,8 +71,15 @@ import mockup_map from "./assets/map_1024x1024.png";
   game.ticker.add((ticker) => {
     player.update(ticker.deltaMS);
 
-    camera.x = -player.container.x + Constants.VIEWPORT_WIDTH / 2;
-    camera.y = -player.container.y + Constants.VIEWPORT_HEIGHT / 2;
+    const canMinX = -(map.width - Constants.VIEWPORT_WIDTH);
+    const canMaxX = 0;
+
+    camera.x = clamp(-player.container.x + Constants.VIEWPORT_WIDTH / 2, canMinX, canMaxX);
+
+    const canMinY = -(map.height - Constants.VIEWPORT_HEIGHT);
+    const canMaxY = 0;
+
+    camera.y = clamp(-player.container.y + Constants.VIEWPORT_HEIGHT / 2, canMinY, canMaxY);
   });
 })();
 
@@ -125,22 +112,23 @@ async function assetLoader(texture: any): Promise<TextureSource<any>> {
   return source;
 }
 
-function createWalls(
-  amount: number,
-  transform: { x: number; y: number; width: number; height: number }[]
-) {
+function createWalls(transform: { x: number; y: number; width: number; height: number }[]) {
   const wallList: WorldCollider[] = [];
 
-  for (let i = 0; i < amount; i++) {
+  for (const col of transform) {
     wallList.push(
       new WorldCollider({
-        posX: transform[i]?.x,
-        posY: transform[i]?.y,
-        width: transform[i].width * Constants.SCALE_FACTOR,
-        height: transform[i].height * Constants.SCALE_FACTOR,
+        posX: col.x,
+        posY: col.y,
+        width: col.width * Constants.SCALE_FACTOR,
+        height: col.height * Constants.SCALE_FACTOR,
       })
     );
   }
 
   return wallList;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
 }

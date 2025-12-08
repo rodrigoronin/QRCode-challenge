@@ -38,3 +38,6 @@ target/
 # Env files
 .env
 .env.*
+
+# Project
+all-scripts.txt
