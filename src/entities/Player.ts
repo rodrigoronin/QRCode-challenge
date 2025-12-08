@@ -3,7 +3,9 @@ import { Entity } from "../core/Entity";
 import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
 import { Collider } from "../core/Collider";
+import { AttackCollider } from "../core/AttackCollider";
 import type { WorldCollider } from "../core/WordlCollider";
+import * as Constants from "../utils/Constants";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -27,6 +29,8 @@ export class Player extends Entity {
   private dashCooldownTimer: number = 0;
   private dashSpeed: number;
   private dashDirection = { x: 0, y: 0 };
+  // attack
+  private attackCollider: AttackCollider | null = null;
 
   constructor(frames: Record<string, Texture[]>) {
     super();
@@ -34,14 +38,20 @@ export class Player extends Entity {
 
     this.sprite = new Sprite(this.frames["idle_down"][0]);
     this.sprite.anchor.set(0.5);
-    this.sprite.scale.set(3); // y positivo pra garantir
+    this.sprite.scale.set(Constants.SCALE_FACTOR);
     this.anim = new AnimationController(this.sprite);
     this.setupAnimations();
 
-    this.hitbox = new Collider({ width: 15, height: 17, scale: this.sprite.scale.x });
+    this.hitbox = new Collider({ width: 15, height: 17 });
     this.hitboxDebug = new Graphics(); // For visual debug
 
-    this.dashSpeed = this.speed * 3;
+    this.attackCollider = new AttackCollider({
+      width: 12 * Constants.SCALE_FACTOR,
+      height: 12 * Constants.SCALE_FACTOR,
+      duration: 0.2,
+    });
+
+    this.dashSpeed = this.speed * 6;
 
     this.container.addChild(this.sprite);
     this.container.addChild(this.hitboxDebug);
@@ -55,6 +65,10 @@ export class Player extends Entity {
       this.tryStartDash();
     }
 
+    if (!this.isDashing && this.input.wasJustPressed("KeyJ")) {
+      this.basicAttack();
+    }
+
     if (this.isDashing) {
       this.updateDash(deltaTime);
       return; // doesn't let the player move during dash
@@ -64,15 +78,12 @@ export class Player extends Entity {
     const futureX = this.container.x + move.x * this.speed * deltaSec;
     const futureY = this.container.y + move.y * this.speed * deltaSec;
 
-    const hit = this.checkCollisions(futureX, futureY);
-
-    if (!hit) {
+    // checking the axis isolated enable player do slide on walls
+    if (!this.checkCollisions(futureX, this.container.y)) {
       this.container.x = futureX;
+    }
+    if (!this.checkCollisions(this.container.x, futureY)) {
       this.container.y = futureY;
-    } else {
-      this.isDashing = false;
-      this.dashCooldownTimer = this.dashCooldown;
-      return;
     }
 
     this.updateDirection(move);
@@ -91,6 +102,11 @@ export class Player extends Entity {
     if (this.dashCooldownTimer > 0) {
       this.dashCooldownTimer -= deltaTime;
     }
+
+    this.attackCollider?.updatePosition(this.container);
+    this.attackCollider?.update(deltaSec);
+    this.container.addChild(this.attackCollider?.debugGraphics);
+    this.attackCollider?.drawDebug();
 
     this.drawDebug();
   }
@@ -114,8 +130,18 @@ export class Player extends Entity {
   updateDash(deltaTime: number) {
     const deltaSec = deltaTime / 1000;
 
-    this.container.x += this.dashDirection.x * this.dashSpeed * deltaSec;
-    this.container.y += this.dashDirection.y * this.dashSpeed * deltaSec;
+    const futureX = this.container.x + this.dashDirection.x * this.dashSpeed * deltaSec;
+    const futureY = this.container.y + this.dashDirection.y * this.dashSpeed * deltaSec;
+
+    const hit = this.checkCollisions(futureX, futureY);
+
+    if (!hit) {
+      this.container.x = futureX;
+      this.container.y = futureY;
+    } else {
+      this.isDashing = false;
+      this.dashCooldownTimer = this.dashCooldown;
+    }
 
     this.dashTime += deltaTime;
 
@@ -143,8 +169,7 @@ export class Player extends Entity {
         newX - offsetX < bounds.x + bounds.width &&
         newY - offsetY < bounds.y + bounds.height
       ) {
-        console.log("hit");
-        return this.worldColliders[0];
+        return wall;
       }
     }
 
@@ -157,8 +182,14 @@ export class Player extends Entity {
     } else if (m.y !== 0) {
       this.currentDir = m.y > 0 ? "down" : "up";
     }
-    // horizontal flip
-    // s.sprite.scale.x = this.currentDir === "right" ? -3 : 3;
+  }
+
+  private basicAttack() {
+    console.log("is attacking");
+
+    if (this.attackCollider?.active) return;
+
+    this.attackCollider?.activate(this.currentDir);
   }
 
   private drawDebug() {
