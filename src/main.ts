@@ -1,6 +1,6 @@
 import { Application, Assets, Container, Texture, Rectangle, TextureSource, Sprite } from "pixi.js";
 import { Player } from "./entities/Player";
-import { WorldCollider } from "./core/WordlCollider";
+import { WorldCollider } from "./core/WorldCollider";
 import * as Constants from "./utils/Constants";
 
 import "./style.css";

@@ -4,7 +4,7 @@ import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
 import { Collider } from "../core/Collider";
 import { AttackCollider } from "../core/AttackCollider";
-import type { WorldCollider } from "../core/WordlCollider";
+import type { WorldCollider } from "../core/WorldCollider";
 import * as Constants from "../utils/Constants";
 
 type Direction = "up" | "down" | "left" | "right";
