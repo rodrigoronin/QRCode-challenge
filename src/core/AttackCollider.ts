@@ -1,11 +1,5 @@
 import { Container, Graphics } from "pixi.js";
 
-interface AttackColliderProps {
-  width: number;
-  height: number;
-  duration: number;
-}
-
 export class AttackCollider {
   private width: number;
   private height: number;
@@ -14,9 +8,10 @@ export class AttackCollider {
   public active: boolean;
   private duration: number;
   private timer: number;
+  private container: Container;
   debugGraphics: Graphics;
 
-  constructor({ width, height, duration }: AttackColliderProps) {
+  constructor(width: number, height: number, duration: number, container: Container) {
     this.width = width;
     this.height = height;
     this.duration = duration;
@@ -24,6 +19,8 @@ export class AttackCollider {
     this.timer = 0;
     this.offsetX = 0;
     this.offsetY = 0;
+
+    this.container = container;
 
     this.debugGraphics = new Graphics();
   }
@@ -33,12 +30,17 @@ export class AttackCollider {
 
     this.timer -= delta;
 
-    console.log(this.timer);
-
     if (this.timer <= 0) this.deactivate();
   }
 
+  attachTo(container: Container) {
+    if (this.debugGraphics.parent === container) return;
+    container.addChild(this.debugGraphics);
+  }
+
   activate(direction: string) {
+    if (!this.debugGraphics.parent) this.attachTo(this.container);
+
     this.active = true;
     this.timer = this.duration;
 
@@ -70,9 +72,10 @@ export class AttackCollider {
     this.offsetY = 0;
 
     this.debugGraphics.clear();
+    if (this.debugGraphics.parent) this.debugGraphics.parent.removeChild(this.debugGraphics);
   }
 
-  updatePosition(playerContainer: Container) {
+  updatePosition() {
     if (!this.active) return;
 
     this.debugGraphics.x = this.offsetX;

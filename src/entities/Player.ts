@@ -4,28 +4,28 @@ import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
 import { Collider } from "../core/Collider";
 import { AttackCollider } from "../core/AttackCollider";
-import type { WorldCollider } from "../core/WordlCollider";
 import * as Constants from "../utils/Constants";
+import { CollisionManager } from "../core/CollisionManager";
 
 type Direction = "up" | "down" | "left" | "right";
 
 export class Player extends Entity {
   private sprite: Sprite;
   private hitbox: Collider;
-  private hitboxDebug: Graphics;
+  // private hitboxDebug: Graphics;
   private input = InputManager.get();
   private currentDir: Direction = "down";
   private frames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private speed = 180; // pixels/second
-  private worldColliders: WorldCollider[] = [];
+  private speed = 150; // pixels/second
 
   // Dash variables
   private isDashing: boolean = false;
+  private dashDistance: number = 150;
   private dashTime: number = 0;
   // how many frames is the dash in millisecons (60 = 1 frame)
   private dashDuration: number = 180;
-  private dashCooldown: number = 1000; // in milliseconds (1000 = 1 second)
+  private dashCooldown: number = 500; // in milliseconds (1000 = 1 second)
   private dashCooldownTimer: number = 0;
   private dashSpeed: number;
   private dashDirection = { x: 0, y: 0 };
@@ -42,19 +42,23 @@ export class Player extends Entity {
     this.anim = new AnimationController(this.sprite);
     this.setupAnimations();
 
-    this.hitbox = new Collider({ width: 15, height: 17 });
-    this.hitboxDebug = new Graphics(); // For visual debug
+    // Can be used for visual debugging the player sprite
+    // this.hitboxDebug = new Graphics();
 
-    this.attackCollider = new AttackCollider({
-      width: 12 * Constants.SCALE_FACTOR,
-      height: 12 * Constants.SCALE_FACTOR,
-      duration: 0.2,
-    });
+    this.attackCollider = new AttackCollider(
+      12 * Constants.SCALE_FACTOR,
+      12 * Constants.SCALE_FACTOR,
+      1, // TODO: change from seconds to milliseconds
+      this.container
+    );
 
-    this.dashSpeed = this.speed * 6;
+    this.dashSpeed = this.dashDistance / (this.dashDuration / 1000);
 
     this.container.addChild(this.sprite);
-    this.container.addChild(this.hitboxDebug);
+
+    // Create the Collider last so the debugDraw appears over the player
+    this.hitbox = new Collider(15, 17, this.container);
+    CollisionManager.addEntityCollider(this.hitbox);
   }
 
   update(deltaTime: number) {
@@ -71,6 +75,7 @@ export class Player extends Entity {
 
     if (this.isDashing) {
       this.updateDash(deltaTime);
+      this.anim.play(`dash_${this.currentDir}`);
       return; // doesn't let the player move during dash
     }
 
@@ -79,17 +84,14 @@ export class Player extends Entity {
     const futureY = this.container.y + move.y * this.speed * deltaSec;
 
     // checking the axis isolated enable player do slide on walls
-    if (!this.checkCollisions(futureX, this.container.y)) {
+    if (CollisionManager.canMove(this.hitbox, futureX, this.container.y)) {
       this.container.x = futureX;
     }
-    if (!this.checkCollisions(this.container.x, futureY)) {
+    if (CollisionManager.canMove(this.hitbox, this.container.x, futureY)) {
       this.container.y = futureY;
     }
 
     this.updateDirection(move);
-
-    // update player hitbox position
-    this.hitbox.updateFromEntity(this.container);
 
     if (move.x !== 0 || move.y !== 0) {
       this.anim.play(`walk_${this.currentDir}`);
@@ -103,12 +105,14 @@ export class Player extends Entity {
       this.dashCooldownTimer -= deltaTime;
     }
 
-    this.attackCollider?.updatePosition(this.container);
-    this.attackCollider?.update(deltaSec);
-    this.container.addChild(this.attackCollider?.debugGraphics);
-    this.attackCollider?.drawDebug();
+    // Adds the AttackCollider to player container if attacking, remove if not
+    if (this.attackCollider?.active) {
+      this.attackCollider?.updatePosition();
+      this.attackCollider?.update(deltaSec);
+      this.attackCollider?.drawDebug();
+    }
 
-    this.drawDebug();
+    this.hitbox.drawDebug();
   }
 
   setupAnimations() {
@@ -121,6 +125,32 @@ export class Player extends Entity {
     if (this.isDashing || this.dashCooldownTimer > 0) return;
 
     this.dashDirection = this.input.getMovementVector();
+
+    // Dashing while idle
+    if (this.dashDirection.x === 0 && this.dashDirection.y === 0) {
+      switch (this.currentDir) {
+        case "up":
+          this.dashDirection = { x: 0, y: -1 };
+          break;
+        case "down":
+          this.dashDirection = { x: 0, y: 1 };
+          break;
+        case "left":
+          this.dashDirection = { x: -1, y: 0 };
+          break;
+        case "right":
+          this.dashDirection = { x: 1, y: 0 };
+          break;
+      }
+    }
+
+    // Dash direction normalized
+    const mag = Math.hypot(this.dashDirection.x, this.dashDirection.y);
+    if (mag > 0) {
+      this.dashDirection.x /= mag;
+      this.dashDirection.y /= mag;
+    }
+
     this.isDashing = true;
     this.dashTime = 0;
 
@@ -133,9 +163,9 @@ export class Player extends Entity {
     const futureX = this.container.x + this.dashDirection.x * this.dashSpeed * deltaSec;
     const futureY = this.container.y + this.dashDirection.y * this.dashSpeed * deltaSec;
 
-    const hit = this.checkCollisions(futureX, futureY);
+    const hit = CollisionManager.canMove(this.hitbox, futureX, futureY);
 
-    if (!hit) {
+    if (hit) {
       this.container.x = futureX;
       this.container.y = futureY;
     } else {
@@ -149,31 +179,6 @@ export class Player extends Entity {
       this.isDashing = false;
       this.dashCooldownTimer = this.dashCooldown;
     }
-  }
-
-  setWorldColliders(list: WorldCollider[]) {
-    this.worldColliders = list;
-  }
-
-  private checkCollisions(newX: number, newY: number): WorldCollider | null {
-    const { width: hitboxWidth, height: hitboxHeight } = this.hitbox.getBounds();
-    const offsetX = hitboxWidth / 2;
-    const offsetY = hitboxHeight / 2;
-
-    for (const wall of this.worldColliders) {
-      const bounds = wall.getBounds();
-
-      if (
-        newX + offsetX > bounds.x &&
-        newY + offsetY > bounds.y &&
-        newX - offsetX < bounds.x + bounds.width &&
-        newY - offsetY < bounds.y + bounds.height
-      ) {
-        return wall;
-      }
-    }
-
-    return null;
   }
 
   private updateDirection(m: { x: number; y: number }) {
@@ -192,13 +197,16 @@ export class Player extends Entity {
     this.attackCollider?.activate(this.currentDir);
   }
 
-  private drawDebug() {
-    const { x, y, width, height } = this.hitbox.getBounds();
-    const localPos = this.container.toLocal({ x, y });
-    this.hitboxDebug.clear();
-    this.hitboxDebug
-      .rect(localPos.x, localPos.y, width, height)
-      .fill({ color: 0xff0000, alpha: 0.2 })
-      .stroke({ width: 1, color: 0xff0000 });
-  }
+  // private drawDebug() {
+  //   const { width, height } = this.hitbox.getBounds(this.container);
+
+  //   const x = -width / 2;
+  //   const y = -height / 2;
+
+  //   this.hitboxDebug.clear();
+  //   this.hitboxDebug
+  //     .rect(x, y, width, height)
+  //     .fill({ color: 0x00ff00, alpha: 0.2 })
+  //     .stroke({ width: 1, color: 0x00ff00 });
+  // }
 }

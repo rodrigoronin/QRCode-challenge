@@ -1,14 +1,15 @@
 import { Application, Assets, Container, Texture, Rectangle, TextureSource, Sprite } from "pixi.js";
 import { Player } from "./entities/Player";
-import { WorldCollider } from "./core/WordlCollider";
+import { WorldCollider } from "./core/WorldCollider";
 import * as Constants from "./utils/Constants";
 
 import "./style.css";
 
 // Assets
-import player_01 from "./assets/placeholder_player_01.png";
-import mockup_map from "./assets/map_1024x1024.png";
+import player_01 from "./assets/_player_01.png";
+import mockup_map from "./assets/_map_1024x1024.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
+import { CollisionManager } from "./core/CollisionManager";
 
 (async () => {
   const game: Application = new Application();
@@ -21,28 +22,32 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
   });
   document.body.appendChild(game.canvas);
 
+  const assets = await assetLoader([player_01, mockup_map]);
+
   const world: Container = new Container();
   const camera: Container = new Container();
-
-  const mapTexture = await assetLoader(mockup_map);
-  const playerTexture = await assetLoader(player_01);
 
   const frameSize: number = 32;
 
   // Current player animations spritesheet has:
   // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
   const frames = {
-    idle_down: frameSlicer(playerTexture, frameSize, 5, 0),
-    walk_down: frameSlicer(playerTexture, frameSize, 4, 2),
+    idle_down: frameSlicer(assets["_player_01"], frameSize, 5, 0),
+    walk_down: frameSlicer(assets["_player_01"], frameSize, 4, 2),
 
-    idle_up: frameSlicer(playerTexture, frameSize, 1, 3),
-    walk_up: frameSlicer(playerTexture, frameSize, 4, 3),
+    idle_up: frameSlicer(assets["_player_01"], frameSize, 1, 3),
+    walk_up: frameSlicer(assets["_player_01"], frameSize, 4, 3),
 
-    idle_left: frameSlicer(playerTexture, frameSize, 1, 1),
-    walk_left: frameSlicer(playerTexture, frameSize, 4, 1),
+    idle_left: frameSlicer(assets["_player_01"], frameSize, 1, 1),
+    walk_left: frameSlicer(assets["_player_01"], frameSize, 4, 1),
 
-    idle_right: frameSlicer(playerTexture, frameSize, 1, 4),
-    walk_right: frameSlicer(playerTexture, frameSize, 4, 4),
+    idle_right: frameSlicer(assets["_player_01"], frameSize, 1, 4),
+    walk_right: frameSlicer(assets["_player_01"], frameSize, 4, 4),
+
+    dash_down: frameSlicer(assets["_player_01"], frameSize, 1, 5),
+    dash_left: frameSlicer(assets["_player_01"], frameSize, 1, 6),
+    dash_right: frameSlicer(assets["_player_01"], frameSize, 1, 7),
+    dash_up: frameSlicer(assets["_player_01"], frameSize, 1, 8),
   };
 
   const player: Player = new Player(frames);
@@ -51,7 +56,7 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
 
   const map: Sprite = new Sprite(
     new Texture({
-      source: mapTexture,
+      source: assets["_map_1024x1024"],
       frame: new Rectangle(0, 0, 1024, 1024),
     })
   );
@@ -60,8 +65,6 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
     map_01_colliders.colliders;
 
   const walls = createWalls(colliders);
-
-  player.setWorldColliders(walls ?? []);
 
   game.stage.addChild(camera);
   camera.addChild(world);
@@ -104,26 +107,32 @@ function frameSlicer(
   return frames;
 }
 
-async function assetLoader(texture: any): Promise<TextureSource<any>> {
-  const newTexture = await Assets.load(texture);
-  const source = newTexture.source;
-  source.scaleMode = "nearest";
+async function assetLoader(textures: string[]): Promise<Record<string, TextureSource>> {
+  let result: Record<string, TextureSource> = {};
+  for (const texture of textures) {
+    const newTexture: Texture = await Assets.load(texture);
+    const source = newTexture.source;
+    source.scaleMode = "nearest";
 
-  return source;
+    result = { ...result, [texture.slice(texture.indexOf("_")).replace(".png", "")]: source };
+  }
+
+  return result;
 }
 
+// All map geometry uses pixels base (1×). The game renders with global SCALE_FACTOR.
 function createWalls(transform: { x: number; y: number; width: number; height: number }[]) {
   const wallList: WorldCollider[] = [];
 
   for (const col of transform) {
-    wallList.push(
-      new WorldCollider({
-        posX: col.x,
-        posY: col.y,
-        width: col.width * Constants.SCALE_FACTOR,
-        height: col.height * Constants.SCALE_FACTOR,
-      })
-    );
+    const wall = new WorldCollider({
+      posX: col.x,
+      posY: col.y,
+      width: col.width,
+      height: col.height,
+    });
+    CollisionManager.addWorldCollider(wall);
+    wallList.push(wall);
   }
 
   return wallList;
