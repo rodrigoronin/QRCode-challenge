@@ -75,7 +75,7 @@ export class AttackCollider {
     if (this.debugGraphics.parent) this.debugGraphics.parent.removeChild(this.debugGraphics);
   }
 
-  updatePosition(playerContainer: Container) {
+  updatePosition() {
     if (!this.active) return;
 
     this.debugGraphics.x = this.offsetX;

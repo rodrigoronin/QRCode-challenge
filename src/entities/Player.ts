@@ -25,7 +25,7 @@ export class Player extends Entity {
   private dashTime: number = 0;
   // how many frames is the dash in millisecons (60 = 1 frame)
   private dashDuration: number = 180;
-  private dashCooldown: number = 1000; // in milliseconds (1000 = 1 second)
+  private dashCooldown: number = 500; // in milliseconds (1000 = 1 second)
   private dashCooldownTimer: number = 0;
   private dashSpeed: number;
   private dashDirection = { x: 0, y: 0 };
@@ -106,12 +106,10 @@ export class Player extends Entity {
 
     // Adds the AttackCollider to player container if attacking, remove if not
     if (this.attackCollider?.active) {
-      this.attackCollider?.updatePosition(this.container);
+      this.attackCollider?.updatePosition();
       this.attackCollider?.update(deltaSec);
       this.attackCollider?.drawDebug();
     }
-
-    console.log(this.container.children);
 
     this.hitbox.drawDebug();
   }
@@ -126,6 +124,33 @@ export class Player extends Entity {
     if (this.isDashing || this.dashCooldownTimer > 0) return;
 
     this.dashDirection = this.input.getMovementVector();
+
+    // Dashing while idle
+    // TODO: player dash on place, need fix
+    if (this.dashDirection.x === 0 && this.dashDirection.y === 0) {
+      switch (this.currentDir) {
+        case "up":
+          this.dashDirection = { x: 0, y: -1 };
+          break;
+        case "down":
+          this.dashDirection = { x: 0, y: 1 };
+          break;
+        case "left":
+          this.dashDirection = { x: -1, y: 0 };
+          break;
+        case "right":
+          this.dashDirection = { x: 1, y: 0 };
+          break;
+      }
+    }
+
+    // Dash direction normalized
+    const mag = Math.hypot(this.dashDirection.x, this.dashDirection.y);
+    if (mag > 0) {
+      this.dashDirection.x /= mag;
+      this.dashDirection.y /= mag;
+    }
+
     this.isDashing = true;
     this.dashTime = 0;
 

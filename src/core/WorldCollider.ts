@@ -1,4 +1,5 @@
 import { Container, Graphics } from "pixi.js";
+import * as Constants from "../utils/Constants";
 
 interface WorldColliderProps {
   posX: number;
@@ -14,8 +15,8 @@ export class WorldCollider {
   public container: Container;
 
   constructor({ posX, posY, width, height }: WorldColliderProps) {
-    this.width = width;
-    this.height = height;
+    this.width = width * Constants.SCALE_FACTOR;
+    this.height = height * Constants.SCALE_FACTOR;
 
     this.container = new Container();
     this.container.x = posX;
