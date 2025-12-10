@@ -88,9 +88,6 @@ export class Player extends Entity {
 
     this.updateDirection(move);
 
-    // update player hitbox position
-    this.hitbox.updateFromEntity(this.container);
-
     if (move.x !== 0 || move.y !== 0) {
       this.anim.play(`walk_${this.currentDir}`);
     } else {
@@ -103,12 +100,15 @@ export class Player extends Entity {
       this.dashCooldownTimer -= deltaTime;
     }
 
-    this.attackCollider?.updatePosition(this.container);
-    this.attackCollider?.update(deltaSec);
-    this.container.addChild(this.attackCollider?.debugGraphics);
-    this.attackCollider?.drawDebug();
+    if (this.attackCollider) {
+      this.attackCollider?.updatePosition(this.container);
+      this.attackCollider?.update(deltaSec);
+      this.container.addChild(this.attackCollider?.debugGraphics);
+      this.attackCollider?.drawDebug();
+    }
 
-    this.drawDebug();
+    this.hitbox.attachTo(this.container);
+    this.hitbox.drawDebug();
   }
 
   setupAnimations() {
@@ -156,18 +156,23 @@ export class Player extends Entity {
   }
 
   private checkCollisions(newX: number, newY: number): WorldCollider | null {
-    const { width: hitboxWidth, height: hitboxHeight } = this.hitbox.getBounds();
-    const offsetX = hitboxWidth / 2;
-    const offsetY = hitboxHeight / 2;
+    const { width, height } = this.hitbox.getBounds(this.container);
+
+    const newBounds = {
+      x: newX - width / 2,
+      y: newY - height / 2,
+      width,
+      height,
+    };
 
     for (const wall of this.worldColliders) {
-      const bounds = wall.getBounds();
+      const wallBounds = wall.getBounds();
 
       if (
-        newX + offsetX > bounds.x &&
-        newY + offsetY > bounds.y &&
-        newX - offsetX < bounds.x + bounds.width &&
-        newY - offsetY < bounds.y + bounds.height
+        newBounds.x < wallBounds.x + wallBounds.width &&
+        newBounds.x + newBounds.width > wallBounds.x &&
+        newBounds.y < wallBounds.y + wallBounds.height &&
+        newBounds.y + newBounds.height > wallBounds.y
       ) {
         return wall;
       }
@@ -192,13 +197,16 @@ export class Player extends Entity {
     this.attackCollider?.activate(this.currentDir);
   }
 
-  private drawDebug() {
-    const { x, y, width, height } = this.hitbox.getBounds();
-    const localPos = this.container.toLocal({ x, y });
-    this.hitboxDebug.clear();
-    this.hitboxDebug
-      .rect(localPos.x, localPos.y, width, height)
-      .fill({ color: 0xff0000, alpha: 0.2 })
-      .stroke({ width: 1, color: 0xff0000 });
-  }
+  // private drawDebug() {
+  //   const { width, height } = this.hitbox.getBounds(this.container);
+
+  //   const x = -width / 2;
+  //   const y = -height / 2;
+
+  //   this.hitboxDebug.clear();
+  //   this.hitboxDebug
+  //     .rect(x, y, width, height)
+  //     .fill({ color: 0x00ff00, alpha: 0.2 })
+  //     .stroke({ width: 1, color: 0x00ff00 });
+  // }
 }
