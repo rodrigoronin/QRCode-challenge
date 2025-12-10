@@ -42,19 +42,22 @@ export class Player extends Entity {
     this.anim = new AnimationController(this.sprite);
     this.setupAnimations();
 
-    this.hitbox = new Collider({ width: 15, height: 17 });
-    this.hitboxDebug = new Graphics(); // For visual debug
+    // Can be used for visual debugging the player sprite
+    this.hitboxDebug = new Graphics();
 
-    this.attackCollider = new AttackCollider({
-      width: 12 * Constants.SCALE_FACTOR,
-      height: 12 * Constants.SCALE_FACTOR,
-      duration: 0.2,
-    });
+    this.attackCollider = new AttackCollider(
+      12 * Constants.SCALE_FACTOR,
+      12 * Constants.SCALE_FACTOR,
+      1, // TODO: change from seconds to milliseconds
+      this.container
+    );
 
     this.dashSpeed = this.speed * 6;
 
     this.container.addChild(this.sprite);
-    this.container.addChild(this.hitboxDebug);
+
+    // Create the Collider last so the debugDraw appears over the player
+    this.hitbox = new Collider(15, 17, this.container);
   }
 
   update(deltaTime: number) {
@@ -71,6 +74,7 @@ export class Player extends Entity {
 
     if (this.isDashing) {
       this.updateDash(deltaTime);
+      this.anim.play(`dash_${this.currentDir}`);
       return; // doesn't let the player move during dash
     }
 
@@ -100,14 +104,15 @@ export class Player extends Entity {
       this.dashCooldownTimer -= deltaTime;
     }
 
-    if (this.attackCollider) {
+    // Adds the AttackCollider to player container if attacking, remove if not
+    if (this.attackCollider?.active) {
       this.attackCollider?.updatePosition(this.container);
       this.attackCollider?.update(deltaSec);
-      this.container.addChild(this.attackCollider?.debugGraphics);
       this.attackCollider?.drawDebug();
     }
 
-    this.hitbox.attachTo(this.container);
+    console.log(this.container.children);
+
     this.hitbox.drawDebug();
   }
 
@@ -156,7 +161,7 @@ export class Player extends Entity {
   }
 
   private checkCollisions(newX: number, newY: number): WorldCollider | null {
-    const { width, height } = this.hitbox.getBounds(this.container);
+    const { width, height } = this.hitbox.getBounds();
 
     const newBounds = {
       x: newX - width / 2,

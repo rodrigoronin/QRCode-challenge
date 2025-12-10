@@ -42,6 +42,8 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
 
     idle_right: frameSlicer(assets["_player_01.png"], frameSize, 1, 4),
     walk_right: frameSlicer(assets["_player_01.png"], frameSize, 4, 4),
+
+    dash_down: frameSlicer(assets["_player_01.png"], frameSize, 1, 5),
   };
 
   const player: Player = new Player(frames);

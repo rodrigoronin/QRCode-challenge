@@ -1,34 +1,33 @@
 import { Graphics, type Container } from "pixi.js";
 import * as Constants from "../utils/Constants";
 
-interface ColliderParams {
-  width: number;
-  height: number;
-  position?: { x: number; y: number };
-}
-
 export class Collider {
   private width: number;
   private height: number;
   private scale: number;
   private debug: Graphics;
+  private container: Container;
 
-  constructor({ width, height }: ColliderParams) {
+  constructor(width: number, height: number, container: Container) {
     this.scale = Constants.SCALE_FACTOR;
     this.width = width * this.scale;
     this.height = height * this.scale;
 
     this.debug = new Graphics();
+    this.container = container;
+
+    this.attachTo(this.container);
   }
 
   attachTo(container: Container) {
+    if (this.debug.parent === container) return;
     container.addChild(this.debug);
   }
 
-  getBounds(container: Container) {
+  getBounds() {
     return {
-      x: container.x - this.width / 2,
-      y: container.y - this.height / 2,
+      x: this.container.x - this.width / 2,
+      y: this.container.y - this.height / 2,
       width: this.width,
       height: this.height,
     };
