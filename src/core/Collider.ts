@@ -33,6 +33,15 @@ export class Collider {
     };
   }
 
+  getBoundsAt(x: number, y: number) {
+    return {
+      x: x - this.width / 2,
+      y: y - this.height / 2,
+      width: this.width,
+      height: this.height,
+    };
+  }
+
   drawDebug() {
     this.debug.clear();
 

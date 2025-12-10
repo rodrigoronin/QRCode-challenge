@@ -9,6 +9,7 @@ import "./style.css";
 import player_01 from "./assets/_player_01.png";
 import mockup_map from "./assets/_map_1024x1024.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
+import { CollisionManager } from "./core/CollisionManager";
 
 (async () => {
   const game: Application = new Application();
@@ -64,8 +65,6 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
     map_01_colliders.colliders;
 
   const walls = createWalls(colliders);
-
-  player.setWorldColliders(walls ?? []);
 
   game.stage.addChild(camera);
   camera.addChild(world);
@@ -126,14 +125,14 @@ function createWalls(transform: { x: number; y: number; width: number; height: n
   const wallList: WorldCollider[] = [];
 
   for (const col of transform) {
-    wallList.push(
-      new WorldCollider({
-        posX: col.x,
-        posY: col.y,
-        width: col.width,
-        height: col.height,
-      })
-    );
+    const wall = new WorldCollider({
+      posX: col.x,
+      posY: col.y,
+      width: col.width,
+      height: col.height,
+    });
+    CollisionManager.addWorldCollider(wall);
+    wallList.push(wall);
   }
 
   return wallList;

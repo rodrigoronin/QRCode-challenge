@@ -4,24 +4,24 @@ import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
 import { Collider } from "../core/Collider";
 import { AttackCollider } from "../core/AttackCollider";
-import type { WorldCollider } from "../core/WorldCollider";
 import * as Constants from "../utils/Constants";
+import { CollisionManager } from "../core/CollisionManager";
 
 type Direction = "up" | "down" | "left" | "right";
 
 export class Player extends Entity {
   private sprite: Sprite;
   private hitbox: Collider;
-  private hitboxDebug: Graphics;
+  // private hitboxDebug: Graphics;
   private input = InputManager.get();
   private currentDir: Direction = "down";
   private frames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private speed = 180; // pixels/second
-  private worldColliders: WorldCollider[] = [];
+  private speed = 150; // pixels/second
 
   // Dash variables
   private isDashing: boolean = false;
+  private dashDistance: number = 150;
   private dashTime: number = 0;
   // how many frames is the dash in millisecons (60 = 1 frame)
   private dashDuration: number = 180;
@@ -43,7 +43,7 @@ export class Player extends Entity {
     this.setupAnimations();
 
     // Can be used for visual debugging the player sprite
-    this.hitboxDebug = new Graphics();
+    // this.hitboxDebug = new Graphics();
 
     this.attackCollider = new AttackCollider(
       12 * Constants.SCALE_FACTOR,
@@ -52,12 +52,13 @@ export class Player extends Entity {
       this.container
     );
 
-    this.dashSpeed = this.speed * 6;
+    this.dashSpeed = this.dashDistance / (this.dashDuration / 1000);
 
     this.container.addChild(this.sprite);
 
     // Create the Collider last so the debugDraw appears over the player
     this.hitbox = new Collider(15, 17, this.container);
+    CollisionManager.addEntityCollider(this.hitbox);
   }
 
   update(deltaTime: number) {
@@ -83,10 +84,10 @@ export class Player extends Entity {
     const futureY = this.container.y + move.y * this.speed * deltaSec;
 
     // checking the axis isolated enable player do slide on walls
-    if (!this.checkCollisions(futureX, this.container.y)) {
+    if (CollisionManager.canMove(this.hitbox, futureX, this.container.y)) {
       this.container.x = futureX;
     }
-    if (!this.checkCollisions(this.container.x, futureY)) {
+    if (CollisionManager.canMove(this.hitbox, this.container.x, futureY)) {
       this.container.y = futureY;
     }
 
@@ -162,9 +163,9 @@ export class Player extends Entity {
     const futureX = this.container.x + this.dashDirection.x * this.dashSpeed * deltaSec;
     const futureY = this.container.y + this.dashDirection.y * this.dashSpeed * deltaSec;
 
-    const hit = this.checkCollisions(futureX, futureY);
+    const hit = CollisionManager.canMove(this.hitbox, futureX, futureY);
 
-    if (!hit) {
+    if (hit) {
       this.container.x = futureX;
       this.container.y = futureY;
     } else {
@@ -178,36 +179,6 @@ export class Player extends Entity {
       this.isDashing = false;
       this.dashCooldownTimer = this.dashCooldown;
     }
-  }
-
-  setWorldColliders(list: WorldCollider[]) {
-    this.worldColliders = list;
-  }
-
-  private checkCollisions(newX: number, newY: number): WorldCollider | null {
-    const { width, height } = this.hitbox.getBounds();
-
-    const newBounds = {
-      x: newX - width / 2,
-      y: newY - height / 2,
-      width,
-      height,
-    };
-
-    for (const wall of this.worldColliders) {
-      const wallBounds = wall.getBounds();
-
-      if (
-        newBounds.x < wallBounds.x + wallBounds.width &&
-        newBounds.x + newBounds.width > wallBounds.x &&
-        newBounds.y < wallBounds.y + wallBounds.height &&
-        newBounds.y + newBounds.height > wallBounds.y
-      ) {
-        return wall;
-      }
-    }
-
-    return null;
   }
 
   private updateDirection(m: { x: number; y: number }) {

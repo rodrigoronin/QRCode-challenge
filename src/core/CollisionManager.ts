@@ -39,7 +39,11 @@ export class CollisionManager {
   // SAFE MOVEMENT (Player, NPCs, Enemies...)
   // -------------------
   static canMove(collider: Collider, futureX: number, futureY: number): boolean {
-    // TODO: move logic
+    const futureBounds = collider.getBoundsAt(futureX, futureY);
+    for (const wall of this.worldColliders) {
+      if (this.rectIntersects(futureBounds, wall.getBounds())) return false;
+    }
+
     return true;
   }
 
