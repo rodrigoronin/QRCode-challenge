@@ -126,7 +126,6 @@ export class Player extends Entity {
     this.dashDirection = this.input.getMovementVector();
 
     // Dashing while idle
-    // TODO: player dash on place, need fix
     if (this.dashDirection.x === 0 && this.dashDirection.y === 0) {
       switch (this.currentDir) {
         case "up":
