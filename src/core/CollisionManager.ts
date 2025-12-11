@@ -47,8 +47,17 @@ export class CollisionManager {
     return true;
   }
 
-  static getOverlaps(collider: Collider) {
-    return [];
+  static getOverlaps(collider: Collider | { getBounds: () => any }): Collider[] {
+    const colliderBounds = collider.getBounds();
+    const hits: Collider[] = [];
+
+    for (const entity of this.entityColliders) {
+      if (entity === collider) continue;
+
+      if (this.rectIntersects(colliderBounds, entity.getBounds())) hits.push(entity);
+    }
+
+    return hits;
   }
 
   // -------------------

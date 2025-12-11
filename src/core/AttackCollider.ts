@@ -1,4 +1,5 @@
 import { Container, Graphics } from "pixi.js";
+import { CollisionManager } from "./CollisionManager";
 
 export class AttackCollider {
   private width: number;
@@ -44,6 +45,8 @@ export class AttackCollider {
     this.active = true;
     this.timer = this.duration;
 
+    CollisionManager.addEntityCollider(this as any);
+
     const dist = 30;
 
     switch (direction) {
@@ -72,7 +75,10 @@ export class AttackCollider {
     this.offsetY = 0;
 
     this.debugGraphics.clear();
+
     if (this.debugGraphics.parent) this.debugGraphics.parent.removeChild(this.debugGraphics);
+
+    CollisionManager.removeEntityCollider(this as any);
   }
 
   updatePosition() {
@@ -80,6 +86,15 @@ export class AttackCollider {
 
     this.debugGraphics.x = this.offsetX;
     this.debugGraphics.y = this.offsetY;
+  }
+
+  getBounds() {
+    return {
+      x: this.container.x + this.offsetX,
+      y: this.container.y + this.offsetY,
+      width: this.width,
+      height: this.height,
+    };
   }
 
   drawDebug() {
