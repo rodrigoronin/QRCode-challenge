@@ -75,7 +75,6 @@ export class Player extends Entity {
 
     if (this.isDashing) {
       this.updateDash(deltaTime);
-      this.anim.play(`dash_${this.currentDir}`);
       return; // doesn't let the player move during dash
     }
 
@@ -154,7 +153,7 @@ export class Player extends Entity {
     this.isDashing = true;
     this.dashTime = 0;
 
-    this.anim.play(`walk_${this.currentDir}`);
+    this.anim.play(`dash_${this.currentDir}`);
   }
 
   updateDash(deltaTime: number) {
