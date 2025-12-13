@@ -1,4 +1,4 @@
-import { Graphics, Sprite, Texture } from "pixi.js";
+import { Sprite, Texture } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
@@ -11,8 +11,8 @@ type Direction = "up" | "down" | "left" | "right";
 
 export class Player extends Entity {
   private sprite: Sprite;
-  private hitbox: Collider;
-  // private hitboxDebug: Graphics;
+  private collider: Collider;
+  // private colliderDebug: Graphics;
   private input = InputManager.get();
   private currentDir: Direction = "down";
   private frames: Record<string, Texture[]>;
@@ -43,12 +43,12 @@ export class Player extends Entity {
     this.setupAnimations();
 
     // Can be used for visual debugging the player sprite
-    // this.hitboxDebug = new Graphics();
+    // this.colliderDebug = new Graphics();
 
     this.attackCollider = new AttackCollider(
       12 * Constants.SCALE_FACTOR,
       12 * Constants.SCALE_FACTOR,
-      1, // TODO: change from seconds to milliseconds
+      0.5, // TODO: change from seconds to milliseconds
       this.container
     );
 
@@ -57,8 +57,8 @@ export class Player extends Entity {
     this.container.addChild(this.sprite);
 
     // Create the Collider last so the debugDraw appears over the player
-    this.hitbox = new Collider(15, 17, this.container);
-    CollisionManager.addEntityCollider(this.hitbox);
+    this.collider = new Collider(15, 17, this.container);
+    CollisionManager.addEntityCollider(this.collider);
   }
 
   update(deltaTime: number) {
@@ -83,10 +83,10 @@ export class Player extends Entity {
     const futureY = this.container.y + move.y * this.speed * deltaSec;
 
     // checking the axis isolated enable player do slide on walls
-    if (CollisionManager.canMove(this.hitbox, futureX, this.container.y)) {
+    if (CollisionManager.canMove(this.collider, futureX, this.container.y)) {
       this.container.x = futureX;
     }
-    if (CollisionManager.canMove(this.hitbox, this.container.x, futureY)) {
+    if (CollisionManager.canMove(this.collider, this.container.x, futureY)) {
       this.container.y = futureY;
     }
 
@@ -111,7 +111,7 @@ export class Player extends Entity {
       this.attackCollider?.drawDebug();
     }
 
-    this.hitbox.drawDebug();
+    this.collider.drawDebug();
   }
 
   setupAnimations() {
@@ -162,7 +162,7 @@ export class Player extends Entity {
     const futureX = this.container.x + this.dashDirection.x * this.dashSpeed * deltaSec;
     const futureY = this.container.y + this.dashDirection.y * this.dashSpeed * deltaSec;
 
-    const hit = CollisionManager.canMove(this.hitbox, futureX, futureY);
+    const hit = CollisionManager.canMove(this.collider, futureX, futureY);
 
     if (hit) {
       this.container.x = futureX;
@@ -197,13 +197,13 @@ export class Player extends Entity {
   }
 
   // private drawDebug() {
-  //   const { width, height } = this.hitbox.getBounds(this.container);
+  //   const { width, height } = this.collider.getBounds(this.container);
 
   //   const x = -width / 2;
   //   const y = -height / 2;
 
-  //   this.hitboxDebug.clear();
-  //   this.hitboxDebug
+  //   this.colliderDebug.clear();
+  //   this.colliderDebug
   //     .rect(x, y, width, height)
   //     .fill({ color: 0x00ff00, alpha: 0.2 })
   //     .stroke({ width: 1, color: 0x00ff00 });

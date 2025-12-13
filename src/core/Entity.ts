@@ -9,9 +9,9 @@ export abstract class Entity {
 
   update(_deltaTime: number): void {}
 
-  addTo(parent: Container): void {
-    parent.addChild(this.container);
-  }
+  // addTo(parent: Container): void {
+  //   parent.addChild(this.container);
+  // }
 
   remove() {
     this.container.destroy({ children: true });
