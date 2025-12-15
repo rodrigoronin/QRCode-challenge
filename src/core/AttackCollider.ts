@@ -1,7 +1,12 @@
 import { Container, Graphics } from "pixi.js";
+import { Collider } from "./Collider";
 import { CollisionManager } from "./CollisionManager";
+// import { CollisionManager } from "./CollisionManager";
 
 export class AttackCollider {
+  private container: Container;
+  private collider: Collider;
+  private debugGraphics: Graphics;
   private width: number;
   private height: number;
   private offsetX!: number;
@@ -9,8 +14,6 @@ export class AttackCollider {
   public active: boolean;
   private duration: number;
   private timer: number;
-  private container: Container;
-  debugGraphics: Graphics;
 
   constructor(width: number, height: number, duration: number, container: Container) {
     this.width = width;
@@ -22,6 +25,7 @@ export class AttackCollider {
     this.offsetY = 0;
 
     this.container = container;
+    this.collider = new Collider(12, 12, this.container);
 
     this.debugGraphics = new Graphics();
   }
@@ -45,7 +49,7 @@ export class AttackCollider {
     this.active = true;
     this.timer = this.duration;
 
-    CollisionManager.addEntityCollider(this as any);
+    CollisionManager.addEntityCollider(this.collider);
 
     const dist = 30;
 
@@ -78,7 +82,7 @@ export class AttackCollider {
 
     if (this.debugGraphics.parent) this.debugGraphics.parent.removeChild(this.debugGraphics);
 
-    CollisionManager.removeEntityCollider(this as any);
+    CollisionManager.removeEntityCollider(this.collider);
   }
 
   updatePosition() {

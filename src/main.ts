@@ -1,5 +1,6 @@
 import { Application, Assets, Container, Texture, Rectangle, TextureSource, Sprite } from "pixi.js";
 import { Player } from "./entities/Player";
+import { Enemy } from "./entities/Enemy";
 import { WorldCollider } from "./core/WorldCollider";
 import * as Constants from "./utils/Constants";
 
@@ -44,7 +45,7 @@ import { CollisionManager } from "./core/CollisionManager";
     idle_right: frameSlicer(assets["_player_01"], frameSize, 1, 4),
     walk_right: frameSlicer(assets["_player_01"], frameSize, 4, 4),
 
-    dash_down: frameSlicer(assets["_player_01"], frameSize, 1, 5),
+    dash_down: frameSlicer(assets["_player_01"], frameSize, 5, 5),
     dash_left: frameSlicer(assets["_player_01"], frameSize, 1, 6),
     dash_right: frameSlicer(assets["_player_01"], frameSize, 1, 7),
     dash_up: frameSlicer(assets["_player_01"], frameSize, 1, 8),
@@ -53,6 +54,12 @@ import { CollisionManager } from "./core/CollisionManager";
   const player: Player = new Player(frames);
   player.container.x = 512;
   player.container.y = 512;
+
+  // Enemy prototype
+  const enemySprite = new Sprite(frames["dash_down"][4]);
+  const enemy = new Enemy(enemySprite);
+  enemy.container.x = 600;
+  enemy.container.y = 512;
 
   const map: Sprite = new Sprite(
     new Texture({
@@ -68,7 +75,9 @@ import { CollisionManager } from "./core/CollisionManager";
 
   game.stage.addChild(camera);
   camera.addChild(world);
-  world.addChild(map, player.container);
+  world.addChild(map);
+  world.addChild(enemy.container);
+  world.addChild(player.container);
   world.addChild(...walls.map((wall) => wall.container));
 
   game.ticker.add((ticker) => {
