@@ -6,7 +6,12 @@ import * as Constants from "../utils/Constants";
 
 export class Enemy extends Entity {
   private sprite: Sprite;
-  private hitbox: Collider;
+  private collider: Collider;
+  public tag: string = "enemy";
+
+  private maxHealthPoints: number = 3;
+  private healthPoints: number = this.maxHealthPoints;
+  private isDead: boolean = false;
 
   constructor(texture: Sprite) {
     super();
@@ -16,11 +21,28 @@ export class Enemy extends Entity {
     this.sprite.scale.set(Constants.SCALE_FACTOR);
     this.container.addChild(this.sprite);
 
-    this.hitbox = new Collider(14, 16, this.container);
-    CollisionManager.addEntityCollider(this.hitbox);
+    this.collider = new Collider(14, 16, this.container, this);
+    CollisionManager.addEntityCollider(this.collider);
+
+    this.collider.drawDebug();
+  }
+
+  takeDamage(damage: number) {
+    if (this.isDead) return;
+
+    this.healthPoints -= damage;
+    console.log(`Enemy HP: ${this.healthPoints} / ${this.maxHealthPoints}`);
+
+    if (this.healthPoints <= 0) this.die();
+  }
+
+  private die() {
+    this.isDead = true;
+    CollisionManager.removeEntityCollider(this.collider);
+    this.remove();
   }
 
   public getHitbox() {
-    return this.hitbox;
+    return this.collider;
   }
 }

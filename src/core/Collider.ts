@@ -1,20 +1,24 @@
 import { Graphics, type Container } from "pixi.js";
 import * as Constants from "../utils/Constants";
+import type { Enemy } from "../entities/Enemy";
+import type { Player } from "../entities/Player";
 
 export class Collider {
   private width: number;
   private height: number;
   private scale: number;
   private debug: Graphics;
-  private container: Container;
+  public container: Container;
+  public owner: Enemy | Player;
 
-  constructor(width: number, height: number, container: Container) {
+  constructor(width: number, height: number, container: Container, owner: Enemy | Player) {
     this.scale = Constants.SCALE_FACTOR;
     this.width = width * this.scale;
     this.height = height * this.scale;
 
     this.debug = new Graphics();
     this.container = container;
+    this.owner = owner;
 
     this.attachTo(this.container);
   }

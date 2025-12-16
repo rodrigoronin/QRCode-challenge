@@ -1,3 +1,4 @@
+import type { AttackCollider } from "./AttackCollider";
 import { Collider } from "./Collider";
 import { WorldCollider } from "./WorldCollider";
 
@@ -47,12 +48,12 @@ export class CollisionManager {
     return true;
   }
 
-  static getOverlaps(collider: Collider): Collider[] {
+  static getOverlaps(collider: Collider | AttackCollider): Collider[] {
     const colliderBounds = collider.getBounds();
     const hits: Collider[] = [];
 
     for (const entity of this.entityColliders) {
-      if (entity === collider) continue;
+      if (entity.owner?.tag === collider.owner?.tag) continue;
 
       if (this.rectIntersects(colliderBounds, entity.getBounds())) hits.push(entity);
     }
