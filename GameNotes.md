@@ -1,3 +1,11 @@
+# REGRAS DE OURO
+
+### - Toda variável de tempo = milissegundos
+
+### - Toda velocidade = unidades por segundo
+
+# COISAS PARA RESOLVER
+
 ## Hitbox do Player continua com um detalhe de design estranho
 
 Hoje o hitbox.getBounds() retorna top-left, ótimo.
@@ -27,3 +35,9 @@ static canMove(collider, futureX, futureY) {
 
 Isso é aceitável no MVP enquanto não existem NPCs ou inimigos.
 Mas assim que existir o primeiro slime, ele vai entrar dentro do player.
+
+## Colisão do player nas bordas do mapa
+
+No momento o player pode se mover além das bordas do mapa, sumindo da tela pois a câmera tem clamp nas bordas.
+
+Futuramente é preciso adicionar colisão com as bordas do mapa, caso o player possa chegar até elas.
