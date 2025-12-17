@@ -57,9 +57,19 @@ import { CollisionManager } from "./core/CollisionManager";
 
   // Enemy prototype
   const enemySprite = new Sprite(frames["dash_down"][4]);
-  const enemy = new Enemy(enemySprite);
-  enemy.container.x = 600;
-  enemy.container.y = 512;
+  const enemy_01 = new Enemy(enemySprite);
+  enemy_01.container.x = 600;
+  enemy_01.container.y = 512;
+
+  const enemySprite2 = new Sprite(frames["dash_down"][4]);
+  const enemy_02 = new Enemy(enemySprite2);
+  enemy_02.container.x = 560;
+  enemy_02.container.y = 582;
+
+  const enemySprite3 = new Sprite(frames["dash_down"][4]);
+  const enemy_03 = new Enemy(enemySprite3);
+  enemy_03.container.x = 595;
+  enemy_03.container.y = 582;
 
   const map: Sprite = new Sprite(
     new Texture({
@@ -76,7 +86,7 @@ import { CollisionManager } from "./core/CollisionManager";
   game.stage.addChild(camera);
   camera.addChild(world);
   world.addChild(map);
-  world.addChild(enemy.container);
+  world.addChild(enemy_01.container, enemy_02.container, enemy_03.container);
   world.addChild(player.container);
   world.addChild(...walls.map((wall) => wall.container));
 
