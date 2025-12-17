@@ -24,7 +24,7 @@ export class Enemy extends Entity {
     this.collider = new Collider(14, 16, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
 
-    this.collider.drawDebug();
+    // this.collider.drawDebug();
   }
 
   takeDamage(damage: number) {

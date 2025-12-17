@@ -16,6 +16,7 @@ export class AttackCollider {
   private duration: number;
   private timer: number;
   public owner?: Enemy | Player;
+  public damagedList: Collider[] = [];
 
   constructor(
     width: number,
@@ -53,6 +54,8 @@ export class AttackCollider {
 
   activate(direction: string) {
     if (!this.debugGraphics.parent) this.attachTo(this.container);
+
+    this.damagedList = [];
 
     this.active = true;
     this.timer = this.duration;

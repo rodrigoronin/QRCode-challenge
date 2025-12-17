@@ -69,6 +69,15 @@ export class Player extends Entity {
 
     if (!this.isDashing && this.input.wasJustPressed("KeyJ")) {
       this.basicAttack();
+
+      const hits: Collider[] = CollisionManager.getOverlaps(this.attackCollider);
+
+      for (const hit of hits) {
+        if (hit.owner?.tag === "enemy" && !this.attackCollider.damagedList.includes(hit)) {
+          hit.owner?.takeDamage(1);
+          this.attackCollider.damagedList.push(hit);
+        }
+      }
     }
 
     if (this.isDashing) {
@@ -190,16 +199,10 @@ export class Player extends Entity {
   }
 
   private basicAttack() {
-    console.log("basic attack!");
-
     if (this.attackCollider?.active) return;
 
     this.attackCollider?.activate(this.currentDir);
 
-    const hits: Collider[] = CollisionManager.getOverlaps(this.attackCollider);
-
-    for (const hit of hits) {
-      if (hit.owner?.tag === "enemy") hit.owner?.takeDamage(1);
-    }
+    console.log("basic attack!");
   }
 }
