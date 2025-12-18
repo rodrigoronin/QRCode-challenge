@@ -224,4 +224,6 @@ export class Player extends Entity {
 
     console.log("basic attack!");
   }
+
+  takeDamage(): void {}
 }
