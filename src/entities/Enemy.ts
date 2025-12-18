@@ -1,4 +1,4 @@
-import type { Sprite } from "pixi.js";
+import { ColorMatrixFilter, type Sprite } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { Collider } from "../core/Collider";
 import { CollisionManager } from "../core/CollisionManager";
@@ -12,6 +12,9 @@ export class Enemy extends Entity {
   private maxHealthPoints: number = 3;
   private healthPoints: number = this.maxHealthPoints;
   private isDead: boolean = false;
+  private isHitFlashing: boolean = false;
+  private hitFlashTimer: number = 0;
+  private HIT_FLASH_DURATION: number = 80;
 
   constructor(texture: Sprite) {
     super();
@@ -27,10 +30,29 @@ export class Enemy extends Entity {
     // this.collider.drawDebug();
   }
 
+  update(_deltaTime: number): void {
+    if (this.isHitFlashing) {
+      this.hitFlashTimer += _deltaTime;
+
+      console.log(this.isHitFlashing);
+
+      if (this.hitFlashTimer >= this.HIT_FLASH_DURATION) {
+        console.log(this.isHitFlashing);
+        this.isHitFlashing = false;
+        this.container.filters = [];
+        this.hitFlashTimer = 0;
+      }
+    }
+  }
+
   takeDamage(damage: number) {
     if (this.isDead) return;
 
     this.healthPoints -= damage;
+    this.isHitFlashing = true;
+    const colorMatrixFilter = new ColorMatrixFilter();
+    colorMatrixFilter.greyscale(1, false);
+    this.container.filters = [colorMatrixFilter];
     console.log(`Enemy HP: ${this.healthPoints} / ${this.maxHealthPoints}`);
 
     if (this.healthPoints <= 0) this.die();

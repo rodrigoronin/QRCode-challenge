@@ -80,8 +80,8 @@ import { CollisionManager } from "./core/CollisionManager";
 
   const colliders: { x: number; y: number; width: number; height: number }[] =
     map_01_colliders.colliders;
-
   const walls = createWalls(colliders);
+  const enemiesList: Enemy[] = [];
 
   game.stage.addChild(camera);
   camera.addChild(world);
@@ -90,8 +90,11 @@ import { CollisionManager } from "./core/CollisionManager";
   world.addChild(player.container);
   world.addChild(...walls.map((wall) => wall.container));
 
+  enemiesList.push(enemy_01, enemy_02, enemy_03);
+
   game.ticker.add((ticker) => {
     player.update(ticker.deltaMS);
+    enemiesList.forEach((enemy) => enemy.update(ticker.deltaMS));
 
     const canMinX = -(map.width - Constants.VIEWPORT_WIDTH);
     const canMaxX = 0;

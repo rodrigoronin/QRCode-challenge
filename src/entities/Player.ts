@@ -45,7 +45,7 @@ export class Player extends Entity {
     this.attackCollider = new AttackCollider(
       12 * Constants.SCALE_FACTOR,
       12 * Constants.SCALE_FACTOR,
-      500,
+      300,
       this.container,
       this
     );
@@ -63,26 +63,45 @@ export class Player extends Entity {
     const deltaSec = deltaTime / 1000;
     const move = this.input.getMovementVector();
 
+    // DASH
     if (this.input.wasJustPressed("Space")) {
       this.tryStartDash();
     }
+    if (this.isDashing) {
+      this.updateDash(deltaTime);
+      return; // doesn't let the player move during dash
+    }
 
+    // BASIC ATTACK
+    // TODO: in the future the enemies hit will be handled by the weapon script like:
+    // CombatManager.basicAttack(weapon, attacker, enemyList);
+    // The method above should handle who got hit and the damage amount based on attacker data
+    // the basicAttack should look up for the attacker data in a json using the entity tag
     if (!this.isDashing && this.input.wasJustPressed("KeyJ")) {
       this.basicAttack();
 
       const hits: Collider[] = CollisionManager.getOverlaps(this.attackCollider);
 
-      for (const hit of hits) {
-        if (hit.owner?.tag === "enemy" && !this.attackCollider.damagedList.includes(hit)) {
-          hit.owner?.takeDamage(1);
-          this.attackCollider.damagedList.push(hit);
+      let closestEnemy: Collider | null = null;
+      let closestDistance: number = Infinity;
+
+      for (let i = 0; i < hits.length; i++) {
+        if (hits[i].owner?.tag === "enemy" && !this.attackCollider.damagedList.includes(hits[i])) {
+          const dX = hits[i].container.x - this.container.x;
+          const dY = hits[i].container.y - this.container.y;
+          const currentDistance = Math.hypot(dX, dY);
+
+          if (currentDistance < closestDistance) {
+            closestEnemy = hits[i];
+            closestDistance = currentDistance;
+          }
         }
       }
-    }
 
-    if (this.isDashing) {
-      this.updateDash(deltaTime);
-      return; // doesn't let the player move during dash
+      if (closestEnemy) {
+        closestEnemy.owner?.takeDamage(1);
+        this.attackCollider.damagedList.push(closestEnemy);
+      }
     }
 
     // movement
