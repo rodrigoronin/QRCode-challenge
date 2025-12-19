@@ -1,11 +1,12 @@
 import { Container, Graphics } from "pixi.js";
 import { Collider } from "./Collider";
 import { CollisionManager } from "./CollisionManager";
-// import { CollisionManager } from "./CollisionManager";
+import { type Player } from "../entities/Player";
+import { type Enemy } from "../entities/Enemy";
 
 export class AttackCollider {
   private container: Container;
-  private collider: Collider;
+  public collider: Collider;
   private debugGraphics: Graphics;
   private width: number;
   private height: number;
@@ -14,8 +15,16 @@ export class AttackCollider {
   public active: boolean;
   private duration: number;
   private timer: number;
+  public owner?: Enemy | Player;
+  public damagedList: Collider[] = [];
 
-  constructor(width: number, height: number, duration: number, container: Container) {
+  constructor(
+    width: number,
+    height: number,
+    duration: number,
+    container: Container,
+    owner: Enemy | Player
+  ) {
     this.width = width;
     this.height = height;
     this.duration = duration;
@@ -25,7 +34,7 @@ export class AttackCollider {
     this.offsetY = 0;
 
     this.container = container;
-    this.collider = new Collider(12, 12, this.container);
+    this.collider = new Collider(12, 12, this.container, owner);
 
     this.debugGraphics = new Graphics();
   }
@@ -45,6 +54,8 @@ export class AttackCollider {
 
   activate(direction: string) {
     if (!this.debugGraphics.parent) this.attachTo(this.container);
+
+    this.damagedList = [];
 
     this.active = true;
     this.timer = this.duration;

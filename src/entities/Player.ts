@@ -12,12 +12,12 @@ type Direction = "up" | "down" | "left" | "right";
 export class Player extends Entity {
   private sprite: Sprite;
   private collider: Collider;
-  // private colliderDebug: Graphics;
   private input = InputManager.get();
   private currentDir: Direction = "down";
   private frames: Record<string, Texture[]>;
   private anim: AnimationController;
   private speed = 150; // pixels/second
+  public tag: string = "player";
 
   // Dash variables
   private isDashing: boolean = false;
@@ -30,7 +30,7 @@ export class Player extends Entity {
   private dashSpeed: number;
   private dashDirection = { x: 0, y: 0 };
   // attack
-  private attackCollider: AttackCollider | null = null;
+  private attackCollider: AttackCollider;
 
   constructor(frames: Record<string, Texture[]>) {
     super();
@@ -42,14 +42,12 @@ export class Player extends Entity {
     this.anim = new AnimationController(this.sprite);
     this.setupAnimations();
 
-    // Can be used for visual debugging the player sprite
-    // this.colliderDebug = new Graphics();
-
     this.attackCollider = new AttackCollider(
       12 * Constants.SCALE_FACTOR,
       12 * Constants.SCALE_FACTOR,
-      0.5, // TODO: change from seconds to milliseconds
-      this.container
+      300,
+      this.container,
+      this
     );
 
     this.dashSpeed = this.dashDistance / (this.dashDuration / 1000);
@@ -57,7 +55,7 @@ export class Player extends Entity {
     this.container.addChild(this.sprite);
 
     // Create the Collider last so the debugDraw appears over the player
-    this.collider = new Collider(15, 17, this.container);
+    this.collider = new Collider(15, 17, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
   }
 
@@ -65,17 +63,45 @@ export class Player extends Entity {
     const deltaSec = deltaTime / 1000;
     const move = this.input.getMovementVector();
 
+    // DASH
     if (this.input.wasJustPressed("Space")) {
       this.tryStartDash();
     }
-
-    if (!this.isDashing && this.input.wasJustPressed("KeyJ")) {
-      this.basicAttack();
-    }
-
     if (this.isDashing) {
       this.updateDash(deltaTime);
       return; // doesn't let the player move during dash
+    }
+
+    // BASIC ATTACK
+    // TODO: in the future the enemies hit will be handled by the weapon script like:
+    // CombatManager.basicAttack(weapon, attacker, enemyList);
+    // The method above should handle who got hit and the damage amount based on attacker data
+    // the basicAttack should look up for the attacker data in a json using the entity tag
+    if (!this.isDashing && this.input.wasJustPressed("KeyJ")) {
+      this.basicAttack();
+
+      const hits: Collider[] = CollisionManager.getOverlaps(this.attackCollider);
+
+      let closestEnemy: Collider | null = null;
+      let closestDistance: number = Infinity;
+
+      for (let i = 0; i < hits.length; i++) {
+        if (hits[i].owner?.tag === "enemy" && !this.attackCollider.damagedList.includes(hits[i])) {
+          const dX = hits[i].container.x - this.container.x;
+          const dY = hits[i].container.y - this.container.y;
+          const currentDistance = Math.hypot(dX, dY);
+
+          if (currentDistance < closestDistance) {
+            closestEnemy = hits[i];
+            closestDistance = currentDistance;
+          }
+        }
+      }
+
+      if (closestEnemy) {
+        closestEnemy.owner?.takeDamage(1);
+        this.attackCollider.damagedList.push(closestEnemy);
+      }
     }
 
     // movement
@@ -107,7 +133,7 @@ export class Player extends Entity {
     // Adds the AttackCollider to player container if attacking, remove if not
     if (this.attackCollider?.active) {
       this.attackCollider?.updatePosition();
-      this.attackCollider?.update(deltaSec);
+      this.attackCollider?.update(deltaTime);
       this.attackCollider?.drawDebug();
     }
 
@@ -168,16 +194,19 @@ export class Player extends Entity {
       this.container.x = futureX;
       this.container.y = futureY;
     } else {
-      this.isDashing = false;
-      this.dashCooldownTimer = this.dashCooldown;
+      this.endDash();
     }
 
     this.dashTime += deltaTime;
 
     if (this.dashTime >= this.dashDuration) {
-      this.isDashing = false;
-      this.dashCooldownTimer = this.dashCooldown;
+      this.endDash();
     }
+  }
+
+  private endDash() {
+    this.isDashing = false;
+    this.dashCooldownTimer = this.dashCooldown;
   }
 
   private updateDirection(m: { x: number; y: number }) {
@@ -189,23 +218,12 @@ export class Player extends Entity {
   }
 
   private basicAttack() {
-    console.log("is attacking");
-
     if (this.attackCollider?.active) return;
 
     this.attackCollider?.activate(this.currentDir);
+
+    console.log("basic attack!");
   }
 
-  // private drawDebug() {
-  //   const { width, height } = this.collider.getBounds(this.container);
-
-  //   const x = -width / 2;
-  //   const y = -height / 2;
-
-  //   this.colliderDebug.clear();
-  //   this.colliderDebug
-  //     .rect(x, y, width, height)
-  //     .fill({ color: 0x00ff00, alpha: 0.2 })
-  //     .stroke({ width: 1, color: 0x00ff00 });
-  // }
+  takeDamage(): void {}
 }
