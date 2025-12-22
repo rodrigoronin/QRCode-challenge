@@ -6,6 +6,7 @@ import { Collider } from "../core/Collider";
 import { AttackCollider } from "../core/AttackCollider";
 import * as Constants from "../utils/Constants";
 import { CollisionManager } from "../core/CollisionManager";
+import { AttackComponent } from "../core/AttackComponent";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -34,6 +35,10 @@ export class Player extends Entity {
   private attackCollider: AttackCollider;
   private attackTimer: number = 0;
   private ATTACK_LOCK_DURATION: number = 250;
+  private attackManager: AttackComponent;
+  // stats
+  private maxHealthPoints: number = 10;
+  private healthPoints: number = 10;
 
   constructor(frames: Record<string, Texture[]>) {
     super();
@@ -52,6 +57,12 @@ export class Player extends Entity {
       this.container,
       this
     );
+
+    this.attackManager = new AttackComponent(this, {
+      attackCollider: this.attackCollider,
+      maxTargets: 1,
+      target: "enemy",
+    });
 
     this.dashSpeed = this.dashDistance / (this.dashDuration / 1000);
 
@@ -83,28 +94,7 @@ export class Player extends Entity {
     }
 
     if (this.attackCollider.active) {
-      const hits: Collider[] = CollisionManager.getOverlaps(this.attackCollider);
-      let closestEnemy: Collider | null = null;
-      let closestDistance: number = Infinity;
-
-      for (let i = 0; i < hits.length; i++) {
-        // temporary dagger combat, if one enemy was hit don't check again for this attack
-        if (hits[i].owner?.tag === "enemy" && this.attackCollider.damagedList.length <= 0) {
-          const dX = hits[i].container.x - this.container.x;
-          const dY = hits[i].container.y - this.container.y;
-          const currentDistance = Math.hypot(dX, dY);
-
-          if (currentDistance < closestDistance) {
-            closestEnemy = hits[i];
-            closestDistance = currentDistance;
-          }
-        }
-      }
-
-      if (closestEnemy) {
-        closestEnemy.owner?.takeDamage(1);
-        this.attackCollider.damagedList.push(closestEnemy);
-      }
+      this.attackManager.update();
     }
 
     if (this.isAttacking) {
@@ -230,6 +220,7 @@ export class Player extends Entity {
 
     this.attackCollider?.activate(this.currentDir);
     this.isAttacking = true;
+    this.attackManager.activate();
     this.attackTimer = this.ATTACK_LOCK_DURATION;
 
     console.log("basic attack!");
@@ -238,8 +229,15 @@ export class Player extends Entity {
   private updateAttackLock(deltaMS: number) {
     this.attackTimer -= deltaMS;
 
-    if (this.attackTimer <= 0) this.isAttacking = false;
+    if (this.attackTimer <= 0) {
+      this.isAttacking = false;
+      this.attackManager.deactivate();
+    }
   }
 
-  takeDamage(): void {}
+  takeDamage(damage: number): void {
+    this.healthPoints -= damage;
+
+    if (this.healthPoints <= 0) console.log("Player is incapacitated!");
+  }
 }

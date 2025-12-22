@@ -4,6 +4,8 @@ import { Collider } from "../core/Collider";
 import { CollisionManager } from "../core/CollisionManager";
 import * as Constants from "../utils/Constants";
 import { Player } from "./Player";
+import { AttackComponent } from "../core/AttackComponent";
+import { AttackCollider } from "../core/AttackCollider";
 
 export class Enemy extends Entity {
   private sprite: Sprite;
@@ -22,6 +24,9 @@ export class Enemy extends Entity {
   private perceptionRange: number = 150; // pixels
   public target: Player | null = null;
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
+  // Attack
+  private attackManager: AttackComponent;
+  private attackCollider: AttackCollider;
 
   constructor(texture: Sprite, playerRef: Player) {
     super();
@@ -34,6 +39,20 @@ export class Enemy extends Entity {
     this.collider = new Collider(14, 16, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
 
+    this.attackCollider = new AttackCollider(
+      12 * Constants.SCALE_FACTOR,
+      12 * Constants.SCALE_FACTOR,
+      250,
+      this.container,
+      this
+    );
+
+    this.attackManager = new AttackComponent(this, {
+      attackCollider: this.attackCollider,
+      maxTargets: 1,
+      target: "player",
+    });
+
     this.playerRef = playerRef;
 
     // this.collider.drawDebug();
@@ -42,7 +61,7 @@ export class Enemy extends Entity {
   update(_deltaTime: number): void {
     if (!this.isDead) {
       this.updateHitFlashFilter(_deltaTime);
-      this.checkPerception();
+      this.perceptionRadar();
       this.followTarget(_deltaTime);
     }
   }
@@ -84,7 +103,7 @@ export class Enemy extends Entity {
     }
   }
 
-  private checkPerception() {
+  private perceptionRadar() {
     if (!this.playerRef) return;
     if (this.playerRef.tag !== "player") return;
 
@@ -108,7 +127,10 @@ export class Enemy extends Entity {
     const dy: number = this.target.container.y - this.container.y;
     const distance: number = Math.hypot(dx, dy);
 
-    if (distance <= this.container.width) return;
+    if (distance <= this.container.width) {
+      this.basicAttack();
+      return;
+    }
 
     const dirX = dx / distance;
     const dirY = dy / distance;
@@ -120,5 +142,11 @@ export class Enemy extends Entity {
       this.container.x += moveX;
     if (CollisionManager.canMove(this.collider, this.container.x, this.container.y + moveY))
       this.container.y += moveY;
+  }
+
+  private basicAttack() {
+    if (!this.target) return;
+
+    this.target.takeDamage(1);
   }
 }
