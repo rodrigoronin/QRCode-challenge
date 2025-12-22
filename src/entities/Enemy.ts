@@ -3,6 +3,7 @@ import { Entity } from "../core/Entity";
 import { Collider } from "../core/Collider";
 import { CollisionManager } from "../core/CollisionManager";
 import * as Constants from "../utils/Constants";
+import { Player } from "./Player";
 
 export class Enemy extends Entity {
   private sprite: Sprite;
@@ -16,7 +17,12 @@ export class Enemy extends Entity {
   private hitFlashTimer: number = 0;
   private HIT_FLASH_DURATION: number = 80;
 
-  constructor(texture: Sprite) {
+  private playerRef: Player;
+  private speed: number = 120; // pixels/second
+  private perceptionRange: number = 150; // pixels
+  public target: Player | null = null;
+
+  constructor(texture: Sprite, playerRef: Player) {
     super();
 
     this.sprite = texture;
@@ -27,6 +33,8 @@ export class Enemy extends Entity {
     this.collider = new Collider(14, 16, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
 
+    this.playerRef = playerRef;
+
     // this.collider.drawDebug();
   }
 
@@ -34,14 +42,17 @@ export class Enemy extends Entity {
     if (this.isHitFlashing) {
       this.hitFlashTimer += _deltaTime;
 
-      console.log(this.isHitFlashing);
-
       if (this.hitFlashTimer >= this.HIT_FLASH_DURATION) {
         console.log(this.isHitFlashing);
         this.isHitFlashing = false;
         this.container.filters = [];
         this.hitFlashTimer = 0;
       }
+    }
+
+    if (!this.isDead) {
+      this.getDistanceFromPlayer();
+      this.followTarget(_deltaTime);
     }
   }
 
@@ -66,5 +77,41 @@ export class Enemy extends Entity {
 
   public getHitbox() {
     return this.collider;
+  }
+
+  private getDistanceFromPlayer() {
+    if (!this.playerRef) return;
+
+    const dx = this.playerRef.container.x - this.container.x;
+    const dy = this.playerRef.container.y - this.container.y;
+    const distance = Math.hypot(dx, dy);
+
+    if (distance <= this.perceptionRange) {
+      this.target = this.playerRef;
+    } else {
+      this.target = null;
+    }
+  }
+
+  private followTarget(deltaMS: number) {
+    if (!this.target) return;
+    const deltaSec = deltaMS / 1000;
+
+    const dx: number = this.target.container.x - this.container.x;
+    const dy: number = this.target.container.y - this.container.y;
+    const distance: number = Math.hypot(dx, dy);
+
+    if (distance <= this.container.width) return;
+
+    const dirX = dx / distance;
+    const dirY = dy / distance;
+
+    const moveX = dirX * this.speed * deltaSec;
+    const moveY = dirY * this.speed * deltaSec;
+
+    if (CollisionManager.canMove(this.collider, this.container.x + moveX, dirY))
+      this.container.x += moveX;
+    if (CollisionManager.canMove(this.collider, dirX, this.container.y + moveY))
+      this.container.y += moveY;
   }
 }
