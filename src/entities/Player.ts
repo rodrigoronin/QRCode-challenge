@@ -33,7 +33,7 @@ export class Player extends Entity {
   private isAttacking: boolean = false;
   private attackCollider: AttackCollider;
   private attackTimer: number = 0;
-  private ATTACK_LOCK_DURATION: number = 200;
+  private ATTACK_LOCK_DURATION: number = 250;
 
   constructor(frames: Record<string, Texture[]>) {
     super();
@@ -70,7 +70,7 @@ export class Player extends Entity {
     if (this.input.wasJustPressed("Space")) {
       this.tryStartDash();
     }
-    if (this.isDashing) {
+    if (!this.isAttacking && this.isDashing) {
       this.updateDash(deltaTime);
       return; // doesn't let the player move during dash
     }
@@ -78,18 +78,18 @@ export class Player extends Entity {
     // BASIC ATTACK
     // TODO: in the future the enemies hit will be handled by the weapon script like:
     // CombatManager.basicAttack(weapon, attacker, enemyList);
-    // The method above should handle who got hit and the damage amount based on attacker data
-    // the basicAttack should look up for the attacker data in a json using the entity tag
     if (!this.isDashing && this.input.wasJustPressed("KeyJ")) {
       this.basicAttack();
+    }
 
+    if (this.attackCollider.active) {
       const hits: Collider[] = CollisionManager.getOverlaps(this.attackCollider);
-
       let closestEnemy: Collider | null = null;
       let closestDistance: number = Infinity;
 
       for (let i = 0; i < hits.length; i++) {
-        if (hits[i].owner?.tag === "enemy" && !this.attackCollider.damagedList.includes(hits[i])) {
+        // temporary dagger combat, if one enemy was hit don't check again for this attack
+        if (hits[i].owner?.tag === "enemy" && this.attackCollider.damagedList.length <= 0) {
           const dX = hits[i].container.x - this.container.x;
           const dY = hits[i].container.y - this.container.y;
           const currentDistance = Math.hypot(dX, dY);
@@ -110,11 +110,10 @@ export class Player extends Entity {
     if (this.isAttacking) {
       this.updateAttackLock(deltaTime);
 
-      // Adds the AttackCollider to player container if attacking, remove if not
       if (this.attackCollider?.active) {
-        this.attackCollider?.updatePosition();
-        this.attackCollider?.update(deltaTime);
-        this.attackCollider?.drawDebug();
+        this.attackCollider.drawDebug();
+        this.attackCollider.updatePosition();
+        this.attackCollider.update(deltaTime);
       }
     }
 
@@ -229,18 +228,15 @@ export class Player extends Entity {
   private basicAttack() {
     if (this.attackCollider?.active) return;
 
+    this.attackCollider?.activate(this.currentDir);
     this.isAttacking = true;
     this.attackTimer = this.ATTACK_LOCK_DURATION;
-
-    this.attackCollider?.activate(this.currentDir);
 
     console.log("basic attack!");
   }
 
   private updateAttackLock(deltaMS: number) {
     this.attackTimer -= deltaMS;
-
-    console.log(this.attackTimer);
 
     if (this.attackTimer <= 0) this.isAttacking = false;
   }
