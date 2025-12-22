@@ -18,9 +18,10 @@ export class Enemy extends Entity {
   private HIT_FLASH_DURATION: number = 80;
 
   private playerRef: Player;
-  private speed: number = 120; // pixels/second
+  private speed: number = 100; // pixels/second
   private perceptionRange: number = 150; // pixels
   public target: Player | null = null;
+  private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   constructor(texture: Sprite, playerRef: Player) {
     super();
@@ -39,31 +40,20 @@ export class Enemy extends Entity {
   }
 
   update(_deltaTime: number): void {
-    if (this.isHitFlashing) {
-      this.hitFlashTimer += _deltaTime;
-
-      if (this.hitFlashTimer >= this.HIT_FLASH_DURATION) {
-        console.log(this.isHitFlashing);
-        this.isHitFlashing = false;
-        this.container.filters = [];
-        this.hitFlashTimer = 0;
-      }
-    }
-
     if (!this.isDead) {
-      this.getDistanceFromPlayer();
+      this.updateHitFlashFilter(_deltaTime);
+      this.checkPerception();
       this.followTarget(_deltaTime);
     }
   }
 
   takeDamage(damage: number) {
-    if (this.isDead) return;
-
     this.healthPoints -= damage;
     this.isHitFlashing = true;
-    const colorMatrixFilter = new ColorMatrixFilter();
-    colorMatrixFilter.greyscale(1, false);
-    this.container.filters = [colorMatrixFilter];
+
+    this.hitFlashFilter.greyscale(1, false);
+    this.container.filters = [this.hitFlashFilter];
+
     console.log(`Enemy HP: ${this.healthPoints} / ${this.maxHealthPoints}`);
 
     if (this.healthPoints <= 0) this.die();
@@ -79,11 +69,28 @@ export class Enemy extends Entity {
     return this.collider;
   }
 
-  private getDistanceFromPlayer() {
+  private updateHitFlashFilter(deltaTime: number) {
+    if (this.isHitFlashing) {
+      this.hitFlashTimer += deltaTime;
+
+      if (this.hitFlashTimer >= this.HIT_FLASH_DURATION) {
+        console.log(this.isHitFlashing);
+        this.isHitFlashing = false;
+        this.container.filters = this.container.filters.filter(
+          (filter) => filter !== this.hitFlashFilter
+        );
+        this.hitFlashTimer = 0;
+      }
+    }
+  }
+
+  private checkPerception() {
     if (!this.playerRef) return;
+    if (this.playerRef.tag !== "player") return;
 
     const dx = this.playerRef.container.x - this.container.x;
     const dy = this.playerRef.container.y - this.container.y;
+    this.target = this.playerRef;
     const distance = Math.hypot(dx, dy);
 
     if (distance <= this.perceptionRange) {
@@ -109,9 +116,9 @@ export class Enemy extends Entity {
     const moveX = dirX * this.speed * deltaSec;
     const moveY = dirY * this.speed * deltaSec;
 
-    if (CollisionManager.canMove(this.collider, this.container.x + moveX, dirY))
+    if (CollisionManager.canMove(this.collider, this.container.x + moveX, this.container.y))
       this.container.x += moveX;
-    if (CollisionManager.canMove(this.collider, dirX, this.container.y + moveY))
+    if (CollisionManager.canMove(this.collider, this.container.x, this.container.y + moveY))
       this.container.y += moveY;
   }
 }
