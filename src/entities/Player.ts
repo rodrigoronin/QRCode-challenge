@@ -77,7 +77,7 @@ export class Player extends Entity {
     // CombatManager.basicAttack(weapon, attacker, enemyList);
     // The method above should handle who got hit and the damage amount based on attacker data
     // the basicAttack should look up for the attacker data in a json using the entity tag
-    if (!this.isDashing && this.input.wasJustPressed("KeyJ")) {
+    if (!this.isDashing && this.input.wasJustPressed("KeyE")) {
       this.basicAttack();
 
       const hits: Collider[] = CollisionManager.getOverlaps(this.attackCollider);
