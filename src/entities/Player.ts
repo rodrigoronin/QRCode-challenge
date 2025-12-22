@@ -67,10 +67,10 @@ export class Player extends Entity {
     const move = this.input.getMovementVector();
 
     // DASH
-    if (this.input.wasJustPressed("Space")) {
+    if (!this.isAttacking && this.input.wasJustPressed("Space")) {
       this.tryStartDash();
     }
-    if (!this.isAttacking && this.isDashing) {
+    if (this.isDashing) {
       this.updateDash(deltaTime);
       return; // doesn't let the player move during dash
     }
