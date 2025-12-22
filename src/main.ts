@@ -57,17 +57,17 @@ import { CollisionManager } from "./core/CollisionManager";
 
   // Enemy prototype
   const enemySprite = new Sprite(frames["dash_down"][4]);
-  const enemy_01 = new Enemy(enemySprite);
+  const enemy_01 = new Enemy(enemySprite, player);
   enemy_01.container.x = 600;
   enemy_01.container.y = 512;
 
   const enemySprite2 = new Sprite(frames["dash_down"][4]);
-  const enemy_02 = new Enemy(enemySprite2);
+  const enemy_02 = new Enemy(enemySprite2, player);
   enemy_02.container.x = 560;
   enemy_02.container.y = 582;
 
   const enemySprite3 = new Sprite(frames["dash_down"][4]);
-  const enemy_03 = new Enemy(enemySprite3);
+  const enemy_03 = new Enemy(enemySprite3, player);
   enemy_03.container.x = 595;
   enemy_03.container.y = 582;
 
