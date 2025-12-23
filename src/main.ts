@@ -7,7 +7,7 @@ import * as Constants from "./utils/Constants";
 import "./style.css";
 
 // Assets
-import player_01 from "./assets/_player_01.png";
+import player_01 from "./assets/_player.png";
 import mockup_map from "./assets/_map_1024x1024.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
 import { CollisionManager } from "./core/CollisionManager";
@@ -28,27 +28,27 @@ import { CollisionManager } from "./core/CollisionManager";
   const world: Container = new Container();
   const camera: Container = new Container();
 
-  const frameSize: number = 32;
+  const frameSize: number = 64;
 
   // Current player animations spritesheet has:
   // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
   const frames = {
-    idle_down: frameSlicer(assets["_player_01"], frameSize, 5, 0),
-    walk_down: frameSlicer(assets["_player_01"], frameSize, 4, 2),
+    idle_down: frameSlicer(assets["_player"], frameSize, 6, 2),
+    walk_down: frameSlicer(assets["_player"], frameSize, 6, 1),
 
-    idle_up: frameSlicer(assets["_player_01"], frameSize, 1, 3),
-    walk_up: frameSlicer(assets["_player_01"], frameSize, 4, 3),
+    idle_up: frameSlicer(assets["_player"], frameSize, 1, 3),
+    walk_up: frameSlicer(assets["_player"], frameSize, 4, 3),
 
-    idle_left: frameSlicer(assets["_player_01"], frameSize, 1, 1),
-    walk_left: frameSlicer(assets["_player_01"], frameSize, 4, 1),
+    idle_left: frameSlicer(assets["_player"], frameSize, 1, 1),
+    walk_left: frameSlicer(assets["_player"], frameSize, 6, 2),
 
-    idle_right: frameSlicer(assets["_player_01"], frameSize, 1, 4),
-    walk_right: frameSlicer(assets["_player_01"], frameSize, 4, 4),
+    idle_right: frameSlicer(assets["_player"], frameSize, 1, 4),
+    walk_right: frameSlicer(assets["_player"], frameSize, 4, 4),
 
-    dash_down: frameSlicer(assets["_player_01"], frameSize, 5, 5),
-    dash_left: frameSlicer(assets["_player_01"], frameSize, 1, 6),
-    dash_right: frameSlicer(assets["_player_01"], frameSize, 1, 7),
-    dash_up: frameSlicer(assets["_player_01"], frameSize, 1, 8),
+    dash_down: frameSlicer(assets["_player"], frameSize, 5, 5),
+    dash_left: frameSlicer(assets["_player"], frameSize, 1, 6),
+    dash_right: frameSlicer(assets["_player"], frameSize, 1, 7),
+    dash_up: frameSlicer(assets["_player"], frameSize, 1, 8),
   };
 
   const player: Player = new Player(frames);
