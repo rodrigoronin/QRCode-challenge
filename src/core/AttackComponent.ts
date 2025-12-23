@@ -33,26 +33,28 @@ export class AttackComponent {
     let closestEnemy: Collider | null = null;
     let closestDistance: number = Infinity;
 
-    for (let i = 0; i < hits.length; i++) {
-      if (
-        hits[i].owner?.tag === this.target &&
-        this.damagedList.length < this.maxTargets &&
-        !this.damagedList.includes(hits[i])
-      ) {
-        const dX = hits[i].container.x - this.owner.container.x;
-        const dY = hits[i].container.y - this.owner.container.y;
-        const currentDistance = Math.hypot(dX, dY);
+    if (this.attackCollider.active) {
+      for (let i = 0; i < hits.length; i++) {
+        if (
+          hits[i].owner?.tag === this.target &&
+          this.damagedList.length < this.maxTargets &&
+          !this.damagedList.includes(hits[i])
+        ) {
+          const dX = hits[i].container.x - this.owner.container.x;
+          const dY = hits[i].container.y - this.owner.container.y;
+          const currentDistance = Math.hypot(dX, dY);
 
-        if (currentDistance < closestDistance) {
-          closestEnemy = hits[i];
-          closestDistance = currentDistance;
+          if (currentDistance < closestDistance) {
+            closestEnemy = hits[i];
+            closestDistance = currentDistance;
+          }
         }
       }
-    }
 
-    if (closestEnemy) {
-      closestEnemy.owner?.takeDamage(1);
-      this.damagedList.push(closestEnemy);
+      if (closestEnemy) {
+        closestEnemy.owner?.takeDamage(1);
+        this.damagedList.push(closestEnemy);
+      }
     }
   }
 
