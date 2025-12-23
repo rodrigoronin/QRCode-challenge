@@ -238,6 +238,8 @@ export class Player extends Entity {
   takeDamage(damage: number): void {
     this.healthPoints -= damage;
 
+    console.log(`Player Health: ${this.healthPoints} / ${this.maxHealthPoints}`);
+
     if (this.healthPoints <= 0) console.log("Player is incapacitated!");
   }
 }

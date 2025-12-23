@@ -52,7 +52,7 @@ import { CollisionManager } from "./core/CollisionManager";
   };
 
   const player: Player = new Player(frames);
-  player.container.x = 512;
+  player.container.x = 200;
   player.container.y = 512;
 
   // Enemy prototype

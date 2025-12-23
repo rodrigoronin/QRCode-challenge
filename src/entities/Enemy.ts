@@ -25,8 +25,11 @@ export class Enemy extends Entity {
   public target: Player | null = null;
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
   // Attack
+  private isAttacking: boolean = false;
   private attackManager: AttackComponent;
   private attackCollider: AttackCollider;
+  private attackCooldown: number = 2000;
+  private attackTimer: number = 0;
 
   constructor(texture: Sprite, playerRef: Player) {
     super();
@@ -63,6 +66,17 @@ export class Enemy extends Entity {
       this.updateHitFlashFilter(_deltaTime);
       this.perceptionRadar();
       this.followTarget(_deltaTime);
+
+      if (this.isAttacking) {
+        this.updateAttackLock(_deltaTime);
+
+        if (this.attackCollider.active) {
+          this.attackCollider.drawDebug();
+          this.attackManager.update();
+          this.attackCollider.update(_deltaTime);
+          this.attackCollider.updatePosition();
+        }
+      }
     }
   }
 
@@ -145,8 +159,21 @@ export class Enemy extends Entity {
   }
 
   private basicAttack() {
-    if (!this.target) return;
+    if (!this.target && !this.attackCollider.active) return;
+    if (this.attackTimer > 0) return;
 
-    this.target.takeDamage(1);
+    this.attackTimer = this.attackCooldown;
+    this.attackCollider.activate("left");
+    this.isAttacking = true;
+    this.attackManager.activate();
+  }
+
+  private updateAttackLock(deltaMS: number) {
+    this.attackTimer -= deltaMS;
+
+    if (this.attackTimer <= 0) {
+      this.isAttacking = false;
+      this.attackManager.deactivate();
+    }
   }
 }
