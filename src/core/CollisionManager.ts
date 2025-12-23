@@ -42,7 +42,7 @@ export class CollisionManager {
   static canMove(collider: Collider, futureX: number, futureY: number): boolean {
     const futureBounds = collider.getBoundsAt(futureX, futureY);
     for (const wall of this.worldColliders) {
-      if (this.rectIntersects(futureBounds, wall.getBounds())) return false;
+      if (futureBounds && this.rectIntersects(futureBounds, wall.getBounds())) return false;
     }
 
     return true;
@@ -55,7 +55,8 @@ export class CollisionManager {
     for (const entity of this.entityColliders) {
       if (entity.owner?.tag === collider.owner?.tag) continue;
 
-      if (this.rectIntersects(colliderBounds, entity.getBounds())) hits.push(entity);
+      if (colliderBounds && this.rectIntersects(colliderBounds, entity.getBounds()))
+        hits.push(entity);
     }
 
     return hits;
@@ -64,7 +65,9 @@ export class CollisionManager {
   // -------------------
   // COLLISION METHODS
   // -------------------
-  static rectIntersects(a: IEntityData, b: IEntityData): boolean {
+  static rectIntersects(a: IEntityData | null, b: IEntityData | null): boolean {
+    if (!a || !b) return false;
+
     return (
       a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y
     );
