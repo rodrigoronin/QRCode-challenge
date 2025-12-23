@@ -6,6 +6,7 @@ import { Collider } from "../core/Collider";
 import { AttackCollider } from "../core/AttackCollider";
 import * as Constants from "../utils/Constants";
 import { CollisionManager } from "../core/CollisionManager";
+import { AttackComponent } from "../core/AttackComponent";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -30,7 +31,14 @@ export class Player extends Entity {
   private dashSpeed: number;
   private dashDirection = { x: 0, y: 0 };
   // attack
+  private isAttacking: boolean = false;
   private attackCollider: AttackCollider;
+  private attackTimer: number = 0;
+  private ATTACK_LOCK_DURATION: number = 250;
+  private attackManager: AttackComponent;
+  // stats
+  private maxHealthPoints: number = 10;
+  private healthPoints: number = 10;
 
   constructor(frames: Record<string, Texture[]>) {
     super();
@@ -45,10 +53,16 @@ export class Player extends Entity {
     this.attackCollider = new AttackCollider(
       12 * Constants.SCALE_FACTOR,
       12 * Constants.SCALE_FACTOR,
-      300,
+      this.ATTACK_LOCK_DURATION,
       this.container,
       this
     );
+
+    this.attackManager = new AttackComponent(this, {
+      attackCollider: this.attackCollider,
+      maxTargets: 1,
+      target: "enemy",
+    });
 
     this.dashSpeed = this.dashDistance / (this.dashDuration / 1000);
 
@@ -64,7 +78,7 @@ export class Player extends Entity {
     const move = this.input.getMovementVector();
 
     // DASH
-    if (this.input.wasJustPressed("Space")) {
+    if (!this.isAttacking && this.input.wasJustPressed("Space")) {
       this.tryStartDash();
     }
     if (this.isDashing) {
@@ -75,66 +89,50 @@ export class Player extends Entity {
     // BASIC ATTACK
     // TODO: in the future the enemies hit will be handled by the weapon script like:
     // CombatManager.basicAttack(weapon, attacker, enemyList);
-    // The method above should handle who got hit and the damage amount based on attacker data
-    // the basicAttack should look up for the attacker data in a json using the entity tag
     if (!this.isDashing && this.input.wasJustPressed("KeyJ")) {
       this.basicAttack();
+    }
 
-      const hits: Collider[] = CollisionManager.getOverlaps(this.attackCollider);
+    if (this.attackCollider.active) {
+      this.attackManager.update();
+    }
 
-      let closestEnemy: Collider | null = null;
-      let closestDistance: number = Infinity;
+    if (this.isAttacking) {
+      this.updateAttackLock(deltaTime);
 
-      for (let i = 0; i < hits.length; i++) {
-        if (hits[i].owner?.tag === "enemy" && !this.attackCollider.damagedList.includes(hits[i])) {
-          const dX = hits[i].container.x - this.container.x;
-          const dY = hits[i].container.y - this.container.y;
-          const currentDistance = Math.hypot(dX, dY);
-
-          if (currentDistance < closestDistance) {
-            closestEnemy = hits[i];
-            closestDistance = currentDistance;
-          }
-        }
-      }
-
-      if (closestEnemy) {
-        closestEnemy.owner?.takeDamage(1);
-        this.attackCollider.damagedList.push(closestEnemy);
+      if (this.attackCollider?.active) {
+        this.attackCollider.drawDebug();
+        this.attackCollider.updatePosition();
+        this.attackCollider.update(deltaTime);
       }
     }
 
     // movement
-    const futureX = this.container.x + move.x * this.speed * deltaSec;
-    const futureY = this.container.y + move.y * this.speed * deltaSec;
+    if (!this.isAttacking) {
+      const futureX = this.container.x + move.x * this.speed * deltaSec;
+      const futureY = this.container.y + move.y * this.speed * deltaSec;
 
-    // checking the axis isolated enable player do slide on walls
-    if (CollisionManager.canMove(this.collider, futureX, this.container.y)) {
-      this.container.x = futureX;
-    }
-    if (CollisionManager.canMove(this.collider, this.container.x, futureY)) {
-      this.container.y = futureY;
-    }
+      // checking the axis isolated enable player do slide on walls
+      if (CollisionManager.canMove(this.collider, futureX, this.container.y)) {
+        this.container.x = futureX;
+      }
+      if (CollisionManager.canMove(this.collider, this.container.x, futureY)) {
+        this.container.y = futureY;
+      }
 
-    this.updateDirection(move);
+      this.updateDirection(move);
 
-    if (move.x !== 0 || move.y !== 0) {
-      this.anim.play(`walk_${this.currentDir}`);
-    } else {
-      this.anim.play(`idle_${this.currentDir}`);
-    }
+      if (move.x !== 0 || move.y !== 0) {
+        this.anim.play(`walk_${this.currentDir}`);
+      } else {
+        this.anim.play(`idle_${this.currentDir}`);
+      }
 
-    this.anim.update(deltaTime);
+      this.anim.update(deltaTime);
 
-    if (this.dashCooldownTimer > 0) {
-      this.dashCooldownTimer -= deltaTime;
-    }
-
-    // Adds the AttackCollider to player container if attacking, remove if not
-    if (this.attackCollider?.active) {
-      this.attackCollider?.updatePosition();
-      this.attackCollider?.update(deltaTime);
-      this.attackCollider?.drawDebug();
+      if (this.dashCooldownTimer > 0) {
+        this.dashCooldownTimer -= deltaTime;
+      }
     }
 
     this.collider.drawDebug();
@@ -221,9 +219,27 @@ export class Player extends Entity {
     if (this.attackCollider?.active) return;
 
     this.attackCollider?.activate(this.currentDir);
+    this.isAttacking = true;
+    this.attackManager.activate();
+    this.attackTimer = this.ATTACK_LOCK_DURATION;
 
     console.log("basic attack!");
   }
 
-  takeDamage(): void {}
+  private updateAttackLock(deltaMS: number) {
+    this.attackTimer -= deltaMS;
+
+    if (this.attackTimer <= 0) {
+      this.isAttacking = false;
+      this.attackManager.deactivate();
+    }
+  }
+
+  takeDamage(damage: number): void {
+    this.healthPoints -= damage;
+
+    console.log(`Player Health: ${this.healthPoints} / ${this.maxHealthPoints}`);
+
+    if (this.healthPoints <= 0) console.log("Player is incapacitated!");
+  }
 }

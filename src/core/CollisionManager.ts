@@ -48,8 +48,11 @@ export class CollisionManager {
     return true;
   }
 
+  // -------------------
+  // COLLISION METHODS
+  // -------------------
   static getOverlaps(collider: Collider | AttackCollider): Collider[] {
-    const colliderBounds = collider.getBounds();
+    const colliderBounds: IEntityData | null = collider.getBounds();
     const hits: Collider[] = [];
 
     for (const entity of this.entityColliders) {
@@ -61,10 +64,9 @@ export class CollisionManager {
     return hits;
   }
 
-  // -------------------
-  // COLLISION METHODS
-  // -------------------
-  static rectIntersects(a: IEntityData, b: IEntityData): boolean {
+  static rectIntersects(a: IEntityData | null, b: IEntityData | null): boolean {
+    if (!a || !b) return false;
+
     return (
       a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y
     );

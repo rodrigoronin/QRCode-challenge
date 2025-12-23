@@ -29,6 +29,8 @@ export class Collider {
   }
 
   getBounds() {
+    if (this.container.destroyed) return null;
+
     return {
       x: this.container.x - this.width / 2,
       y: this.container.y - this.height / 2,
@@ -38,6 +40,8 @@ export class Collider {
   }
 
   getBoundsAt(x: number, y: number) {
+    if (this.container.destroyed) return null;
+
     return {
       x: x - this.width / 2,
       y: y - this.height / 2,

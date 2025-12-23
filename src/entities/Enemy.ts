@@ -2,6 +2,9 @@ import { ColorMatrixFilter, type Sprite } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { Collider } from "../core/Collider";
 import { CollisionManager } from "../core/CollisionManager";
+import { Player } from "./Player";
+import { AttackComponent } from "../core/AttackComponent";
+import { AttackCollider } from "../core/AttackCollider";
 import * as Constants from "../utils/Constants";
 
 export class Enemy extends Entity {
@@ -15,8 +18,21 @@ export class Enemy extends Entity {
   private isHitFlashing: boolean = false;
   private hitFlashTimer: number = 0;
   private HIT_FLASH_DURATION: number = 80;
+  private currentDir: string = "down";
 
-  constructor(texture: Sprite) {
+  private playerRef: Player;
+  private speed: number = 100; // pixels/second
+  private perceptionRange: number = 150; // pixels
+  public target: Player | null = null;
+  private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
+  // Attack
+  private isAttacking: boolean = false;
+  private attackManager: AttackComponent;
+  private attackCollider: AttackCollider;
+  private attackCooldown: number = 2000;
+  private attackTimer: number = 0;
+
+  constructor(texture: Sprite, playerRef: Player) {
     super();
 
     this.sprite = texture;
@@ -27,32 +43,51 @@ export class Enemy extends Entity {
     this.collider = new Collider(14, 16, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
 
+    this.attackCollider = new AttackCollider(
+      12 * Constants.SCALE_FACTOR,
+      12 * Constants.SCALE_FACTOR,
+      250,
+      this.container,
+      this
+    );
+
+    this.attackManager = new AttackComponent(this, {
+      attackCollider: this.attackCollider,
+      maxTargets: 1,
+      target: "player",
+    });
+
+    this.playerRef = playerRef;
+
     // this.collider.drawDebug();
   }
 
   update(_deltaTime: number): void {
-    if (this.isHitFlashing) {
-      this.hitFlashTimer += _deltaTime;
+    if (!this.isDead) {
+      this.updateHitFlashFilter(_deltaTime);
+      this.perceptionRadar();
+      this.followTarget(_deltaTime);
 
-      console.log(this.isHitFlashing);
+      if (this.isAttacking) {
+        this.updateAttackLock(_deltaTime);
 
-      if (this.hitFlashTimer >= this.HIT_FLASH_DURATION) {
-        console.log(this.isHitFlashing);
-        this.isHitFlashing = false;
-        this.container.filters = [];
-        this.hitFlashTimer = 0;
+        if (this.attackCollider.active) {
+          this.attackCollider.drawDebug();
+          this.attackManager.update();
+          this.attackCollider.update(_deltaTime);
+          this.attackCollider.updatePosition();
+        }
       }
     }
   }
 
   takeDamage(damage: number) {
-    if (this.isDead) return;
-
     this.healthPoints -= damage;
     this.isHitFlashing = true;
-    const colorMatrixFilter = new ColorMatrixFilter();
-    colorMatrixFilter.greyscale(1, false);
-    this.container.filters = [colorMatrixFilter];
+
+    this.hitFlashFilter.greyscale(1, false);
+    this.container.filters = [this.hitFlashFilter];
+
     console.log(`Enemy HP: ${this.healthPoints} / ${this.maxHealthPoints}`);
 
     if (this.healthPoints <= 0) this.die();
@@ -64,7 +99,88 @@ export class Enemy extends Entity {
     this.remove();
   }
 
-  public getHitbox() {
-    return this.collider;
+  private updateHitFlashFilter(deltaTime: number) {
+    if (this.isHitFlashing) {
+      this.hitFlashTimer += deltaTime;
+
+      if (this.hitFlashTimer >= this.HIT_FLASH_DURATION) {
+        console.log(this.isHitFlashing);
+        this.isHitFlashing = false;
+        this.container.filters = this.container.filters.filter(
+          (filter) => filter !== this.hitFlashFilter
+        );
+        this.hitFlashTimer = 0;
+      }
+    }
+  }
+
+  protected perceptionRadar() {
+    if (!this.playerRef) return;
+    if (this.playerRef.tag !== "player") return;
+
+    const dx = this.playerRef.container.x - this.container.x;
+    const dy = this.playerRef.container.y - this.container.y;
+    this.target = this.playerRef;
+    const distance = Math.hypot(dx, dy);
+
+    if (distance <= this.perceptionRange) {
+      this.target = this.playerRef;
+    } else {
+      this.target = null;
+    }
+  }
+
+  protected followTarget(deltaMS: number) {
+    if (!this.target) return;
+    const deltaSec = deltaMS / 1000;
+
+    const dx: number = this.target.container.x - this.container.x;
+    const dy: number = this.target.container.y - this.container.y;
+    const distance: number = Math.hypot(dx, dy);
+
+    if (distance <= this.container.width) {
+      this.basicAttack();
+      return;
+    }
+
+    const dirX = dx / distance;
+    const dirY = dy / distance;
+
+    const moveX = dirX * this.speed * deltaSec;
+    const moveY = dirY * this.speed * deltaSec;
+
+    if (CollisionManager.canMove(this.collider, this.container.x + moveX, this.container.y))
+      this.container.x += moveX;
+    if (CollisionManager.canMove(this.collider, this.container.x, this.container.y + moveY))
+      this.container.y += moveY;
+
+    this.updateDirection({ x: moveX, y: moveY });
+  }
+
+  protected basicAttack() {
+    if (!this.target && !this.attackCollider.active) return;
+    if (this.attackTimer > 0) return;
+
+    this.attackTimer = this.attackCooldown;
+    this.attackCollider.activate(this.currentDir);
+    this.isAttacking = true;
+    this.attackManager.activate();
+  }
+
+  protected updateAttackLock(deltaMS: number) {
+    this.attackTimer -= deltaMS;
+
+    if (this.attackTimer <= 0) {
+      this.isAttacking = false;
+      this.attackManager.deactivate();
+    }
+  }
+
+  protected updateDirection(m: { x: number; y: number }) {
+    if (Math.abs(m.x) > Math.abs(m.y)) {
+      this.currentDir = m.x > 0 ? "right" : "left";
+    } else if (m.y !== 0) {
+      this.currentDir = m.y > 0 ? "down" : "up";
+    }
   }
 }
