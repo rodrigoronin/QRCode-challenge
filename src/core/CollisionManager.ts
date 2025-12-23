@@ -42,29 +42,28 @@ export class CollisionManager {
   static canMove(collider: Collider, futureX: number, futureY: number): boolean {
     const futureBounds = collider.getBoundsAt(futureX, futureY);
     for (const wall of this.worldColliders) {
-      if (futureBounds && this.rectIntersects(futureBounds, wall.getBounds())) return false;
+      if (this.rectIntersects(futureBounds, wall.getBounds())) return false;
     }
 
     return true;
   }
 
+  // -------------------
+  // COLLISION METHODS
+  // -------------------
   static getOverlaps(collider: Collider | AttackCollider): Collider[] {
-    const colliderBounds = collider.getBounds();
+    const colliderBounds: IEntityData | null = collider.getBounds();
     const hits: Collider[] = [];
 
     for (const entity of this.entityColliders) {
       if (entity.owner?.tag === collider.owner?.tag) continue;
 
-      if (colliderBounds && this.rectIntersects(colliderBounds, entity.getBounds()))
-        hits.push(entity);
+      if (this.rectIntersects(colliderBounds, entity.getBounds())) hits.push(entity);
     }
 
     return hits;
   }
 
-  // -------------------
-  // COLLISION METHODS
-  // -------------------
   static rectIntersects(a: IEntityData | null, b: IEntityData | null): boolean {
     if (!a || !b) return false;
 

@@ -2,10 +2,10 @@ import { ColorMatrixFilter, type Sprite } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { Collider } from "../core/Collider";
 import { CollisionManager } from "../core/CollisionManager";
-import * as Constants from "../utils/Constants";
 import { Player } from "./Player";
 import { AttackComponent } from "../core/AttackComponent";
 import { AttackCollider } from "../core/AttackCollider";
+import * as Constants from "../utils/Constants";
 
 export class Enemy extends Entity {
   private sprite: Sprite;
@@ -18,6 +18,7 @@ export class Enemy extends Entity {
   private isHitFlashing: boolean = false;
   private hitFlashTimer: number = 0;
   private HIT_FLASH_DURATION: number = 80;
+  private currentDir: string = "down";
 
   private playerRef: Player;
   private speed: number = 100; // pixels/second
@@ -98,10 +99,6 @@ export class Enemy extends Entity {
     this.remove();
   }
 
-  public getHitbox() {
-    return this.collider;
-  }
-
   private updateHitFlashFilter(deltaTime: number) {
     if (this.isHitFlashing) {
       this.hitFlashTimer += deltaTime;
@@ -117,7 +114,7 @@ export class Enemy extends Entity {
     }
   }
 
-  private perceptionRadar() {
+  protected perceptionRadar() {
     if (!this.playerRef) return;
     if (this.playerRef.tag !== "player") return;
 
@@ -133,7 +130,7 @@ export class Enemy extends Entity {
     }
   }
 
-  private followTarget(deltaMS: number) {
+  protected followTarget(deltaMS: number) {
     if (!this.target) return;
     const deltaSec = deltaMS / 1000;
 
@@ -156,24 +153,34 @@ export class Enemy extends Entity {
       this.container.x += moveX;
     if (CollisionManager.canMove(this.collider, this.container.x, this.container.y + moveY))
       this.container.y += moveY;
+
+    this.updateDirection({ x: moveX, y: moveY });
   }
 
-  private basicAttack() {
+  protected basicAttack() {
     if (!this.target && !this.attackCollider.active) return;
     if (this.attackTimer > 0) return;
 
     this.attackTimer = this.attackCooldown;
-    this.attackCollider.activate("left");
+    this.attackCollider.activate(this.currentDir);
     this.isAttacking = true;
     this.attackManager.activate();
   }
 
-  private updateAttackLock(deltaMS: number) {
+  protected updateAttackLock(deltaMS: number) {
     this.attackTimer -= deltaMS;
 
     if (this.attackTimer <= 0) {
       this.isAttacking = false;
       this.attackManager.deactivate();
+    }
+  }
+
+  protected updateDirection(m: { x: number; y: number }) {
+    if (Math.abs(m.x) > Math.abs(m.y)) {
+      this.currentDir = m.x > 0 ? "right" : "left";
+    } else if (m.y !== 0) {
+      this.currentDir = m.y > 0 ? "down" : "up";
     }
   }
 }
