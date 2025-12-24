@@ -33,7 +33,7 @@ export class AttackCollider {
     this.offsetY = 0;
 
     this.container = container;
-    this.collider = new Collider(12, 12, this.container, owner);
+    this.collider = new Collider(12, 12, 0, 0, this.container, owner);
 
     this.debugGraphics = new Graphics();
   }
@@ -64,18 +64,18 @@ export class AttackCollider {
     switch (direction) {
       case "up":
         this.offsetX = -this.width / 2;
-        this.offsetY = -dist - 25;
+        this.offsetY = -dist;
         break;
       case "down":
         this.offsetX = -this.width / 2;
-        this.offsetY = dist;
+        this.offsetY = dist - 10;
         break;
       case "left":
-        this.offsetX = -dist - 25;
+        this.offsetX = -dist;
         this.offsetY = -this.height / 2;
         break;
       case "right":
-        this.offsetX = dist;
+        this.offsetX = dist - 10;
         this.offsetY = -this.height / 2;
         break;
     }

@@ -69,7 +69,7 @@ export class Player extends Entity {
     this.container.addChild(this.sprite);
 
     // Create the Collider last so the debugDraw appears over the player
-    this.collider = new Collider(15, 17, this.container, this);
+    this.collider = new Collider(15, 32, 0, 8, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
   }
 
