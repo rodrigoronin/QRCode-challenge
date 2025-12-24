@@ -2,53 +2,74 @@ import { Application, Assets, Container, Texture, Rectangle, TextureSource, Spri
 import { Player } from "./entities/Player";
 import { Enemy } from "./entities/Enemy";
 import { WorldCollider } from "./core/WorldCollider";
+import { CollisionManager } from "./core/CollisionManager";
 import * as Constants from "./utils/Constants";
 
 import "./style.css";
 
 // Assets
-import player_01 from "./assets/_player_01.png";
+import player_01 from "./assets/_player.png";
+import toxic_fly from "./assets/_toxic_fly.png";
 import mockup_map from "./assets/_map_1024x1024.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
-import { CollisionManager } from "./core/CollisionManager";
 
 (async () => {
   const game: Application = new Application();
   await game.init({
-    width: Constants.VIEWPORT_WIDTH,
-    height: Constants.VIEWPORT_HEIGHT,
+    width: Constants.LOGICAL_WIDTH,
+    height: Constants.LOGICAL_HEIGHT,
     background: "#d2d2d2",
-    // resizeTo: window,
-    resolution: 16 / 9,
+    resizeTo: window,
+    resolution: window.devicePixelRatio || 1,
   });
   document.body.appendChild(game.canvas);
 
-  const assets = await assetLoader([player_01, mockup_map]);
+  const scaleX = window.innerWidth / Constants.LOGICAL_WIDTH;
+  const scaleY = window.innerHeight / Constants.LOGICAL_HEIGHT;
+  const scale = Math.min(scaleX, scaleY);
+
+  const assets = await assetLoader([player_01, mockup_map, toxic_fly]);
 
   const world: Container = new Container();
+  const viewport: Container = new Container();
+  viewport.scale.set(scale);
+  viewport.x = (window.innerWidth - Constants.LOGICAL_WIDTH * scale) / 2;
+  viewport.y = (window.innerHeight - Constants.LOGICAL_HEIGHT * scale) / 2;
+
   const camera: Container = new Container();
 
-  const frameSize: number = 32;
+  const frameSize: number = 64;
 
   // Current player animations spritesheet has:
   // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
   const frames = {
-    idle_down: frameSlicer(assets["_player_01"], frameSize, 5, 0),
-    walk_down: frameSlicer(assets["_player_01"], frameSize, 4, 2),
+    idle_down: frameSlicer(assets["_player"], frameSize, 1, 0),
+    walk_down: frameSlicer(assets["_player"], frameSize, 6, 1),
 
-    idle_up: frameSlicer(assets["_player_01"], frameSize, 1, 3),
-    walk_up: frameSlicer(assets["_player_01"], frameSize, 4, 3),
+    idle_left: frameSlicer(assets["_player"], frameSize, 1, 0, 1),
+    walk_left: frameSlicer(assets["_player"], frameSize, 6, 4),
 
-    idle_left: frameSlicer(assets["_player_01"], frameSize, 1, 1),
-    walk_left: frameSlicer(assets["_player_01"], frameSize, 4, 1),
+    idle_up: frameSlicer(assets["_player"], frameSize, 1, 0, 2),
+    walk_up: frameSlicer(assets["_player"], frameSize, 6, 3),
 
-    idle_right: frameSlicer(assets["_player_01"], frameSize, 1, 4),
-    walk_right: frameSlicer(assets["_player_01"], frameSize, 4, 4),
+    idle_right: frameSlicer(assets["_player"], frameSize, 1, 0, 3),
+    walk_right: frameSlicer(assets["_player"], frameSize, 6, 2),
 
-    dash_down: frameSlicer(assets["_player_01"], frameSize, 5, 5),
-    dash_left: frameSlicer(assets["_player_01"], frameSize, 1, 6),
-    dash_right: frameSlicer(assets["_player_01"], frameSize, 1, 7),
-    dash_up: frameSlicer(assets["_player_01"], frameSize, 1, 8),
+    dash_down: frameSlicer(assets["_player"], frameSize, 1, 5),
+    dash_right: frameSlicer(assets["_player"], frameSize, 1, 6, 5),
+    dash_up: frameSlicer(assets["_player"], frameSize, 1, 7),
+    dash_left: frameSlicer(assets["_player"], frameSize, 1, 8, 5),
+  };
+
+  const enemyFrames = {
+    idle_down: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
+    idle_left: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
+    idle_up: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
+    idle_right: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
+    walk_down: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
+    walk_right: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
+    walk_up: frameSlicer(assets["_toxic_fly"], frameSize, 4, 1),
+    walk_left: frameSlicer(assets["_toxic_fly"], frameSize, 4, 1),
   };
 
   const player: Player = new Player(frames);
@@ -56,20 +77,15 @@ import { CollisionManager } from "./core/CollisionManager";
   player.container.y = 512;
 
   // Enemy prototype
-  const enemySprite = new Sprite(frames["dash_down"][4]);
-  const enemy_01 = new Enemy(enemySprite, player);
-  enemy_01.container.x = 600;
+  const enemy_01 = new Enemy(enemyFrames, player);
+  enemy_01.container.x = 500;
   enemy_01.container.y = 512;
-
-  const enemySprite2 = new Sprite(frames["dash_down"][4]);
-  const enemy_02 = new Enemy(enemySprite2, player);
-  enemy_02.container.x = 560;
-  enemy_02.container.y = 582;
-
-  const enemySprite3 = new Sprite(frames["dash_down"][4]);
-  const enemy_03 = new Enemy(enemySprite3, player);
-  enemy_03.container.x = 595;
-  enemy_03.container.y = 582;
+  const enemy_02 = new Enemy(enemyFrames, player);
+  enemy_02.container.x = 500;
+  enemy_02.container.y = 612;
+  const enemy_03 = new Enemy(enemyFrames, player);
+  enemy_03.container.x = 580;
+  enemy_03.container.y = 512;
 
   const map: Sprite = new Sprite(
     new Texture({
@@ -83,45 +99,67 @@ import { CollisionManager } from "./core/CollisionManager";
   const walls = createWalls(colliders);
   const enemiesList: Enemy[] = [];
 
-  game.stage.addChild(camera);
+  // CONTAINER HIERARCHY
+  game.stage.addChild(viewport);
+  viewport.addChild(camera);
   camera.addChild(world);
   world.addChild(map);
-  world.addChild(enemy_01.container, enemy_02.container, enemy_03.container);
+  world.addChild(enemy_01.container);
+  world.addChild(enemy_02.container);
+  world.addChild(enemy_03.container);
   world.addChild(player.container);
   world.addChild(...walls.map((wall) => wall.container));
 
   enemiesList.push(enemy_01, enemy_02, enemy_03);
 
+  resizeViewport(viewport);
+
   game.ticker.add((ticker) => {
     player.update(ticker.deltaMS);
     enemiesList.forEach((enemy) => enemy.update(ticker.deltaMS));
 
-    const canMinX = -(map.width - Constants.VIEWPORT_WIDTH);
+    const canMinX = -(map.width - Constants.LOGICAL_WIDTH);
     const canMaxX = 0;
 
-    camera.x = clamp(-player.container.x + Constants.VIEWPORT_WIDTH / 2, canMinX, canMaxX);
+    camera.x = clamp(-player.container.x + Constants.LOGICAL_WIDTH / 2, canMinX, canMaxX);
 
-    const canMinY = -(map.height - Constants.VIEWPORT_HEIGHT);
+    const canMinY = -(map.height - Constants.LOGICAL_HEIGHT);
     const canMaxY = 0;
 
-    camera.y = clamp(-player.container.y + Constants.VIEWPORT_HEIGHT / 2, canMinY, canMaxY);
+    camera.y = clamp(-player.container.y + Constants.LOGICAL_HEIGHT / 2, canMinY, canMaxY);
   });
+
+  window.addEventListener("resize", () => resizeViewport(viewport));
 })();
 
-// to help speed animations during MVP
+// To help speed animations during MVP
+// TODO: Refactor this to accept bigger animations starting
+// from the columns > 0
 function frameSlicer(
   s: TextureSource<any>,
   frameSize: number,
   frameCount: number,
-  startLine: number
+  startRow: number,
+  startColumn: number = 0
 ): Texture[] {
   const frames: Texture[] = [];
+
+  if (frameCount === 1) {
+    frames.push(
+      new Texture({
+        source: s,
+        frame: new Rectangle(startColumn * frameSize, startRow * frameSize, frameSize, frameSize),
+      })
+    );
+
+    return frames;
+  }
 
   for (let i = 0; i < frameCount; i++) {
     frames.push(
       new Texture({
         source: s,
-        frame: new Rectangle(i * frameSize, startLine * frameSize, frameSize, frameSize),
+        frame: new Rectangle(i * frameSize, startRow * frameSize, frameSize, frameSize),
       })
     );
   }
@@ -162,4 +200,15 @@ function createWalls(transform: { x: number; y: number; width: number; height: n
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function resizeViewport(viewport: Container) {
+  const scaleX = window.innerWidth / Constants.LOGICAL_WIDTH;
+  const scaleY = window.innerHeight / Constants.LOGICAL_HEIGHT;
+  const scale = Math.min(scaleX, scaleY);
+
+  viewport.scale.set(scale);
+
+  viewport.x = (window.innerWidth - Constants.LOGICAL_WIDTH * scale) / 2;
+  viewport.y = (window.innerHeight - Constants.LOGICAL_HEIGHT * scale) / 2;
 }

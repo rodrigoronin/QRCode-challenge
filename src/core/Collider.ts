@@ -6,19 +6,33 @@ import type { Player } from "../entities/Player";
 export class Collider {
   private width: number;
   private height: number;
+  private offsetX: number;
+  private offsetY: number;
   private scale: number;
   private debug: Graphics;
   public container: Container;
   public owner: Enemy | Player;
 
-  constructor(width: number, height: number, container: Container, owner: Enemy | Player) {
+  constructor(
+    width: number,
+    height: number,
+    offsetX: number,
+    offsetY: number,
+    container: Container,
+    owner: Enemy | Player
+  ) {
     this.scale = Constants.SCALE_FACTOR;
     this.width = width * this.scale;
     this.height = height * this.scale;
+    this.offsetX = offsetX;
+    this.offsetY = offsetY;
 
     this.debug = new Graphics();
     this.container = container;
     this.owner = owner;
+
+    this.container.x += this.offsetX;
+    this.container.y += this.offsetY;
 
     this.attachTo(this.container);
   }
@@ -32,8 +46,8 @@ export class Collider {
     if (this.container.destroyed) return null;
 
     return {
-      x: this.container.x - this.width / 2,
-      y: this.container.y - this.height / 2,
+      x: this.container.x + this.offsetX - this.width / 2,
+      y: this.container.y + this.offsetY - this.height / 2,
       width: this.width,
       height: this.height,
     };
@@ -43,8 +57,8 @@ export class Collider {
     if (this.container.destroyed) return null;
 
     return {
-      x: x - this.width / 2,
-      y: y - this.height / 2,
+      x: x + this.offsetX - this.width / 2,
+      y: y + this.offsetY - this.height / 2,
       width: this.width,
       height: this.height,
     };
@@ -57,8 +71,8 @@ export class Collider {
     const y = -this.height / 2;
 
     this.debug
-      .rect(x, y, this.width, this.height)
+      .rect(x + this.offsetX, y + this.offsetY, this.width, this.height)
       .fill({ color: 0x00ff00, alpha: 0.2 })
-      .stroke({ width: 1, color: 0x00ff00 });
+      .stroke({ width: 1, color: 0x00ff00, alpha: 0.2 });
   }
 }

@@ -1,4 +1,4 @@
-import { ColorMatrixFilter, type Sprite } from "pixi.js";
+import { ColorMatrixFilter, Sprite, Texture } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { Collider } from "../core/Collider";
 import { CollisionManager } from "../core/CollisionManager";
@@ -6,11 +6,15 @@ import { Player } from "./Player";
 import { AttackComponent } from "../core/AttackComponent";
 import { AttackCollider } from "../core/AttackCollider";
 import * as Constants from "../utils/Constants";
+import { AnimationController } from "../core/AnimationController";
 
 export class Enemy extends Entity {
   private sprite: Sprite;
   private collider: Collider;
   public tag: string = "enemy";
+  private currentDir: string = "down";
+  private frames: Record<string, Texture[]>;
+  private anim: AnimationController;
 
   private maxHealthPoints: number = 3;
   private healthPoints: number = this.maxHealthPoints;
@@ -18,7 +22,6 @@ export class Enemy extends Entity {
   private isHitFlashing: boolean = false;
   private hitFlashTimer: number = 0;
   private HIT_FLASH_DURATION: number = 80;
-  private currentDir: string = "down";
 
   private playerRef: Player;
   private speed: number = 100; // pixels/second
@@ -32,15 +35,21 @@ export class Enemy extends Entity {
   private attackCooldown: number = 2000;
   private attackTimer: number = 0;
 
-  constructor(texture: Sprite, playerRef: Player) {
+  constructor(frames: Record<string, Texture[]>, playerRef: Player) {
     super();
 
-    this.sprite = texture;
+    this.frames = frames;
+    this.sprite = new Sprite(this.frames["idle_down"][0]);
     this.sprite.anchor.set(0.5);
     this.sprite.scale.set(Constants.SCALE_FACTOR);
+    this.anim = new AnimationController(this.sprite);
+    this.setupAnimation();
+
+    this.anim.play("idle_down");
+
     this.container.addChild(this.sprite);
 
-    this.collider = new Collider(14, 16, this.container, this);
+    this.collider = new Collider(28, 24, 2, 0, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
 
     this.attackCollider = new AttackCollider(
@@ -78,6 +87,14 @@ export class Enemy extends Entity {
           this.attackCollider.updatePosition();
         }
       }
+    }
+
+    this.anim.update(_deltaTime);
+  }
+
+  setupAnimation() {
+    for (const key in this.frames) {
+      this.anim.addAnimation(key, this.frames[key]);
     }
   }
 
@@ -155,6 +172,14 @@ export class Enemy extends Entity {
       this.container.y += moveY;
 
     this.updateDirection({ x: moveX, y: moveY });
+
+    if (this.container.x !== 0 || this.container.y !== 0) {
+      this.anim.play(`walk_${this.currentDir}`);
+    } else {
+      this.anim.play(`idle_${this.currentDir}`);
+    }
+
+    this.anim.update(deltaMS);
   }
 
   protected basicAttack() {

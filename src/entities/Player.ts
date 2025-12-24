@@ -22,7 +22,7 @@ export class Player extends Entity {
 
   // Dash variables
   private isDashing: boolean = false;
-  private dashDistance: number = 150;
+  private dashDistance: number = 100;
   private dashTime: number = 0;
   // how many frames is the dash in millisecons (60 = 1 frame)
   private dashDuration: number = 180;
@@ -69,7 +69,7 @@ export class Player extends Entity {
     this.container.addChild(this.sprite);
 
     // Create the Collider last so the debugDraw appears over the player
-    this.collider = new Collider(15, 17, this.container, this);
+    this.collider = new Collider(15, 32, 0, 8, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
   }
 
