@@ -40,7 +40,7 @@ export class Enemy extends Entity {
     this.sprite.scale.set(Constants.SCALE_FACTOR);
     this.container.addChild(this.sprite);
 
-    this.collider = new Collider(14, 16, 0, 0, this.container, this);
+    this.collider = new Collider(28, 24, 2, 0, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
 
     this.attackCollider = new AttackCollider(
@@ -59,7 +59,7 @@ export class Enemy extends Entity {
 
     this.playerRef = playerRef;
 
-    // this.collider.drawDebug();
+    this.collider.drawDebug();
   }
 
   update(_deltaTime: number): void {

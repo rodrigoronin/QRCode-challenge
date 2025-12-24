@@ -22,7 +22,7 @@ export class Player extends Entity {
 
   // Dash variables
   private isDashing: boolean = false;
-  private dashDistance: number = 150;
+  private dashDistance: number = 100;
   private dashTime: number = 0;
   // how many frames is the dash in millisecons (60 = 1 frame)
   private dashDuration: number = 180;

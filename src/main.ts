@@ -9,6 +9,7 @@ import "./style.css";
 
 // Assets
 import player_01 from "./assets/_player.png";
+import toxic_fly from "./assets/_toxic_fly.png";
 import mockup_map from "./assets/_map_1024x1024.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
 
@@ -27,7 +28,7 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
   const scaleY = window.innerHeight / Constants.LOGICAL_HEIGHT;
   const scale = Math.min(scaleX, scaleY);
 
-  const assets = await assetLoader([player_01, mockup_map]);
+  const assets = await assetLoader([player_01, mockup_map, toxic_fly]);
 
   const world: Container = new Container();
   const viewport: Container = new Container();
@@ -54,10 +55,17 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
     idle_right: frameSlicer(assets["_player"], frameSize, 1, 0, 3),
     walk_right: frameSlicer(assets["_player"], frameSize, 6, 2),
 
-    dash_down: frameSlicer(assets["_player"], frameSize, 5, 5),
-    dash_left: frameSlicer(assets["_player"], frameSize, 1, 6),
-    dash_right: frameSlicer(assets["_player"], frameSize, 1, 7),
-    dash_up: frameSlicer(assets["_player"], frameSize, 1, 8),
+    dash_down: frameSlicer(assets["_player"], frameSize, 1, 5),
+    dash_right: frameSlicer(assets["_player"], frameSize, 1, 6, 5),
+    dash_up: frameSlicer(assets["_player"], frameSize, 1, 7),
+    dash_left: frameSlicer(assets["_player"], frameSize, 1, 8, 5),
+  };
+
+  const enemyFrames = {
+    idle_down: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
+    idle_left: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
+    idle_up: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
+    idle_right: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
   };
 
   const player: Player = new Player(frames);
@@ -65,20 +73,20 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
   player.container.y = 512;
 
   // Enemy prototype
-  const enemySprite = new Sprite(frames["dash_down"][4]);
+  const enemySprite = new Sprite(enemyFrames["idle_down"][0]);
   const enemy_01 = new Enemy(enemySprite, player);
   enemy_01.container.x = 600;
   enemy_01.container.y = 512;
 
-  const enemySprite2 = new Sprite(frames["dash_down"][4]);
-  const enemy_02 = new Enemy(enemySprite2, player);
-  enemy_02.container.x = 560;
-  enemy_02.container.y = 582;
+  // const enemySprite2 = new Sprite(frames["dash_down"][4]);
+  // const enemy_02 = new Enemy(enemySprite2, player);
+  // enemy_02.container.x = 560;
+  // enemy_02.container.y = 582;
 
-  const enemySprite3 = new Sprite(frames["dash_down"][4]);
-  const enemy_03 = new Enemy(enemySprite3, player);
-  enemy_03.container.x = 595;
-  enemy_03.container.y = 582;
+  // const enemySprite3 = new Sprite(frames["dash_down"][4]);
+  // const enemy_03 = new Enemy(enemySprite3, player);
+  // enemy_03.container.x = 595;
+  // enemy_03.container.y = 582;
 
   const map: Sprite = new Sprite(
     new Texture({
@@ -97,11 +105,11 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
   viewport.addChild(camera);
   camera.addChild(world);
   world.addChild(map);
-  world.addChild(enemy_01.container, enemy_02.container, enemy_03.container);
+  world.addChild(enemy_01.container);
   world.addChild(player.container);
   world.addChild(...walls.map((wall) => wall.container));
 
-  enemiesList.push(enemy_01, enemy_02, enemy_03);
+  enemiesList.push(enemy_01);
 
   resizeViewport(viewport);
 
