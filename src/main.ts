@@ -2,6 +2,7 @@ import { Application, Assets, Container, Texture, Rectangle, TextureSource, Spri
 import { Player } from "./entities/Player";
 import { Enemy } from "./entities/Enemy";
 import { WorldCollider } from "./core/WorldCollider";
+import { CollisionManager } from "./core/CollisionManager";
 import * as Constants from "./utils/Constants";
 
 import "./style.css";
@@ -10,22 +11,30 @@ import "./style.css";
 import player_01 from "./assets/_player.png";
 import mockup_map from "./assets/_map_1024x1024.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
-import { CollisionManager } from "./core/CollisionManager";
 
 (async () => {
   const game: Application = new Application();
   await game.init({
-    width: Constants.VIEWPORT_WIDTH,
-    height: Constants.VIEWPORT_HEIGHT,
+    width: Constants.LOGICAL_WIDTH,
+    height: Constants.LOGICAL_HEIGHT,
     background: "#d2d2d2",
-    // resizeTo: window,
-    resolution: 16 / 9,
+    resizeTo: window,
+    resolution: window.devicePixelRatio || 1,
   });
   document.body.appendChild(game.canvas);
+
+  const scaleX = window.innerWidth / Constants.LOGICAL_WIDTH;
+  const scaleY = window.innerHeight / Constants.LOGICAL_HEIGHT;
+  const scale = Math.min(scaleX, scaleY);
 
   const assets = await assetLoader([player_01, mockup_map]);
 
   const world: Container = new Container();
+  const viewport: Container = new Container();
+  viewport.scale.set(scale);
+  viewport.x = (window.innerWidth - Constants.LOGICAL_WIDTH * scale) / 2;
+  viewport.y = (window.innerHeight - Constants.LOGICAL_HEIGHT * scale) / 2;
+
   const camera: Container = new Container();
 
   const frameSize: number = 64;
@@ -33,17 +42,17 @@ import { CollisionManager } from "./core/CollisionManager";
   // Current player animations spritesheet has:
   // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
   const frames = {
-    idle_down: frameSlicer(assets["_player"], frameSize, 6, 2),
+    idle_down: frameSlicer(assets["_player"], frameSize, 1, 0),
     walk_down: frameSlicer(assets["_player"], frameSize, 6, 1),
 
-    idle_up: frameSlicer(assets["_player"], frameSize, 1, 3),
-    walk_up: frameSlicer(assets["_player"], frameSize, 4, 3),
+    idle_left: frameSlicer(assets["_player"], frameSize, 1, 0, 1),
+    walk_left: frameSlicer(assets["_player"], frameSize, 6, 4),
 
-    idle_left: frameSlicer(assets["_player"], frameSize, 1, 1),
-    walk_left: frameSlicer(assets["_player"], frameSize, 6, 2),
+    idle_up: frameSlicer(assets["_player"], frameSize, 1, 0, 2),
+    walk_up: frameSlicer(assets["_player"], frameSize, 6, 3),
 
-    idle_right: frameSlicer(assets["_player"], frameSize, 1, 4),
-    walk_right: frameSlicer(assets["_player"], frameSize, 4, 4),
+    idle_right: frameSlicer(assets["_player"], frameSize, 1, 0, 3),
+    walk_right: frameSlicer(assets["_player"], frameSize, 6, 2),
 
     dash_down: frameSlicer(assets["_player"], frameSize, 5, 5),
     dash_left: frameSlicer(assets["_player"], frameSize, 1, 6),
@@ -83,7 +92,9 @@ import { CollisionManager } from "./core/CollisionManager";
   const walls = createWalls(colliders);
   const enemiesList: Enemy[] = [];
 
-  game.stage.addChild(camera);
+  // CONTAINER HIERARCHY
+  game.stage.addChild(viewport);
+  viewport.addChild(camera);
   camera.addChild(world);
   world.addChild(map);
   world.addChild(enemy_01.container, enemy_02.container, enemy_03.container);
@@ -92,36 +103,54 @@ import { CollisionManager } from "./core/CollisionManager";
 
   enemiesList.push(enemy_01, enemy_02, enemy_03);
 
+  resizeViewport(viewport);
+
   game.ticker.add((ticker) => {
     player.update(ticker.deltaMS);
     enemiesList.forEach((enemy) => enemy.update(ticker.deltaMS));
 
-    const canMinX = -(map.width - Constants.VIEWPORT_WIDTH);
+    const canMinX = -(map.width - Constants.LOGICAL_WIDTH);
     const canMaxX = 0;
 
-    camera.x = clamp(-player.container.x + Constants.VIEWPORT_WIDTH / 2, canMinX, canMaxX);
+    camera.x = clamp(-player.container.x + Constants.LOGICAL_WIDTH / 2, canMinX, canMaxX);
 
-    const canMinY = -(map.height - Constants.VIEWPORT_HEIGHT);
+    const canMinY = -(map.height - Constants.LOGICAL_HEIGHT);
     const canMaxY = 0;
 
-    camera.y = clamp(-player.container.y + Constants.VIEWPORT_HEIGHT / 2, canMinY, canMaxY);
+    camera.y = clamp(-player.container.y + Constants.LOGICAL_HEIGHT / 2, canMinY, canMaxY);
   });
+
+  window.addEventListener("resize", () => resizeViewport(viewport));
 })();
 
-// to help speed animations during MVP
+// To help speed animations during MVP
+// TODO: Refactor this to accept bigger animations starting
+// from the columns > 0
 function frameSlicer(
   s: TextureSource<any>,
   frameSize: number,
   frameCount: number,
-  startLine: number
+  startRow: number,
+  startColumn: number = 0
 ): Texture[] {
   const frames: Texture[] = [];
+
+  if (frameCount === 1) {
+    frames.push(
+      new Texture({
+        source: s,
+        frame: new Rectangle(startColumn * frameSize, startRow * frameSize, frameSize, frameSize),
+      })
+    );
+
+    return frames;
+  }
 
   for (let i = 0; i < frameCount; i++) {
     frames.push(
       new Texture({
         source: s,
-        frame: new Rectangle(i * frameSize, startLine * frameSize, frameSize, frameSize),
+        frame: new Rectangle(i * frameSize, startRow * frameSize, frameSize, frameSize),
       })
     );
   }
@@ -162,4 +191,15 @@ function createWalls(transform: { x: number; y: number; width: number; height: n
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function resizeViewport(viewport: Container) {
+  const scaleX = window.innerWidth / Constants.LOGICAL_WIDTH;
+  const scaleY = window.innerHeight / Constants.LOGICAL_HEIGHT;
+  const scale = Math.min(scaleX, scaleY);
+
+  viewport.scale.set(scale);
+
+  viewport.x = (window.innerWidth - Constants.LOGICAL_WIDTH * scale) / 2;
+  viewport.y = (window.innerHeight - Constants.LOGICAL_HEIGHT * scale) / 2;
 }
