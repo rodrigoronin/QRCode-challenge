@@ -1,3 +1,5 @@
+export type InputAction = "ATTACK" | "DASH";
+
 export class InputManager {
   private buttons: Record<string, boolean> = {};
   private prevButtons: Record<string, boolean> = {};
@@ -18,7 +20,6 @@ export class InputManager {
 
   private constructor() {
     this.setupKeyboard();
-    requestAnimationFrame(() => this.loop());
   }
 
   private setupKeyboard() {
@@ -33,8 +34,16 @@ export class InputManager {
       ArrowRight: { x: 1, y: 0 },
     };
 
+    const keyToAction: Record<string, InputAction> = {
+      KeyJ: "ATTACK",
+      Space: "DASH",
+    };
+
     window.addEventListener("keydown", (e) => {
       const v = map[e.code];
+      const action = keyToAction[e.code];
+
+      if (action) this.buttons[action] = true;
 
       if (e.repeat) return;
 
@@ -50,6 +59,10 @@ export class InputManager {
       this.buttons[e.code] = false;
 
       const v = map[e.code];
+      const action = keyToAction[e.code];
+
+      if (action) this.buttons[action] = false;
+
       if (v) {
         this.keyboard.x -= v.x;
         this.keyboard.y -= v.y;
@@ -57,11 +70,12 @@ export class InputManager {
     });
   }
 
-  private loop() {
+  public pool() {
     this.pollGamepad();
     this.combineSources();
-    requestAnimationFrame(() => this.loop());
+  }
 
+  public commit() {
     this.prevButtons = { ...this.buttons };
   }
 
@@ -88,6 +102,14 @@ export class InputManager {
       this.gamepad.y = rawY;
       if (this.gamepadActive) break;
     }
+
+    // ATTACK (XBOX X)
+    if (pads[0]?.buttons[2].pressed) this.buttons["ATTACK"] = true;
+    else this.buttons["ATTACK"] = false;
+
+    // DASH (XBOX B)
+    if (pads[0]?.buttons[0].pressed) this.buttons["DASH"] = true;
+    else this.buttons["DASH"] = false;
   }
 
   private combineSources() {

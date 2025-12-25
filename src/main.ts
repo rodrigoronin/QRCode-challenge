@@ -3,6 +3,8 @@ import { Player } from "./entities/Player";
 import { Enemy } from "./entities/Enemy";
 import { WorldCollider } from "./core/WorldCollider";
 import { CollisionManager } from "./core/CollisionManager";
+import { InputCommandMapper } from "./input/InputCommandMapper";
+import { InputManager } from "./input/InputManager";
 import * as Constants from "./utils/Constants";
 
 import "./style.css";
@@ -112,11 +114,23 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
 
   enemiesList.push(enemy_01, enemy_02, enemy_03);
 
+  const commandMapper: InputCommandMapper = new InputCommandMapper(player);
+  const input = InputManager.get();
+
   resizeViewport(viewport);
 
   game.ticker.add((ticker) => {
+    input.pool();
+    if (input.wasJustPressed("ATTACK")) {
+      commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
+    }
+    if (input.wasJustPressed("DASH")) {
+      commandMapper.get("DASH")?.execute(ticker.deltaMS);
+    }
     player.update(ticker.deltaMS);
     enemiesList.forEach((enemy) => enemy.update(ticker.deltaMS));
+
+    input.commit();
 
     const canMinX = -(map.width - Constants.LOGICAL_WIDTH);
     const canMaxX = 0;

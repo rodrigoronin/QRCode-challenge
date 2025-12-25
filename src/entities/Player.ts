@@ -89,9 +89,6 @@ export class Player extends Entity {
     // BASIC ATTACK
     // TODO: in the future the enemies hit will be handled by the weapon script like:
     // CombatManager.basicAttack(weapon, attacker, enemyList);
-    if (!this.isDashing && this.input.wasJustPressed("KeyJ")) {
-      this.basicAttack();
-    }
 
     if (this.attackCollider.active) {
       this.attackManager.update();
@@ -213,6 +210,11 @@ export class Player extends Entity {
     } else if (m.y !== 0) {
       this.currentDir = m.y > 0 ? "down" : "up";
     }
+  }
+
+  tryAttack() {
+    if (this.isAttacking || this.isDashing) return;
+    this.basicAttack();
   }
 
   private basicAttack() {
