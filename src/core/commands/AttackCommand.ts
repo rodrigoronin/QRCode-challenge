@@ -8,6 +8,6 @@ export class AttackCommand implements Command {
   }
 
   execute(): void {
-    this.entity.tryAttack();
+    this.entity.startAttack();
   }
 }

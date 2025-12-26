@@ -1,6 +1,7 @@
 export type InputAction = "ATTACK" | "DASH";
 
 export class InputManager {
+  private gamepadButtons: Record<string, boolean> = {};
   private buttons: Record<string, boolean> = {};
   private prevButtons: Record<string, boolean> = {};
   private static instance: InputManager;
@@ -13,8 +14,8 @@ export class InputManager {
   private movement = { x: 0, y: 0 };
 
   // separated input sources
-  private keyboard = { x: 0, y: 0 };
-  private gamepad = { x: 0, y: 0 };
+  private keyboardMovement = { x: 0, y: 0 };
+  private gamepadMovement = { x: 0, y: 0 };
   private gamepadActive = false; // true only if the stick left the deadzone this frame
   private readonly DEADZONE = 0.18;
 
@@ -40,37 +41,33 @@ export class InputManager {
     };
 
     window.addEventListener("keydown", (e) => {
-      const v = map[e.code];
+      const mappedKey = map[e.code];
       const action = keyToAction[e.code];
 
       if (action) this.buttons[action] = true;
 
       if (e.repeat) return;
 
-      if (v) {
-        this.keyboard.x += v.x;
-        this.keyboard.y += v.y;
+      if (mappedKey) {
+        this.keyboardMovement.x += mappedKey.x;
+        this.keyboardMovement.y += mappedKey.y;
       }
-
-      this.buttons[e.code] = true;
     });
 
     window.addEventListener("keyup", (e) => {
-      this.buttons[e.code] = false;
-
-      const v = map[e.code];
+      const mappedKey = map[e.code];
       const action = keyToAction[e.code];
 
       if (action) this.buttons[action] = false;
 
-      if (v) {
-        this.keyboard.x -= v.x;
-        this.keyboard.y -= v.y;
+      if (mappedKey) {
+        this.keyboardMovement.x -= mappedKey.x;
+        this.keyboardMovement.y -= mappedKey.y;
       }
     });
   }
 
-  public pool() {
+  public poll() {
     this.pollGamepad();
     this.combineSources();
   }
@@ -83,6 +80,16 @@ export class InputManager {
     this.gamepadActive = false;
     const pads = navigator.getGamepads();
     if (!pads) return;
+
+    const keyToAction: Record<string, InputAction> = {
+      x: "ATTACK",
+      a: "DASH",
+    };
+
+    const gamePadMapper = {
+      x: pads[0]?.buttons[2].pressed,
+      a: pads[0]?.buttons[0].pressed,
+    };
 
     for (const pad of pads) {
       if (!pad) continue;
@@ -98,30 +105,29 @@ export class InputManager {
         rawY /= magnitude;
       }
 
-      this.gamepad.x = rawX;
-      this.gamepad.y = rawY;
+      this.gamepadMovement.x = rawX;
+      this.gamepadMovement.y = rawY;
       if (this.gamepadActive) break;
     }
 
     // ATTACK (XBOX X)
-    if (pads[0]?.buttons[2].pressed) this.buttons["ATTACK"] = true;
-    else this.buttons["ATTACK"] = false;
-
+    if (gamePadMapper.x) this.gamepadButtons[keyToAction.x] = true;
+    else this.gamepadButtons[keyToAction.x] = false;
     // DASH (XBOX B)
-    if (pads[0]?.buttons[0].pressed) this.buttons["DASH"] = true;
-    else this.buttons["DASH"] = false;
+    if (gamePadMapper.a) this.gamepadButtons[keyToAction.a] = true;
+    else this.gamepadButtons[keyToAction.a] = false;
   }
 
   private combineSources() {
     // Golden Rule: if the stick left the deadzone in this frame -> gamepad has priority
     // If it got back to center -> keyboard takes control immediately
     if (this.gamepadActive) {
-      this.movement.x = this.gamepad.x;
-      this.movement.y = this.gamepad.y;
+      this.movement.x = this.gamepadMovement.x;
+      this.movement.y = this.gamepadMovement.y;
     } else {
       // só usa teclado se gamepad estiver realmente parado
-      const kx = Math.sign(this.keyboard.x);
-      const ky = Math.sign(this.keyboard.y);
+      const kx = Math.sign(this.keyboardMovement.x);
+      const ky = Math.sign(this.keyboardMovement.y);
       const kmag = Math.hypot(kx, ky);
       this.movement.x = kmag > 0 ? kx / kmag : 0;
       this.movement.y = kmag > 0 ? ky / kmag : 0;
@@ -129,18 +135,18 @@ export class InputManager {
   }
 
   isPressed(key: string) {
-    return !!this.buttons[key];
+    return !!this.buttons[key] || !!this.gamepadButtons[key];
   }
 
   wasJustPressed(key: string): boolean {
     const prev = !!this.prevButtons[key];
-    const cur = !!this.buttons[key];
+    const cur = !!this.buttons[key] || !!this.gamepadButtons[key];
     return !prev && cur;
   }
 
   wasJustReleased(key: string) {
     const prev = !!this.prevButtons[key];
-    const cur = !!this.buttons[key];
+    const cur = !!this.buttons[key] || !!this.gamepadButtons[key];
     return prev && !cur;
   }
 

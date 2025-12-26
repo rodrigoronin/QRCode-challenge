@@ -8,6 +8,6 @@ export class DashCommand implements Command {
   }
 
   execute(): void {
-    this.entity.tryStartDash();
+    this.entity.startDash();
   }
 }

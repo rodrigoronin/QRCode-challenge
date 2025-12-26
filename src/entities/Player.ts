@@ -34,7 +34,7 @@ export class Player extends Entity {
   private isAttacking: boolean = false;
   private attackCollider: AttackCollider;
   private attackTimer: number = 0;
-  private ATTACK_LOCK_DURATION: number = 250;
+  private ATTACK_LOCK_DURATION: number = 500;
   private attackManager: AttackComponent;
   // stats
   private maxHealthPoints: number = 10;
@@ -78,17 +78,10 @@ export class Player extends Entity {
     const move = this.input.getMovementVector();
 
     // DASH
-    if (!this.isAttacking && this.input.wasJustPressed("Space")) {
-      this.tryStartDash();
-    }
     if (this.isDashing) {
       this.updateDash(deltaTime);
       return; // doesn't let the player move during dash
     }
-
-    // BASIC ATTACK
-    // TODO: in the future the enemies hit will be handled by the weapon script like:
-    // CombatManager.basicAttack(weapon, attacker, enemyList);
 
     if (this.attackCollider.active) {
       this.attackManager.update();
@@ -141,7 +134,7 @@ export class Player extends Entity {
     }
   }
 
-  tryStartDash() {
+  startDash() {
     if (this.isDashing || this.dashCooldownTimer > 0) return;
 
     this.dashDirection = this.input.getMovementVector();
@@ -212,7 +205,7 @@ export class Player extends Entity {
     }
   }
 
-  tryAttack() {
+  startAttack() {
     if (this.isAttacking || this.isDashing) return;
     this.basicAttack();
   }
@@ -220,12 +213,12 @@ export class Player extends Entity {
   private basicAttack() {
     if (this.attackCollider?.active) return;
 
+    console.log("basic attack!");
+
     this.attackCollider?.activate(this.currentDir);
     this.isAttacking = true;
     this.attackManager.activate();
     this.attackTimer = this.ATTACK_LOCK_DURATION;
-
-    console.log("basic attack!");
   }
 
   private updateAttackLock(deltaMS: number) {

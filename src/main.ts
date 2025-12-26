@@ -120,13 +120,10 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
   resizeViewport(viewport);
 
   game.ticker.add((ticker) => {
-    input.pool();
-    if (input.wasJustPressed("ATTACK")) {
-      commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
-    }
-    if (input.wasJustPressed("DASH")) {
-      commandMapper.get("DASH")?.execute(ticker.deltaMS);
-    }
+    input.poll();
+    if (input.wasJustPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
+    if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(ticker.deltaMS);
+
     player.update(ticker.deltaMS);
     enemiesList.forEach((enemy) => enemy.update(ticker.deltaMS));
 
