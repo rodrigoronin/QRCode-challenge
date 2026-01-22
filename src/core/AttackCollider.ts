@@ -10,6 +10,7 @@ export class AttackCollider {
   private debugGraphics: Graphics;
   private width: number;
   private height: number;
+  private position: { x: number; y: number } = { x: 0, y: 0 };
   private offsetX!: number;
   private offsetY!: number;
   public active: boolean;
@@ -22,15 +23,15 @@ export class AttackCollider {
     height: number,
     duration: number,
     container: Container,
-    owner: Enemy | Player
+    owner: Enemy | Player,
   ) {
     this.width = width;
     this.height = height;
     this.duration = duration;
     this.active = false;
     this.timer = 0;
-    this.offsetX = 0;
-    this.offsetY = 0;
+    this.offsetX = this.width / 2;
+    this.offsetY = this.height / 2;
 
     this.container = container;
     this.collider = new Collider(12, 12, 0, 0, this.container, owner);
@@ -59,32 +60,32 @@ export class AttackCollider {
 
     CollisionManager.addEntityCollider(this.collider);
 
-    const dist = 30;
+    const dist = 60;
 
     switch (direction) {
       case "up":
-        this.offsetX = -this.width / 2;
-        this.offsetY = -dist;
+        this.position.x = -this.offsetX;
+        this.position.y = -this.offsetY - dist;
         break;
       case "down":
-        this.offsetX = -this.width / 2;
-        this.offsetY = dist - 10;
+        this.position.x = -this.offsetX;
+        this.position.y = -this.offsetY + dist;
         break;
       case "left":
-        this.offsetX = -dist;
-        this.offsetY = -this.height / 2;
+        this.position.x = -this.offsetX - dist;
+        this.position.y = -this.offsetY;
         break;
       case "right":
-        this.offsetX = dist - 10;
-        this.offsetY = -this.height / 2;
+        this.position.x = -this.offsetX + dist;
+        this.position.y = -this.offsetY;
         break;
     }
   }
 
   deactivate() {
     this.active = false;
-    this.offsetX = 0;
-    this.offsetY = 0;
+    this.position.x = 0;
+    this.position.y = 0;
 
     this.debugGraphics.clear();
 
@@ -96,14 +97,14 @@ export class AttackCollider {
   updatePosition() {
     if (!this.active) return;
 
-    this.debugGraphics.x = this.offsetX;
-    this.debugGraphics.y = this.offsetY;
+    this.debugGraphics.x = this.position.x;
+    this.debugGraphics.y = this.position.y;
   }
 
   getBounds() {
     return {
-      x: this.container.x + this.offsetX,
-      y: this.container.y + this.offsetY,
+      x: this.container.x + this.position.x,
+      y: this.container.y + this.position.y,
       width: this.width,
       height: this.height,
     };

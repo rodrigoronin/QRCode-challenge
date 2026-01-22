@@ -55,7 +55,7 @@ export class Player extends Entity {
       12 * Constants.SCALE_FACTOR,
       this.ATTACK_LOCK_DURATION,
       this.container,
-      this
+      this,
     );
 
     this.attackManager = new AttackComponent(this, {
@@ -227,6 +227,7 @@ export class Player extends Entity {
     if (this.attackTimer <= 0) {
       this.isAttacking = false;
       this.attackManager.deactivate();
+      this.attackCollider.deactivate();
     }
   }
 
