@@ -14,7 +14,3 @@ body {
   justify-content: center;
   background: #000;
 }
-
-canvas {
-  border: 2px solid red;
-}

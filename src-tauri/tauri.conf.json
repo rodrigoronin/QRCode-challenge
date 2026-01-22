@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "tauri-pixi-game",
-  "version": "0.1.0",
+  "productName": "xiv-demake-ts",
+  "version": "0.2.0",
   "identifier": "com.tauri.dev",
   "build": {
     "frontendDist": "../dist",
@@ -12,9 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "tauri-pixi-game",
-        "width": 800,
-        "height": 600,
+        "title": "xiv-demake-ts",
+        "width": 640,
+        "height": 360,
         "resizable": true,
         "fullscreen": false
       }

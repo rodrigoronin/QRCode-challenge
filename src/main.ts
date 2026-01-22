@@ -12,7 +12,6 @@ import "./style.css";
 // Assets
 import player_01 from "./assets/_player.png";
 import toxic_fly from "./assets/_toxic_fly.png";
-import mockup_map from "./assets/_map_1024x1024.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
 
 (async () => {
@@ -20,23 +19,15 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
   await game.init({
     width: Constants.LOGICAL_WIDTH,
     height: Constants.LOGICAL_HEIGHT,
-    background: "#d2d2d2",
+    background: 0x003300,
     resizeTo: window,
     resolution: window.devicePixelRatio || 1,
   });
   document.body.appendChild(game.canvas);
 
-  const scaleX = window.innerWidth / Constants.LOGICAL_WIDTH;
-  const scaleY = window.innerHeight / Constants.LOGICAL_HEIGHT;
-  const scale = Math.min(scaleX, scaleY);
-
-  const assets = await assetLoader([player_01, mockup_map, toxic_fly]);
+  const assets = await assetLoader([player_01, toxic_fly]);
 
   const world: Container = new Container();
-  const viewport: Container = new Container();
-  viewport.scale.set(scale);
-  viewport.x = (window.innerWidth - Constants.LOGICAL_WIDTH * scale) / 2;
-  viewport.y = (window.innerHeight - Constants.LOGICAL_HEIGHT * scale) / 2;
 
   const camera: Container = new Container();
 
@@ -75,7 +66,7 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
   };
 
   const player: Player = new Player(frames);
-  player.container.x = 200;
+  player.container.x = 800;
   player.container.y = 512;
 
   // Enemy prototype
@@ -93,7 +84,7 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
     new Texture({
       source: assets["_map_1024x1024"],
       frame: new Rectangle(0, 0, 1024, 1024),
-    })
+    }),
   );
 
   const colliders: { x: number; y: number; width: number; height: number }[] =
@@ -102,8 +93,7 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
   const enemiesList: Enemy[] = [];
 
   // CONTAINER HIERARCHY
-  game.stage.addChild(viewport);
-  viewport.addChild(camera);
+  game.stage.addChild(camera);
   camera.addChild(world);
   world.addChild(map);
   world.addChild(enemy_01.container);
@@ -117,8 +107,6 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
   const commandMapper: InputCommandMapper = new InputCommandMapper(player);
   const input = InputManager.get();
 
-  resizeViewport(viewport);
-
   game.ticker.add((ticker) => {
     input.poll();
     if (input.wasJustPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
@@ -129,18 +117,16 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
 
     input.commit();
 
-    const canMinX = -(map.width - Constants.LOGICAL_WIDTH);
+    const canMinX = -map.width;
     const canMaxX = 0;
 
     camera.x = clamp(-player.container.x + Constants.LOGICAL_WIDTH / 2, canMinX, canMaxX);
 
-    const canMinY = -(map.height - Constants.LOGICAL_HEIGHT);
+    const canMinY = -map.height;
     const canMaxY = 0;
 
     camera.y = clamp(-player.container.y + Constants.LOGICAL_HEIGHT / 2, canMinY, canMaxY);
   });
-
-  window.addEventListener("resize", () => resizeViewport(viewport));
 })();
 
 // To help speed animations during MVP
@@ -151,7 +137,7 @@ function frameSlicer(
   frameSize: number,
   frameCount: number,
   startRow: number,
-  startColumn: number = 0
+  startColumn: number = 0,
 ): Texture[] {
   const frames: Texture[] = [];
 
@@ -160,7 +146,7 @@ function frameSlicer(
       new Texture({
         source: s,
         frame: new Rectangle(startColumn * frameSize, startRow * frameSize, frameSize, frameSize),
-      })
+      }),
     );
 
     return frames;
@@ -171,7 +157,7 @@ function frameSlicer(
       new Texture({
         source: s,
         frame: new Rectangle(i * frameSize, startRow * frameSize, frameSize, frameSize),
-      })
+      }),
     );
   }
 
@@ -211,15 +197,4 @@ function createWalls(transform: { x: number; y: number; width: number; height: n
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
-}
-
-function resizeViewport(viewport: Container) {
-  const scaleX = window.innerWidth / Constants.LOGICAL_WIDTH;
-  const scaleY = window.innerHeight / Constants.LOGICAL_HEIGHT;
-  const scale = Math.min(scaleX, scaleY);
-
-  viewport.scale.set(scale);
-
-  viewport.x = (window.innerWidth - Constants.LOGICAL_WIDTH * scale) / 2;
-  viewport.y = (window.innerHeight - Constants.LOGICAL_HEIGHT * scale) / 2;
 }
