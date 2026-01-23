@@ -33,27 +33,26 @@ import dagger_vfx from "./assets/_VFX.png";
   const camera: Container = new Container();
 
   const frameSize: number = 64;
-  const newFrameSize: number = 32;
 
   // Current player animations spritesheet has:
   // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
   const frames = {
-    idle_down: frameSlicer(assets["_atlas"], newFrameSize, 1, 0),
-    walk_down: frameSlicer(assets["_atlas"], newFrameSize, 4, 1),
+    idle_down: frameSlicer(assets["_atlas"], frameSize, 1, 0),
+    walk_down: frameSlicer(assets["_atlas"], frameSize, 3, 0),
 
-    idle_left: frameSlicer(assets["_atlas"], newFrameSize, 1, 0, 1),
-    walk_left: frameSlicer(assets["_atlas"], newFrameSize, 6, 4),
+    idle_left: frameSlicer(assets["_atlas"], frameSize, 1, 0),
+    walk_left: frameSlicer(assets["_atlas"], frameSize, 3, 0, 1),
 
-    idle_up: frameSlicer(assets["_atlas"], newFrameSize, 1, 0, 2),
-    walk_up: frameSlicer(assets["_atlas"], newFrameSize, 6, 3),
+    idle_up: frameSlicer(assets["_atlas"], frameSize, 1, 0),
+    walk_up: frameSlicer(assets["_atlas"], frameSize, 3, 0),
 
-    idle_right: frameSlicer(assets["_atlas"], newFrameSize, 1, 0),
-    walk_right: frameSlicer(assets["_atlas"], newFrameSize, 3, 0, 1),
+    idle_right: frameSlicer(assets["_atlas"], frameSize, 1, 0),
+    walk_right: frameSlicer(assets["_atlas"], frameSize, 3, 0, 1),
 
-    dash_down: frameSlicer(assets["_atlas"], newFrameSize, 1, 5),
-    dash_right: frameSlicer(assets["_atlas"], newFrameSize, 1, 6, 5),
-    dash_up: frameSlicer(assets["_atlas"], newFrameSize, 1, 7),
-    dash_left: frameSlicer(assets["_atlas"], newFrameSize, 1, 8, 5),
+    dash_down: frameSlicer(assets["_atlas"], frameSize, 1, 1),
+    dash_right: frameSlicer(assets["_atlas"], frameSize, 1, 1),
+    dash_up: frameSlicer(assets["_atlas"], frameSize, 1, 1),
+    dash_left: frameSlicer(assets["_atlas"], frameSize, 1, 1),
   };
 
   const daggerVFXFrames = {

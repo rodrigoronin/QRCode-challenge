@@ -116,9 +116,11 @@ export class Player extends Entity {
       this.updateDirection(move);
 
       if (move.x !== 0 || move.y !== 0) {
-        this.anim.play(`walk_${this.currentDir}`);
         if (this.currentDir === "left") this.sprite.scale.x = -Constants.SCALE_FACTOR;
         else if (this.currentDir === "right") this.sprite.scale.x = Constants.SCALE_FACTOR;
+        if (this.currentDir === "up") this.sprite.scale.x = -Constants.SCALE_FACTOR;
+        else if (this.currentDir === "down") this.sprite.scale.x = Constants.SCALE_FACTOR;
+        this.anim.play(`walk_${this.currentDir}`);
       } else {
         this.anim.play(`idle_${this.currentDir}`);
       }
