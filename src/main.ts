@@ -10,9 +10,10 @@ import * as Constants from "./utils/Constants";
 import "./style.css";
 
 // Assets
-import player_01 from "./assets/_player.png";
+import player_01 from "./assets/_atlas.png";
 import toxic_fly from "./assets/_toxic_fly.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
+import dagger_vfx from "./assets/_VFX.png";
 
 (async () => {
   const game: Application = new Application();
@@ -25,33 +26,42 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
   });
   document.body.appendChild(game.canvas);
 
-  const assets = await assetLoader([player_01, toxic_fly]);
+  const assets = await assetLoader([player_01, toxic_fly, dagger_vfx]);
 
   const world: Container = new Container();
 
   const camera: Container = new Container();
 
   const frameSize: number = 64;
+  const newFrameSize: number = 32;
 
   // Current player animations spritesheet has:
   // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
   const frames = {
-    idle_down: frameSlicer(assets["_player"], frameSize, 1, 0),
-    walk_down: frameSlicer(assets["_player"], frameSize, 6, 1),
+    idle_down: frameSlicer(assets["_atlas"], newFrameSize, 1, 0),
+    walk_down: frameSlicer(assets["_atlas"], newFrameSize, 4, 1),
 
-    idle_left: frameSlicer(assets["_player"], frameSize, 1, 0, 1),
-    walk_left: frameSlicer(assets["_player"], frameSize, 6, 4),
+    idle_left: frameSlicer(assets["_atlas"], newFrameSize, 1, 0, 1),
+    walk_left: frameSlicer(assets["_atlas"], newFrameSize, 6, 4),
 
-    idle_up: frameSlicer(assets["_player"], frameSize, 1, 0, 2),
-    walk_up: frameSlicer(assets["_player"], frameSize, 6, 3),
+    idle_up: frameSlicer(assets["_atlas"], newFrameSize, 1, 0, 2),
+    walk_up: frameSlicer(assets["_atlas"], newFrameSize, 6, 3),
 
-    idle_right: frameSlicer(assets["_player"], frameSize, 1, 0, 3),
-    walk_right: frameSlicer(assets["_player"], frameSize, 6, 2),
+    idle_right: frameSlicer(assets["_atlas"], newFrameSize, 1, 0),
+    walk_right: frameSlicer(assets["_atlas"], newFrameSize, 3, 0, 1),
 
-    dash_down: frameSlicer(assets["_player"], frameSize, 1, 5),
-    dash_right: frameSlicer(assets["_player"], frameSize, 1, 6, 5),
-    dash_up: frameSlicer(assets["_player"], frameSize, 1, 7),
-    dash_left: frameSlicer(assets["_player"], frameSize, 1, 8, 5),
+    dash_down: frameSlicer(assets["_atlas"], newFrameSize, 1, 5),
+    dash_right: frameSlicer(assets["_atlas"], newFrameSize, 1, 6, 5),
+    dash_up: frameSlicer(assets["_atlas"], newFrameSize, 1, 7),
+    dash_left: frameSlicer(assets["_atlas"], newFrameSize, 1, 8, 5),
+  };
+
+  const daggerVFXFrames = {
+    attack_up: frameSlicer(assets["_VFX"], frameSize, 5, 1),
+    attack_down: frameSlicer(assets["_VFX"], frameSize, 5, 1),
+
+    attack_right: frameSlicer(assets["_VFX"], frameSize, 5, 0),
+    attack_left: frameSlicer(assets["_VFX"], frameSize, 5, 0),
   };
 
   const enemyFrames = {
@@ -65,7 +75,7 @@ import map_01_colliders from "./assets/maps/mock_map_01.json";
     walk_left: frameSlicer(assets["_toxic_fly"], frameSize, 4, 1),
   };
 
-  const player: Player = new Player(frames);
+  const player: Player = new Player(frames, daggerVFXFrames);
   player.container.x = 800;
   player.container.y = 512;
 

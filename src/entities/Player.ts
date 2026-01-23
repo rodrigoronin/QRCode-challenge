@@ -16,6 +16,7 @@ export class Player extends Entity {
   private input = InputManager.get();
   private currentDir: Direction = "down";
   private frames: Record<string, Texture[]>;
+  private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
   private speed = 150; // pixels/second
   public tag: string = "player";
@@ -34,28 +35,30 @@ export class Player extends Entity {
   private isAttacking: boolean = false;
   private attackCollider: AttackCollider;
   private attackTimer: number = 0;
-  private ATTACK_LOCK_DURATION: number = 500;
+  private ATTACK_LOCK_DURATION: number = 460;
   private attackManager: AttackComponent;
   // stats
   private maxHealthPoints: number = 10;
   private healthPoints: number = 10;
 
-  constructor(frames: Record<string, Texture[]>) {
+  constructor(frames: Record<string, Texture[]>, VFXFrames: Record<string, Texture[]>) {
     super();
     this.frames = frames;
+    this.VFXFrames = VFXFrames;
 
     this.sprite = new Sprite(this.frames["idle_down"][0]);
     this.sprite.anchor.set(0.5);
     this.sprite.scale.set(Constants.SCALE_FACTOR);
-    this.anim = new AnimationController(this.sprite);
+    this.anim = new AnimationController(this.sprite, true);
     this.setupAnimations();
 
     this.attackCollider = new AttackCollider(
-      12 * Constants.SCALE_FACTOR,
-      12 * Constants.SCALE_FACTOR,
+      25 * Constants.SCALE_FACTOR,
+      15 * Constants.SCALE_FACTOR,
       this.ATTACK_LOCK_DURATION,
       this.container,
       this,
+      this.VFXFrames,
     );
 
     this.attackManager = new AttackComponent(this, {
@@ -69,7 +72,7 @@ export class Player extends Entity {
     this.container.addChild(this.sprite);
 
     // Create the Collider last so the debugDraw appears over the player
-    this.collider = new Collider(15, 32, 0, 8, this.container, this);
+    this.collider = new Collider(20, 16, 0, 4, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
   }
 
@@ -114,6 +117,8 @@ export class Player extends Entity {
 
       if (move.x !== 0 || move.y !== 0) {
         this.anim.play(`walk_${this.currentDir}`);
+        if (this.currentDir === "left") this.sprite.scale.x = -Constants.SCALE_FACTOR;
+        else if (this.currentDir === "right") this.sprite.scale.x = Constants.SCALE_FACTOR;
       } else {
         this.anim.play(`idle_${this.currentDir}`);
       }

@@ -7,9 +7,11 @@ export class AnimationController {
   private frameIndex = 0;
   private frameTime = 0;
   private speed = 120; // ms por frame
+  private loop?: boolean = true;
 
-  constructor(sprite: Sprite) {
+  constructor(sprite: Sprite, loop: boolean = true) {
     this.sprite = sprite;
+    this.loop = loop;
   }
 
   addAnimation(name: string, frames: Texture[]) {
@@ -36,6 +38,9 @@ export class AnimationController {
     this.frameTime += deltaMS;
     if (this.frameTime >= this.speed) {
       this.frameTime = 0;
+
+      if (!this.loop && this.frameIndex === frames.length - 1) return;
+
       this.frameIndex = (this.frameIndex + 1) % frames.length;
       this.applyFrame();
     }
@@ -43,6 +48,7 @@ export class AnimationController {
 
   private applyFrame() {
     const frames = this.animations[this.current];
+
     if (frames && frames[this.frameIndex]) {
       this.sprite.texture = frames[this.frameIndex];
     }
