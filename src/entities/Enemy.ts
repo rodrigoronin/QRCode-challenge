@@ -1,4 +1,4 @@
-import { ColorMatrixFilter, Sprite, Texture } from "pixi.js";
+import { ColorMatrixFilter, Sprite, Texture, Point } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { Collider } from "../core/Collider";
 import { CollisionManager } from "../core/CollisionManager";
@@ -9,31 +9,35 @@ import * as Constants from "../utils/Constants";
 import { AnimationController } from "../core/AnimationController";
 
 export class Enemy extends Entity {
+  // RENDER
   private sprite: Sprite;
   private collider: Collider;
   public tag: string = "enemy";
   private currentDir: string = "down";
   private frames: Record<string, Texture[]>;
   private anim: AnimationController;
-
+  private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
+  // DATA
   private maxHealthPoints: number = 3;
   private healthPoints: number = this.maxHealthPoints;
+  private speed: number = 160; // pixels/second
   private isDead: boolean = false;
-  private isHitFlashing: boolean = false;
-  private hitFlashTimer: number = 0;
-  private HIT_FLASH_DURATION: number = 80;
-
+  private perceptionRange: number = 250; // pixels
   private playerRef: Player;
-  private speed: number = 100; // pixels/second
-  private perceptionRange: number = 150; // pixels
   public target: Player | null = null;
-  private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
-  // Attack
+  // COMBAT
   private isAttacking: boolean = false;
   private attackManager: AttackComponent;
   private attackCollider: AttackCollider;
   private attackCooldown: number = 2000;
   private attackTimer: number = 0;
+  private isHitFlashing: boolean = false;
+  private hitFlashingTimer: number = 0;
+  private HIT_FLASH_DURATION: number = 150;
+  // BEHAVIOUR
+  private roamTarget: Point | null = null;
+  private roamWaitTimer: number = 0;
+  private isInCombat: boolean = false;
 
   constructor(frames: Record<string, Texture[]>, playerRef: Player) {
     super();
@@ -57,7 +61,7 @@ export class Enemy extends Entity {
       12 * Constants.SCALE_FACTOR,
       250,
       this.container,
-      this
+      this,
     );
 
     this.attackManager = new AttackComponent(this, {
@@ -76,15 +80,16 @@ export class Enemy extends Entity {
       this.updateHitFlashFilter(_deltaTime);
       this.perceptionRadar();
       this.followTarget(_deltaTime);
+      this.roaming({ x: 400, y: 400, width: 300, height: 300 }, _deltaTime);
 
       if (this.isAttacking) {
         this.updateAttackLock(_deltaTime);
 
         if (this.attackCollider.active) {
-          this.attackCollider.drawDebug();
           this.attackManager.update();
           this.attackCollider.update(_deltaTime);
           this.attackCollider.updatePosition();
+          this.attackCollider.drawDebug();
         }
       }
     }
@@ -118,15 +123,15 @@ export class Enemy extends Entity {
 
   private updateHitFlashFilter(deltaTime: number) {
     if (this.isHitFlashing) {
-      this.hitFlashTimer += deltaTime;
+      this.hitFlashingTimer += deltaTime;
 
-      if (this.hitFlashTimer >= this.HIT_FLASH_DURATION) {
+      if (this.hitFlashingTimer >= this.HIT_FLASH_DURATION) {
         console.log(this.isHitFlashing);
         this.isHitFlashing = false;
         this.container.filters = this.container.filters.filter(
-          (filter) => filter !== this.hitFlashFilter
+          (filter) => filter !== this.hitFlashFilter,
         );
-        this.hitFlashTimer = 0;
+        this.hitFlashingTimer = 0;
       }
     }
   }
@@ -142,14 +147,15 @@ export class Enemy extends Entity {
 
     if (distance <= this.perceptionRange) {
       this.target = this.playerRef;
+      this.isInCombat = true;
     } else {
       this.target = null;
+      this.isInCombat = false;
     }
   }
 
   protected followTarget(deltaMS: number) {
     if (!this.target) return;
-    const deltaSec = deltaMS / 1000;
 
     const dx: number = this.target.container.x - this.container.x;
     const dy: number = this.target.container.y - this.container.y;
@@ -160,8 +166,14 @@ export class Enemy extends Entity {
       return;
     }
 
+    this.move(dx, dy, distance, deltaMS);
+  }
+
+  protected move(dx: number, dy: number, distance: number, delta: number) {
     const dirX = dx / distance;
     const dirY = dy / distance;
+
+    const deltaSec = delta / 1000;
 
     const moveX = dirX * this.speed * deltaSec;
     const moveY = dirY * this.speed * deltaSec;
@@ -179,7 +191,50 @@ export class Enemy extends Entity {
       this.anim.play(`idle_${this.currentDir}`);
     }
 
-    this.anim.update(deltaMS);
+    this.anim.update(delta);
+  }
+
+  protected roaming(
+    zone: { x: number; y: number; width: number; height: number },
+    delta: number,
+  ): void {
+    if (this.isInCombat) return;
+
+    if (this.roamWaitTimer > 0) {
+      this.roamWaitTimer -= delta;
+
+      if (this.roamWaitTimer <= 0) this.roamTarget = null;
+
+      return;
+    }
+
+    // 50/50 to roam or stay still
+    if (!this.roamTarget) {
+      if (Math.random() < 0.5) {
+        this.roamWaitTimer = 800;
+        return;
+      }
+
+      const x = zone.x + Math.random() * zone.width;
+      const y = zone.y + Math.random() * zone.height;
+
+      this.roamTarget = new Point(x, y);
+      return;
+    }
+
+    const dx: number = this.roamTarget.x - this.container.x;
+    const dy: number = this.roamTarget.y - this.container.y;
+    const distance: number = Math.hypot(dx, dy);
+
+    if (distance < 2) {
+      this.roamTarget = null;
+      this.roamWaitTimer = 500 + Math.random() * 1000; // ms
+      return;
+    }
+
+    console.log(this.roamWaitTimer);
+
+    this.move(dx, dy, distance, delta);
   }
 
   protected basicAttack() {

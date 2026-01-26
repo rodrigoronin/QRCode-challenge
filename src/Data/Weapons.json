@@ -1,0 +1,10 @@
+{
+  "daggers": [
+    {
+      "name": "iron dagger",
+      "type": "melee",
+      "damage": 5,
+      "vfx": ""
+    }
+  ]
+}

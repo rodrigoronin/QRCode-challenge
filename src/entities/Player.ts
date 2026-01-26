@@ -35,7 +35,7 @@ export class Player extends Entity {
   private isAttacking: boolean = false;
   private attackCollider: AttackCollider;
   private attackTimer: number = 0;
-  private ATTACK_LOCK_DURATION: number = 460;
+  private ATTACK_LOCK_DURATION: number = 380;
   private attackManager: AttackComponent;
   // stats
   private maxHealthPoints: number = 10;
@@ -94,7 +94,7 @@ export class Player extends Entity {
       this.updateAttackLock(deltaTime);
 
       if (this.attackCollider?.active) {
-        this.attackCollider.drawDebug();
+        // this.attackCollider.drawDebug();
         this.attackCollider.updatePosition();
         this.attackCollider.update(deltaTime);
       }
@@ -132,7 +132,7 @@ export class Player extends Entity {
       }
     }
 
-    this.collider.drawDebug();
+    // this.collider.drawDebug();
   }
 
   setupAnimations() {
@@ -234,7 +234,6 @@ export class Player extends Entity {
     if (this.attackTimer <= 0) {
       this.isAttacking = false;
       this.attackManager.deactivate();
-      this.attackCollider.deactivate();
     }
   }
 
