@@ -38,6 +38,7 @@ export class Enemy extends Entity {
   private roamTarget: Point | null = null;
   private roamWaitTimer: number = 0;
   private isInCombat: boolean = false;
+  private isPassive: boolean = false;
 
   constructor(frames: Record<string, Texture[]>, playerRef: Player) {
     super();
@@ -78,8 +79,12 @@ export class Enemy extends Entity {
   update(_deltaTime: number): void {
     if (!this.isDead) {
       this.updateHitFlashFilter(_deltaTime);
-      this.perceptionRadar();
-      this.followTarget(_deltaTime);
+
+      if (!this.isPassive) {
+        this.perceptionRadar();
+        this.followTarget(_deltaTime);
+      }
+
       this.roaming({ x: 400, y: 400, width: 300, height: 300 }, _deltaTime);
 
       if (this.isAttacking) {
@@ -103,7 +108,8 @@ export class Enemy extends Entity {
     }
   }
 
-  takeDamage(damage: number) {
+  public takeDamage(damage: number) {
+    this.isPassive = false;
     this.healthPoints -= damage;
     this.isHitFlashing = true;
 
@@ -126,12 +132,13 @@ export class Enemy extends Entity {
       this.hitFlashingTimer += deltaTime;
 
       if (this.hitFlashingTimer >= this.HIT_FLASH_DURATION) {
-        console.log(this.isHitFlashing);
         this.isHitFlashing = false;
         this.container.filters = this.container.filters.filter(
           (filter) => filter !== this.hitFlashFilter,
         );
         this.hitFlashingTimer = 0;
+        // this.sprite.x = prevX;
+        // this.sprite.y = prevY;
       }
     }
   }
@@ -219,6 +226,7 @@ export class Enemy extends Entity {
       const y = zone.y + Math.random() * zone.height;
 
       this.roamTarget = new Point(x, y);
+
       return;
     }
 
@@ -231,8 +239,6 @@ export class Enemy extends Entity {
       this.roamWaitTimer = 500 + Math.random() * 1000; // ms
       return;
     }
-
-    console.log(this.roamWaitTimer);
 
     this.move(dx, dy, distance, delta);
   }

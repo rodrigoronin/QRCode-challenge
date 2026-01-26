@@ -51,6 +51,8 @@ export class AttackCollider {
 
     this.timer -= delta;
 
+    this.updatePosition();
+
     if (this.VFXAnim) this.VFXAnim.update(delta);
 
     if (this.timer <= 0) this.deactivate();
@@ -97,16 +99,15 @@ export class AttackCollider {
         this.VFXSprite = new Sprite(frames[0]);
         this.VFXSprite.anchor.set(0.5);
         this.VFXSprite.scale.set(Constants.SCALE_FACTOR);
-        this.VFXSprite.x = this.position.x;
-        this.VFXSprite.y = this.position.y;
+        console.log(this.VFXSprite.position.x, this.position.x);
         if (direction === "left") this.VFXSprite.scale.x = -Constants.SCALE_FACTOR;
-        if (direction === "down") this.VFXSprite.scale.y = -Constants.SCALE_FACTOR;
+        if (direction === "up") this.VFXSprite.scale.y = -Constants.SCALE_FACTOR;
         this.container.addChild(this.VFXSprite);
 
         this.VFXAnim = new AnimationController(this.VFXSprite, false);
         this.VFXAnim.addAnimation(animName, frames);
         this.VFXAnim.play(animName);
-        this.VFXAnim.setSpeed(80);
+        this.VFXAnim.setSpeed(60);
       }
     }
   }
@@ -135,6 +136,10 @@ export class AttackCollider {
 
     this.debugGraphics.x = this.position.x;
     this.debugGraphics.y = this.position.y;
+
+    if (this.VFXSprite) {
+      this.VFXSprite.x = this.position.x;
+    }
 
     if (this.VFXSprite) {
       this.VFXSprite.x = this.position.x + 30;

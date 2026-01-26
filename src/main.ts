@@ -10,10 +10,10 @@ import * as Constants from "./utils/Constants";
 import "./style.css";
 
 // Assets
-import player_01 from "./assets/_atlas.png";
-import toxic_fly from "./assets/_toxic_fly.png";
+import playerSprite from "./assets/_character.png";
+import enemySprite from "./assets/_enemy-01.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
-import dagger_vfx from "./assets/_VFX.png";
+import sword_vfx from "./assets/_sword_slash.png";
 import daggerHitAudio from "./assets/audio/dagger-hit.ogg";
 
 const audioContext = new AudioContext();
@@ -29,7 +29,7 @@ const audioContext = new AudioContext();
   });
   document.body.appendChild(game.canvas);
 
-  const assets = await assetLoader([player_01, toxic_fly, dagger_vfx]);
+  const assets = await assetLoader([playerSprite, enemySprite, sword_vfx]);
 
   const world: Container = new Container();
 
@@ -40,41 +40,41 @@ const audioContext = new AudioContext();
   // Current player animations spritesheet has:
   // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
   const frames = {
-    idle_down: frameSlicer(assets["_atlas"], frameSize, 4, 0),
-    walk_down: frameSlicer(assets["_atlas"], frameSize, 3, 0),
+    idle_down: frameSlicer(assets["_character"], frameSize, 1, 0),
+    walk_down: frameSlicer(assets["_character"], frameSize, 1, 0),
 
-    idle_left: frameSlicer(assets["_atlas"], frameSize, 4, 0),
-    walk_left: frameSlicer(assets["_atlas"], frameSize, 3, 0, 1),
+    idle_left: frameSlicer(assets["_character"], frameSize, 1, 0),
+    walk_left: frameSlicer(assets["_character"], frameSize, 1, 0),
 
-    idle_up: frameSlicer(assets["_atlas"], frameSize, 4, 0),
-    walk_up: frameSlicer(assets["_atlas"], frameSize, 3, 0),
+    idle_up: frameSlicer(assets["_character"], frameSize, 1, 0),
+    walk_up: frameSlicer(assets["_character"], frameSize, 1, 0),
 
-    idle_right: frameSlicer(assets["_atlas"], frameSize, 4, 0),
-    walk_right: frameSlicer(assets["_atlas"], frameSize, 3, 0, 1),
+    idle_right: frameSlicer(assets["_character"], frameSize, 1, 0),
+    walk_right: frameSlicer(assets["_character"], frameSize, 1, 0),
 
-    dash_down: frameSlicer(assets["_atlas"], frameSize, 1, 1),
-    dash_right: frameSlicer(assets["_atlas"], frameSize, 1, 1),
-    dash_up: frameSlicer(assets["_atlas"], frameSize, 1, 1),
-    dash_left: frameSlicer(assets["_atlas"], frameSize, 1, 1),
+    dash_down: frameSlicer(assets["_character"], frameSize, 1, 0),
+    dash_right: frameSlicer(assets["_character"], frameSize, 1, 0),
+    dash_up: frameSlicer(assets["_character"], frameSize, 1, 0),
+    dash_left: frameSlicer(assets["_character"], frameSize, 1, 0),
   };
 
   const daggerVFXFrames = {
-    attack_up: frameSlicer(assets["_VFX"], frameSize, 5, 1),
-    attack_down: frameSlicer(assets["_VFX"], frameSize, 5, 1),
+    attack_up: frameSlicer(assets["_sword_slash"], 81, 7, 1),
+    attack_down: frameSlicer(assets["_sword_slash"], 81, 7, 1),
 
-    attack_right: frameSlicer(assets["_VFX"], frameSize, 5, 0),
-    attack_left: frameSlicer(assets["_VFX"], frameSize, 5, 0),
+    attack_right: frameSlicer(assets["_sword_slash"], 81, 7, 0),
+    attack_left: frameSlicer(assets["_sword_slash"], 81, 7, 0),
   };
 
   const enemyFrames = {
-    idle_down: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
-    idle_left: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
-    idle_up: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
-    idle_right: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
-    walk_down: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
-    walk_right: frameSlicer(assets["_toxic_fly"], frameSize, 4, 0),
-    walk_up: frameSlicer(assets["_toxic_fly"], frameSize, 4, 1),
-    walk_left: frameSlicer(assets["_toxic_fly"], frameSize, 4, 1),
+    idle_down: frameSlicer(assets["_toxic_fly"], frameSize, 1, 0),
+    idle_left: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
+    idle_up: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
+    idle_right: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
+    walk_down: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
+    walk_right: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
+    walk_up: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
+    walk_left: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
   };
 
   const player: Player = new Player(frames, daggerVFXFrames);
@@ -215,7 +215,6 @@ async function loadAudio(context: AudioContext, url: string): Promise<AudioBuffe
   const response = await fetch(url);
   const arrayBuffer = await response.arrayBuffer();
   const audioBuffer = await context.decodeAudioData(arrayBuffer);
-  console.log(audioBuffer);
   return audioBuffer;
 }
 

@@ -18,7 +18,7 @@ export class Player extends Entity {
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private speed = 150; // pixels/second
+  private speed = 200; // pixels/second
   public tag: string = "player";
 
   // Dash variables
@@ -35,7 +35,7 @@ export class Player extends Entity {
   private isAttacking: boolean = false;
   private attackCollider: AttackCollider;
   private attackTimer: number = 0;
-  private ATTACK_LOCK_DURATION: number = 380;
+  private ATTACK_LOCK_DURATION: number = 420;
   private attackManager: AttackComponent;
   // stats
   private maxHealthPoints: number = 10;
@@ -53,8 +53,8 @@ export class Player extends Entity {
     this.setupAnimations();
 
     this.attackCollider = new AttackCollider(
-      25 * Constants.SCALE_FACTOR,
-      15 * Constants.SCALE_FACTOR,
+      71 * Constants.SCALE_FACTOR,
+      71 * Constants.SCALE_FACTOR,
       this.ATTACK_LOCK_DURATION,
       this.container,
       this,
@@ -72,7 +72,7 @@ export class Player extends Entity {
     this.container.addChild(this.sprite);
 
     // Create the Collider last so the debugDraw appears over the player
-    this.collider = new Collider(20, 16, 0, 4, this.container, this);
+    this.collider = new Collider(32, 32, 0, 0, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
   }
 
@@ -94,7 +94,7 @@ export class Player extends Entity {
       this.updateAttackLock(deltaTime);
 
       if (this.attackCollider?.active) {
-        // this.attackCollider.drawDebug();
+        this.attackCollider.drawDebug();
         this.attackCollider.updatePosition();
         this.attackCollider.update(deltaTime);
       }
@@ -132,7 +132,7 @@ export class Player extends Entity {
       }
     }
 
-    // this.collider.drawDebug();
+    this.collider.drawDebug();
   }
 
   setupAnimations() {
