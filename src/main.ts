@@ -14,6 +14,9 @@ import player_01 from "./assets/_atlas.png";
 import toxic_fly from "./assets/_toxic_fly.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
 import dagger_vfx from "./assets/_VFX.png";
+import daggerHitAudio from "./assets/audio/dagger-hit.ogg";
+
+const audioContext = new AudioContext();
 
 (async () => {
   const game: Application = new Application();
@@ -37,16 +40,16 @@ import dagger_vfx from "./assets/_VFX.png";
   // Current player animations spritesheet has:
   // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
   const frames = {
-    idle_down: frameSlicer(assets["_atlas"], frameSize, 1, 0),
+    idle_down: frameSlicer(assets["_atlas"], frameSize, 4, 0),
     walk_down: frameSlicer(assets["_atlas"], frameSize, 3, 0),
 
-    idle_left: frameSlicer(assets["_atlas"], frameSize, 1, 0),
+    idle_left: frameSlicer(assets["_atlas"], frameSize, 4, 0),
     walk_left: frameSlicer(assets["_atlas"], frameSize, 3, 0, 1),
 
-    idle_up: frameSlicer(assets["_atlas"], frameSize, 1, 0),
+    idle_up: frameSlicer(assets["_atlas"], frameSize, 4, 0),
     walk_up: frameSlicer(assets["_atlas"], frameSize, 3, 0),
 
-    idle_right: frameSlicer(assets["_atlas"], frameSize, 1, 0),
+    idle_right: frameSlicer(assets["_atlas"], frameSize, 4, 0),
     walk_right: frameSlicer(assets["_atlas"], frameSize, 3, 0, 1),
 
     dash_down: frameSlicer(assets["_atlas"], frameSize, 1, 1),
@@ -206,4 +209,77 @@ function createWalls(transform: { x: number; y: number; width: number; height: n
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+async function loadAudio(context: AudioContext, url: string): Promise<AudioBuffer> {
+  const response = await fetch(url);
+  const arrayBuffer = await response.arrayBuffer();
+  const audioBuffer = await context.decodeAudioData(arrayBuffer);
+  console.log(audioBuffer);
+  return audioBuffer;
+}
+
+let soundFX: AudioBuffer;
+
+async function initAudio() {
+  await audioContext.resume();
+  soundFX = await loadAudio(audioContext, daggerHitAudio);
+}
+
+function startSoundFX() {
+  playAudio(audioContext, soundFX, {
+    loop: false,
+  });
+  keepAudioAlive(audioContext);
+}
+
+function playAudio(
+  context: AudioContext,
+  buffer: AudioBuffer,
+  options?: {
+    loop?: boolean;
+    volume?: number;
+    pitchMin?: number;
+    pitchMax?: number;
+  },
+): AudioBufferSourceNode {
+  const source: AudioBufferSourceNode = context.createBufferSource();
+  source.buffer = buffer;
+  source.loop = options?.loop ?? false;
+
+  // random pitch to make the sound more diverse
+  source.playbackRate.value = randomRange(options?.pitchMin ?? 0.95, options?.pitchMax ?? 1.05);
+
+  const gainNode = context.createGain();
+  gainNode.gain.value = options?.volume ?? randomRange(0.2, 0.3);
+
+  source.connect(gainNode);
+  gainNode.connect(context.destination);
+
+  source.start(0, 0.33);
+  return source;
+}
+
+function randomRange(min: number, max: number): number {
+  return Math.random() * (max - min) + min;
+}
+
+window.addEventListener("keydown", async (e: KeyboardEvent) => {
+  if (e.key === "i") await initAudio();
+
+  if (e.key === "j") startSoundFX();
+});
+
+function keepAudioAlive(context: AudioContext) {
+  const source = context.createBufferSource();
+  source.buffer = soundFX;
+  source.loop = true;
+
+  const gain = context.createGain();
+  gain.gain.value = 0.000001; // virtualmente silencioso
+
+  source.connect(gain);
+  gain.connect(context.destination);
+
+  source.start();
 }
