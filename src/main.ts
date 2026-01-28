@@ -67,7 +67,7 @@ const audioContext = new AudioContext();
   };
 
   const enemyFrames = {
-    idle_down: frameSlicer(assets["_toxic_fly"], frameSize, 1, 0),
+    idle_down: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
     idle_left: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
     idle_up: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
     idle_right: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
