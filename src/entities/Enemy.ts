@@ -38,7 +38,7 @@ export class Enemy extends Entity {
   private roamTarget: Point | null = null;
   private roamWaitTimer: number = 0;
   private isInCombat: boolean = false;
-  private isPassive: boolean = false;
+  private isPassive: boolean = true;
 
   constructor(frames: Record<string, Texture[]>, playerRef: Player) {
     super();

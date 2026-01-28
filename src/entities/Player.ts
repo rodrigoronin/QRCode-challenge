@@ -52,9 +52,14 @@ export class Player extends Entity {
     this.anim = new AnimationController(this.sprite, true);
     this.setupAnimations();
 
+    this.dashSpeed = this.dashDistance / (this.dashDuration / 1000);
+
+    this.container.addChild(this.sprite);
+
+    // Create the Colliders last so the debugDraw appears over the player
     this.attackCollider = new AttackCollider(
-      71 * Constants.SCALE_FACTOR,
-      71 * Constants.SCALE_FACTOR,
+      61 * Constants.SCALE_FACTOR,
+      61 * Constants.SCALE_FACTOR,
       this.ATTACK_LOCK_DURATION,
       this.container,
       this,
@@ -63,15 +68,10 @@ export class Player extends Entity {
 
     this.attackManager = new AttackComponent(this, {
       attackCollider: this.attackCollider,
-      maxTargets: 1,
+      maxTargets: 2,
       target: "enemy",
     });
 
-    this.dashSpeed = this.dashDistance / (this.dashDuration / 1000);
-
-    this.container.addChild(this.sprite);
-
-    // Create the Collider last so the debugDraw appears over the player
     this.collider = new Collider(32, 32, 0, 0, this.container, this);
     CollisionManager.addEntityCollider(this.collider);
   }
@@ -94,7 +94,7 @@ export class Player extends Entity {
       this.updateAttackLock(deltaTime);
 
       if (this.attackCollider?.active) {
-        this.attackCollider.drawDebug();
+        // this.attackCollider.drawDebug();
         this.attackCollider.updatePosition();
         this.attackCollider.update(deltaTime);
       }

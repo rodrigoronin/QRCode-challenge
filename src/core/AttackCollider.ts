@@ -8,11 +8,11 @@ import * as Constants from "../utils/Constants";
 
 export class AttackCollider {
   private container: Container;
+  private attackContainer: Container;
   public collider: Collider;
   private debugGraphics: Graphics;
   private width: number;
   private height: number;
-  private position: { x: number; y: number } = { x: 0, y: 0 };
   private offsetX!: number;
   private offsetY!: number;
   public active: boolean;
@@ -40,7 +40,9 @@ export class AttackCollider {
     this.offsetY = this.height / 2;
     this.VFXFrames = VFXFrames;
 
+    this.attackContainer = new Container();
     this.container = container;
+    this.container.addChild(this.attackContainer);
     this.collider = new Collider(12, 12, 0, 0, this.container, owner);
 
     this.debugGraphics = new Graphics();
@@ -75,20 +77,20 @@ export class AttackCollider {
 
     switch (direction) {
       case "up":
-        this.position.x = -this.offsetX;
-        this.position.y = -this.offsetY - dist;
+        this.attackContainer.position.x = -this.offsetX;
+        this.attackContainer.position.y = -this.offsetY - dist;
         break;
       case "down":
-        this.position.x = -this.offsetX;
-        this.position.y = -this.offsetY + dist;
+        this.attackContainer.position.x = -this.offsetX;
+        this.attackContainer.position.y = -this.offsetY + dist;
         break;
       case "left":
-        this.position.x = -this.offsetX - dist;
-        this.position.y = -this.offsetY;
+        this.attackContainer.position.x = -this.offsetX - dist;
+        this.attackContainer.position.y = -this.offsetY;
         break;
       case "right":
-        this.position.x = -this.offsetX + dist;
-        this.position.y = -this.offsetY;
+        this.attackContainer.position.x = -this.offsetX + dist;
+        this.attackContainer.position.y = -this.offsetY;
         break;
     }
 
@@ -99,10 +101,14 @@ export class AttackCollider {
         this.VFXSprite = new Sprite(frames[0]);
         this.VFXSprite.anchor.set(0.5);
         this.VFXSprite.scale.set(Constants.SCALE_FACTOR);
-        console.log(this.VFXSprite.position.x, this.position.x);
         if (direction === "left") this.VFXSprite.scale.x = -Constants.SCALE_FACTOR;
         if (direction === "up") this.VFXSprite.scale.y = -Constants.SCALE_FACTOR;
-        this.container.addChild(this.VFXSprite);
+        // TODO: use offset of the current equipped weapon
+        this.VFXSprite?.position.set(
+          this.VFXSprite.position.x + 75, // the vfx is offset 75 pixels right
+          this.VFXSprite.position.y + 60, // the vfx is offset 60 pixels down
+        );
+        this.attackContainer.addChild(this.VFXSprite);
 
         this.VFXAnim = new AnimationController(this.VFXSprite, false);
         this.VFXAnim.addAnimation(animName, frames);
@@ -114,8 +120,8 @@ export class AttackCollider {
 
   deactivate() {
     this.active = false;
-    this.position.x = 0;
-    this.position.y = 0;
+    this.attackContainer.position.x = 0;
+    this.attackContainer.position.y = 0;
 
     this.debugGraphics.clear();
 
@@ -134,23 +140,14 @@ export class AttackCollider {
   updatePosition() {
     if (!this.active) return;
 
-    this.debugGraphics.x = this.position.x;
-    this.debugGraphics.y = this.position.y;
-
-    if (this.VFXSprite) {
-      this.VFXSprite.x = this.position.x;
-    }
-
-    if (this.VFXSprite) {
-      this.VFXSprite.x = this.position.x + 30;
-      this.VFXSprite.y = this.position.y + 20;
-    }
+    this.debugGraphics.x = this.attackContainer.position.x;
+    this.debugGraphics.y = this.attackContainer.position.y;
   }
 
   getBounds() {
     return {
-      x: this.container.x + this.position.x,
-      y: this.container.y + this.position.y,
+      x: this.container.x + this.attackContainer.position.x,
+      y: this.container.y + this.attackContainer.position.y,
       width: this.width,
       height: this.height,
     };
