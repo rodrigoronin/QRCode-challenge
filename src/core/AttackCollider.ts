@@ -1,6 +1,5 @@
 import { Container, Graphics, Texture, Sprite } from "pixi.js";
 import { Collider } from "./Collider";
-import { CollisionManager } from "./CollisionManager";
 import { type Player } from "../entities/Player";
 import { type Enemy } from "../entities/Enemy";
 import { AnimationController } from "./AnimationController";
