@@ -23,15 +23,16 @@ export class CollisionManager {
   // COLLIDERS REGISTERS
   // -------------------
 
-  static addWorldCollider(col: WorldCollider) {
+  static addWorldCollider(col: WorldCollider): void {
     this.worldColliders.push(col);
   }
 
-  static addEntityCollider(col: Collider) {
+  static addEntityCollider(col: Collider): void {
+    if (this.entityColliders.includes(col)) return;
     this.entityColliders.push(col);
   }
 
-  static removeEntityCollider(col: Collider) {
+  static removeEntityCollider(col: Collider): void {
     const i = this.entityColliders.indexOf(col);
     if (i !== -1) this.entityColliders.splice(i, 1);
   }

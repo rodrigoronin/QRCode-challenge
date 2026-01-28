@@ -35,11 +35,9 @@ export class AttackComponent {
 
     if (this.attackCollider.active) {
       for (let i = 0; i < hits.length; i++) {
-        if (
-          hits[i].owner?.tag === this.target &&
-          this.damagedList.length < this.maxTargets &&
-          !this.damagedList.includes(hits[i])
-        ) {
+        if (hits[i].owner.tag !== this.target) continue;
+
+        if (this.damagedList.length < this.maxTargets && !this.damagedList.includes(hits[i])) {
           const dX = hits[i].container.x - this.owner.container.x;
           const dY = hits[i].container.y - this.owner.container.y;
           const currentDistance = Math.hypot(dX, dY);

@@ -71,8 +71,6 @@ export class AttackCollider {
     this.active = true;
     this.timer = this.duration;
 
-    CollisionManager.addEntityCollider(this.collider);
-
     const dist = 60;
 
     switch (direction) {
@@ -103,10 +101,11 @@ export class AttackCollider {
         this.VFXSprite.scale.set(Constants.SCALE_FACTOR);
         if (direction === "left") this.VFXSprite.scale.x = -Constants.SCALE_FACTOR;
         if (direction === "up") this.VFXSprite.scale.y = -Constants.SCALE_FACTOR;
+        if (direction === "down") this.VFXSprite.scale.x = -Constants.SCALE_FACTOR;
         // TODO: use offset of the current equipped weapon
         this.VFXSprite?.position.set(
-          this.VFXSprite.position.x + 75, // the vfx is offset 75 pixels right
-          this.VFXSprite.position.y + 60, // the vfx is offset 60 pixels down
+          this.VFXSprite.position.x + this.width / 2, // the vfx is offset 75 pixels right
+          this.VFXSprite.position.y + this.height / 2, // the vfx is offset 60 pixels down
         );
         this.attackContainer.addChild(this.VFXSprite);
 
@@ -126,8 +125,6 @@ export class AttackCollider {
     this.debugGraphics.clear();
 
     if (this.debugGraphics.parent) this.debugGraphics.parent.removeChild(this.debugGraphics);
-
-    CollisionManager.removeEntityCollider(this.collider);
 
     if (this.VFXSprite) {
       this.container.removeChild(this.VFXSprite);

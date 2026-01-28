@@ -36,7 +36,7 @@ export class Player extends Entity {
   private attackCollider: AttackCollider;
   private attackTimer: number = 0;
   private ATTACK_LOCK_DURATION: number = 420;
-  private attackManager: AttackComponent;
+  private attackComponent: AttackComponent;
   // stats
   private maxHealthPoints: number = 10;
   private healthPoints: number = 10;
@@ -66,7 +66,7 @@ export class Player extends Entity {
       this.VFXFrames,
     );
 
-    this.attackManager = new AttackComponent(this, {
+    this.attackComponent = new AttackComponent(this, {
       attackCollider: this.attackCollider,
       maxTargets: 2,
       target: "enemy",
@@ -87,7 +87,7 @@ export class Player extends Entity {
     }
 
     if (this.attackCollider.active) {
-      this.attackManager.update();
+      this.attackComponent.update();
     }
 
     if (this.isAttacking) {
@@ -224,7 +224,7 @@ export class Player extends Entity {
 
     this.attackCollider?.activate(this.currentDir);
     this.isAttacking = true;
-    this.attackManager.activate();
+    this.attackComponent.activate();
     this.attackTimer = this.ATTACK_LOCK_DURATION;
   }
 
@@ -233,7 +233,7 @@ export class Player extends Entity {
 
     if (this.attackTimer <= 0) {
       this.isAttacking = false;
-      this.attackManager.deactivate();
+      this.attackComponent.deactivate();
     }
   }
 
