@@ -7,6 +7,7 @@ import { AttackCollider } from "../core/AttackCollider";
 import * as Constants from "../utils/Constants";
 import { CollisionManager } from "../core/CollisionManager";
 import { AttackComponent } from "../core/AttackComponent";
+import { DamageNumberManager } from "../VFX/DamageNumberManager";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -239,6 +240,8 @@ export class Player extends Entity {
 
   takeDamage(damage: number): void {
     this.healthPoints -= damage;
+
+    DamageNumberManager.spawn(this.container.parent!, damage, this.container.x, this.container.y);
 
     console.log(`Player Health: ${this.healthPoints} / ${this.maxHealthPoints}`);
 

@@ -5,6 +5,7 @@ import { WorldCollider } from "./core/WorldCollider";
 import { CollisionManager } from "./core/CollisionManager";
 import { InputCommandMapper } from "./input/InputCommandMapper";
 import { InputManager } from "./input/InputManager";
+import { DamageNumberManager } from "./VFX/DamageNumberManager";
 import * as Constants from "./utils/Constants";
 
 import "./style.css";
@@ -127,6 +128,7 @@ const audioContext = new AudioContext();
     enemiesList.forEach((enemy) => enemy.update(ticker.deltaMS));
 
     input.commit();
+    DamageNumberManager.update(ticker.deltaMS);
 
     const canMinX = -map.width;
     const canMaxX = 0;

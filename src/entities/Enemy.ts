@@ -7,6 +7,7 @@ import { AttackComponent } from "../core/AttackComponent";
 import { AttackCollider } from "../core/AttackCollider";
 import * as Constants from "../utils/Constants";
 import { AnimationController } from "../core/AnimationController";
+import { DamageNumberManager } from "../VFX/DamageNumberManager";
 
 export class Enemy extends Entity {
   // RENDER
@@ -132,6 +133,8 @@ export class Enemy extends Entity {
 
     this.healthPoints -= damage;
     this.isHitFlashing = true;
+
+    DamageNumberManager.spawn(this.container.parent!, damage, this.container.x, this.container.y);
 
     this.hitFlashFilter.greyscale(1, false);
     this.container.filters = [this.hitFlashFilter];
