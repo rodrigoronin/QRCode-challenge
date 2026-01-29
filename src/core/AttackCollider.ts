@@ -103,8 +103,8 @@ export class AttackCollider {
         if (direction === "down") this.VFXSprite.scale.x = -Constants.SCALE_FACTOR;
         // TODO: use offset of the current equipped weapon
         this.VFXSprite?.position.set(
-          this.VFXSprite.position.x + this.width / 2, // the vfx is offset 75 pixels right
-          this.VFXSprite.position.y + this.height / 2, // the vfx is offset 60 pixels down
+          this.VFXSprite.position.x + this.offsetX, // offset by half the AttackCollider width
+          this.VFXSprite.position.y + this.offsetY, // offset by half the AttackCollider height
         );
         this.attackContainer.addChild(this.VFXSprite);
 

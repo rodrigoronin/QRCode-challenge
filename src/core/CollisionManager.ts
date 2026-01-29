@@ -16,25 +16,27 @@ interface IEntityData {
  * • EntityColliders -> NPCs, player, enemies, projectiles, attacks...
  */
 export class CollisionManager {
-  private static worldColliders: WorldCollider[] = [];
-  private static entityColliders: Collider[] = [];
+  private static worldColliders: Set<WorldCollider> = new Set();
+  private static entityColliders: Set<Collider> = new Set();
 
   // -------------------
   // COLLIDERS REGISTERS
   // -------------------
 
-  static addWorldCollider(col: WorldCollider): void {
-    this.worldColliders.push(col);
+  static registerWorldCollider(col: WorldCollider): void {
+    this.worldColliders.add(col);
   }
 
-  static addEntityCollider(col: Collider): void {
-    if (this.entityColliders.includes(col)) return;
-    this.entityColliders.push(col);
+  static registerEntityCollider(col: Collider): void {
+    if (this.entityColliders.has(col)) return;
+
+    this.entityColliders.add(col);
   }
 
   static removeEntityCollider(col: Collider): void {
-    const i = this.entityColliders.indexOf(col);
-    if (i !== -1) this.entityColliders.splice(i, 1);
+    if (this.entityColliders.has(col)) {
+      this.entityColliders.delete(col);
+    }
   }
 
   // -------------------

@@ -73,7 +73,7 @@ export class Player extends Entity {
     });
 
     this.collider = new Collider(32, 32, 0, 0, this.container, this);
-    CollisionManager.addEntityCollider(this.collider);
+    CollisionManager.registerEntityCollider(this.collider);
   }
 
   update(deltaTime: number) {
@@ -220,7 +220,7 @@ export class Player extends Entity {
   private basicAttack() {
     if (this.attackCollider?.active) return;
 
-    console.log("basic attack!");
+    this.attackComponent.direction = this.currentDir;
 
     this.attackCollider?.activate(this.currentDir);
     this.isAttacking = true;

@@ -55,7 +55,7 @@ export class Enemy extends Entity {
     this.container.addChild(this.sprite);
 
     this.collider = new Collider(28, 24, 2, 0, this.container, this);
-    CollisionManager.addEntityCollider(this.collider);
+    CollisionManager.registerEntityCollider(this.collider);
 
     this.attackCollider = new AttackCollider(
       12 * Constants.SCALE_FACTOR,
@@ -108,8 +108,28 @@ export class Enemy extends Entity {
     }
   }
 
-  public takeDamage(damage: number) {
+  public takeDamage(damage: number, direction: string | undefined) {
     this.isPassive = false;
+
+    // TODO: create a system to handle directional knockback
+    // and other effects later
+    switch (direction) {
+      case "up":
+        this.container.position.y = this.container.position.y - 50;
+        break;
+      case "down":
+        this.container.position.y = this.container.position.y + 50;
+        break;
+      case "left":
+        this.container.position.x -= 50;
+        break;
+      case "right":
+        this.container.position.x = this.container.position.x + 50;
+        break;
+      default:
+        break;
+    }
+
     this.healthPoints -= damage;
     this.isHitFlashing = true;
 

@@ -16,7 +16,8 @@ export class AttackComponent {
   private target: string = "";
   private maxTargets: number;
   public isActive: boolean = false;
-  private damagedList: Collider[] = [];
+  private damagedSet: Set<Collider> = new Set();
+  public direction?: string = "";
 
   constructor(owner: Player | Enemy, config: Config) {
     const { attackCollider, maxTargets, target } = config;
@@ -37,7 +38,7 @@ export class AttackComponent {
       for (let i = 0; i < hits.length; i++) {
         if (hits[i].owner.tag !== this.target) continue;
 
-        if (this.damagedList.length < this.maxTargets && !this.damagedList.includes(hits[i])) {
+        if (this.damagedSet.size < this.maxTargets && !this.damagedSet.has(hits[i])) {
           const dX = hits[i].container.x - this.owner.container.x;
           const dY = hits[i].container.y - this.owner.container.y;
           const currentDistance = Math.hypot(dX, dY);
@@ -50,15 +51,15 @@ export class AttackComponent {
       }
 
       if (closestEnemy) {
-        closestEnemy.owner?.takeDamage(1);
-        this.damagedList.push(closestEnemy);
+        closestEnemy.owner?.takeDamage(1, this.direction);
+        this.damagedSet.add(closestEnemy);
       }
     }
   }
 
   activate() {
     this.isActive = true;
-    this.damagedList = [];
+    this.damagedSet.clear();
   }
 
   deactivate() {
