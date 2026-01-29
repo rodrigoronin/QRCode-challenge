@@ -25,7 +25,6 @@ const audioContext = new AudioContext();
     height: Constants.LOGICAL_HEIGHT,
     background: 0x003300,
     resizeTo: window,
-    resolution: window.devicePixelRatio || 1,
   });
   document.body.appendChild(game.canvas);
 
@@ -132,12 +131,12 @@ const audioContext = new AudioContext();
     const canMinX = -map.width;
     const canMaxX = 0;
 
-    camera.x = clamp(-player.container.x + Constants.LOGICAL_WIDTH / 2, canMinX, canMaxX);
+    camera.x = clamp(-player.container.x + window.innerWidth / 2, canMinX, canMaxX);
 
     const canMinY = -map.height;
     const canMaxY = 0;
 
-    camera.y = clamp(-player.container.y + Constants.LOGICAL_HEIGHT / 2, canMinY, canMaxY);
+    camera.y = clamp(-player.container.y + window.innerHeight / 2, canMinY, canMaxY);
   });
 })();
 
@@ -200,7 +199,7 @@ function createWalls(transform: { x: number; y: number; width: number; height: n
       width: col.width,
       height: col.height,
     });
-    CollisionManager.addWorldCollider(wall);
+    CollisionManager.registerWorldCollider(wall);
     wallList.push(wall);
   }
 
