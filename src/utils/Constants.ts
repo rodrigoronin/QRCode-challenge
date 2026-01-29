@@ -1,5 +1,5 @@
 const SCALE_FACTOR = 2;
-const LOGICAL_WIDTH = window.innerWidth;
-const LOGICAL_HEIGHT = window.innerHeight;
+const LOGICAL_WIDTH = 640;
+const LOGICAL_HEIGHT = 360;
 
 export { SCALE_FACTOR, LOGICAL_WIDTH, LOGICAL_HEIGHT };
