@@ -55,12 +55,19 @@ export class Enemy extends Entity {
 
     this.container.addChild(this.sprite);
 
-    this.collider = new Collider(28, 24, 2, 0, this.container, this);
+    this.collider = new Collider(
+      14 * Constants.SCALE_FACTOR,
+      12 * Constants.SCALE_FACTOR,
+      2,
+      0,
+      this.container,
+      this,
+    );
     CollisionManager.registerEntityCollider(this.collider);
 
     this.attackCollider = new AttackCollider(
-      12 * Constants.SCALE_FACTOR,
-      12 * Constants.SCALE_FACTOR,
+      20 * Constants.SCALE_FACTOR,
+      20 * Constants.SCALE_FACTOR,
       250,
       this.container,
       this,
@@ -74,7 +81,7 @@ export class Enemy extends Entity {
 
     this.playerRef = playerRef;
 
-    // this.collider.drawDebug();
+    this.collider.drawDebug();
   }
 
   update(_deltaTime: number): void {
@@ -271,7 +278,7 @@ export class Enemy extends Entity {
     if (this.attackTimer > 0) return;
 
     this.attackTimer = this.attackCooldown;
-    this.attackCollider.activate(this.currentDir);
+    this.attackCollider.activate(this.currentDir, 90);
     this.isAttacking = true;
     this.attackManager.activate();
   }

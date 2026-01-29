@@ -1,4 +1,4 @@
-import { Sprite, Texture } from "pixi.js";
+import { Sprite, Texture, ColorMatrixFilter } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
@@ -21,6 +21,7 @@ export class Player extends Entity {
   private anim: AnimationController;
   private speed = 200; // pixels/second
   public tag: string = "player";
+  private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   // Dash variables
   private isDashing: boolean = false;
@@ -32,12 +33,15 @@ export class Player extends Entity {
   private dashCooldownTimer: number = 0;
   private dashSpeed: number;
   private dashDirection = { x: 0, y: 0 };
-  // attack
+  // ATTACK DATA
   private isAttacking: boolean = false;
   private attackCollider: AttackCollider;
   private attackTimer: number = 0;
   private ATTACK_LOCK_DURATION: number = 420;
   private attackComponent: AttackComponent;
+  private isHitFlashing: boolean = false;
+  private hitFlashingTimer: number = 0;
+  private HIT_FLASH_DURATION: number = 150;
   // stats
   private maxHealthPoints: number = 10;
   private healthPoints: number = 10;
@@ -73,13 +77,22 @@ export class Player extends Entity {
       target: "enemy",
     });
 
-    this.collider = new Collider(32, 32, 0, 0, this.container, this);
+    this.collider = new Collider(
+      12 * Constants.SCALE_FACTOR,
+      26 * Constants.SCALE_FACTOR,
+      0,
+      4,
+      this.container,
+      this,
+    );
     CollisionManager.registerEntityCollider(this.collider);
   }
 
   update(deltaTime: number) {
     const deltaSec = deltaTime / 1000;
     const move = this.input.getMovementVector();
+
+    this.updateHitFlashFilter(deltaTime);
 
     // DASH
     if (this.isDashing) {
@@ -133,7 +146,7 @@ export class Player extends Entity {
       }
     }
 
-    this.collider.drawDebug();
+    // this.collider.drawDebug();
   }
 
   setupAnimations() {
@@ -223,7 +236,7 @@ export class Player extends Entity {
 
     this.attackComponent.direction = this.currentDir;
 
-    this.attackCollider?.activate(this.currentDir);
+    this.attackCollider?.activate(this.currentDir, 60);
     this.isAttacking = true;
     this.attackComponent.activate();
     this.attackTimer = this.ATTACK_LOCK_DURATION;
@@ -240,11 +253,31 @@ export class Player extends Entity {
 
   takeDamage(damage: number): void {
     this.healthPoints -= damage;
-
     DamageNumberManager.spawn(this.container.parent!, damage, this.container.x, this.container.y);
+
+    this.isHitFlashing = true;
+
+    this.hitFlashFilter.greyscale(1, false);
+    this.container.filters = [this.hitFlashFilter];
 
     console.log(`Player Health: ${this.healthPoints} / ${this.maxHealthPoints}`);
 
     if (this.healthPoints <= 0) console.log("Player is incapacitated!");
+  }
+
+  private updateHitFlashFilter(deltaTime: number) {
+    if (this.isHitFlashing) {
+      this.hitFlashingTimer += deltaTime;
+
+      if (this.hitFlashingTimer >= this.HIT_FLASH_DURATION) {
+        this.isHitFlashing = false;
+        this.container.filters = this.container.filters.filter(
+          (filter) => filter !== this.hitFlashFilter,
+        );
+        this.hitFlashingTimer = 0;
+        // this.sprite.x = prevX;
+        // this.sprite.y = prevY;
+      }
+    }
   }
 }

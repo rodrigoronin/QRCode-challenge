@@ -14,12 +14,22 @@ export class DamageNumber {
     const style = new TextStyle({
       fontFamily: "Arial",
       fontSize: 32,
+      fontWeight: "bold",
       fill: 0xffffff,
       stroke: 0x000000,
-      fontWeight: "bold",
+      dropShadow: {
+        color: "#000000",
+        blur: 5,
+        distance: 5,
+        angle: 0,
+        alpha: 0.8,
+      },
     });
 
-    this.text = new Text(value.toString(), style);
+    this.text = new Text({
+      text: value,
+      style,
+    });
     this.text.anchor.set(0.5);
 
     // leve random horizontal (Ragnarok clássico)
@@ -36,7 +46,10 @@ export class DamageNumber {
 
     this.text.alpha -= 0.001 * deltaMS;
 
-    if (this.crit) this.text.style.fill = 0xdc582a;
+    if (this.crit) {
+      this.text.style.fill = "orange";
+      this.text.scale.set(1.2);
+    }
 
     switch (this.phase) {
       case "up":

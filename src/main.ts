@@ -11,7 +11,7 @@ import * as Constants from "./utils/Constants";
 import "./style.css";
 
 // Assets
-import playerSprite from "./assets/_character.png";
+import playerSprite from "./assets/_wizard.png";
 import enemySprite from "./assets/_enemy-01.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
 import sword_vfx from "./assets/_sword_slash.png";
@@ -36,26 +36,27 @@ const audioContext = new AudioContext();
   const camera: Container = new Container();
 
   const frameSize: number = 64;
+  const playerTexture = playerSprite.slice(playerSprite.indexOf("_"), playerSprite.indexOf("."));
 
   // Current player animations spritesheet has:
   // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
   const frames = {
-    idle_down: frameSlicer(assets["_character"], frameSize, 1, 0),
-    walk_down: frameSlicer(assets["_character"], frameSize, 1, 0),
+    idle_down: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    walk_down: frameSlicer(assets[playerTexture], frameSize, 1, 0),
 
-    idle_left: frameSlicer(assets["_character"], frameSize, 1, 0),
-    walk_left: frameSlicer(assets["_character"], frameSize, 1, 0),
+    idle_left: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    walk_left: frameSlicer(assets[playerTexture], frameSize, 1, 0),
 
-    idle_up: frameSlicer(assets["_character"], frameSize, 1, 0),
-    walk_up: frameSlicer(assets["_character"], frameSize, 1, 0),
+    idle_up: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    walk_up: frameSlicer(assets[playerTexture], frameSize, 1, 0),
 
-    idle_right: frameSlicer(assets["_character"], frameSize, 1, 0),
-    walk_right: frameSlicer(assets["_character"], frameSize, 1, 0),
+    idle_right: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    walk_right: frameSlicer(assets[playerTexture], frameSize, 1, 0),
 
-    dash_down: frameSlicer(assets["_character"], frameSize, 1, 0),
-    dash_right: frameSlicer(assets["_character"], frameSize, 1, 0),
-    dash_up: frameSlicer(assets["_character"], frameSize, 1, 0),
-    dash_left: frameSlicer(assets["_character"], frameSize, 1, 0),
+    dash_down: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    dash_right: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    dash_up: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    dash_left: frameSlicer(assets[playerTexture], frameSize, 1, 0),
   };
 
   const daggerVFXFrames = {
@@ -81,7 +82,7 @@ const audioContext = new AudioContext();
   player.container.x = 800;
   player.container.y = 512;
 
-  // Enemy prototype
+  // Enemy spawns
   const enemy_01 = new Enemy(enemyFrames, player);
   enemy_01.container.x = 500;
   enemy_01.container.y = 512;
@@ -130,12 +131,12 @@ const audioContext = new AudioContext();
     input.commit();
     DamageNumberManager.update(ticker.deltaMS);
 
-    const canMinX = -map.width;
+    const canMinX = -640;
     const canMaxX = 0;
 
     camera.x = clamp(-player.container.x + window.innerWidth / 2, canMinX, canMaxX);
 
-    const canMinY = -map.height;
+    const canMinY = -360;
     const canMaxY = 0;
 
     camera.y = clamp(-player.container.y + window.innerHeight / 2, canMinY, canMaxY);

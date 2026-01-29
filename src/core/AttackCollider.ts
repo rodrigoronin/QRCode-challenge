@@ -64,13 +64,11 @@ export class AttackCollider {
     container.addChild(this.debugGraphics);
   }
 
-  activate(direction: string) {
+  activate(direction: string, dist: number) {
     if (!this.debugGraphics.parent) this.attachTo(this.container);
 
     this.active = true;
     this.timer = this.duration;
-
-    const dist = 60;
 
     switch (direction) {
       case "up":

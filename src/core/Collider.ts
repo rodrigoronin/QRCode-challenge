@@ -19,7 +19,7 @@ export class Collider {
     offsetX: number,
     offsetY: number,
     container: Container,
-    owner: Enemy | Player
+    owner: Enemy | Player,
   ) {
     this.scale = Constants.SCALE_FACTOR;
     this.width = width * this.scale;
@@ -73,6 +73,6 @@ export class Collider {
     this.debug
       .rect(x + this.offsetX, y + this.offsetY, this.width, this.height)
       .fill({ color: 0x00ff00, alpha: 0.2 })
-      .stroke({ width: 1, color: 0x00ff00, alpha: 0.2 });
+      .stroke({ width: 2, color: 0xff0000, alpha: 0.2 });
   }
 }
