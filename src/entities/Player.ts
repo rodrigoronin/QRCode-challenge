@@ -61,8 +61,8 @@ export class Player extends Entity {
 
     // Create the Colliders last so the debugDraw appears over the player
     this.attackCollider = new AttackCollider(
-      61,
-      61,
+      51,
+      51,
       this.ATTACK_LOCK_DURATION,
       this.container,
       this,
@@ -227,7 +227,7 @@ export class Player extends Entity {
 
     this.attackComponent.direction = this.currentDir;
 
-    this.attackCollider?.activate(this.currentDir, 30);
+    this.attackCollider?.activate(this.currentDir, 40);
     this.isAttacking = true;
     this.attackComponent.activate();
     this.attackTimer = this.ATTACK_LOCK_DURATION;

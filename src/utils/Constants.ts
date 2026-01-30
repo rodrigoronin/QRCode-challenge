@@ -1,5 +1,3 @@
-// const SCALE_FACTOR = 1.5;
-// const SCALE_FACTOR = 1;
 const SCALE_FACTOR = 2;
 const LOGICAL_WIDTH = 640;
 const LOGICAL_HEIGHT = 360;

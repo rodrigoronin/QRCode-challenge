@@ -137,23 +137,6 @@ const audioContext = new AudioContext();
   const commandMapper: InputCommandMapper = new InputCommandMapper(player);
   const input = InputManager.get();
 
-  // TODO: fix map limits
-  // current 2000x2000
-  const cameraLimitX = {
-    1: -1522,
-    1.5: -1522,
-    2: -4522,
-  };
-  const cameraLimitY = {
-    1: -2170,
-    1.5: -2170,
-    2: -5170,
-  };
-  console.log(camera.height);
-  console.log(world.height);
-  console.log(map.height);
-  console.log("limit", cameraLimitY);
-
   game.ticker.add((ticker) => {
     input.poll();
     if (input.wasJustPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
@@ -165,7 +148,7 @@ const audioContext = new AudioContext();
     input.commit();
     DamageNumberManager.update(ticker.deltaMS);
 
-    const canMinX = cameraLimitX[Constants.SCALE_FACTOR];
+    const canMinX = -map.width - -(window.innerWidth - map.width);
     const canMaxX = 0;
 
     camera.x = clamp(
@@ -174,18 +157,14 @@ const audioContext = new AudioContext();
       canMaxX,
     );
 
-    const canMinY = cameraLimitY[Constants.SCALE_FACTOR];
+    const canMinY = -map.height - -(window.innerHeight - map.height);
     const canMaxY = 0;
-
-    console.log("canMinY", canMinY, "camera Y", camera.y);
 
     camera.y = clamp(
       -player.container.y * Constants.SCALE_FACTOR + window.innerHeight / 2,
       canMinY,
       canMaxY,
     );
-
-    // console.log(camera.x, camera.y);
   });
 })();
 
