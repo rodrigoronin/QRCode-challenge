@@ -1,4 +1,13 @@
-import { Application, Assets, Container, Texture, Rectangle, TextureSource, Sprite } from "pixi.js";
+import {
+  Application,
+  Assets,
+  Container,
+  Texture,
+  Rectangle,
+  TextureSource,
+  Sprite,
+  Graphics,
+} from "pixi.js";
 import { Player } from "./entities/Player";
 import { Enemy } from "./entities/Enemy";
 import { WorldCollider } from "./core/WorldCollider";
@@ -25,14 +34,13 @@ const audioContext = new AudioContext();
     width: window.innerWidth,
     height: window.innerHeight,
     background: 0x003300,
-    resizeTo: window,
+    // resizeTo: window,
   });
   document.body.appendChild(game.canvas);
 
   const assets = await assetLoader([playerSprite, enemySprite, sword_vfx]);
 
   const world: Container = new Container();
-
   const camera: Container = new Container();
 
   const frameSize: number = 64;
@@ -96,7 +104,7 @@ const audioContext = new AudioContext();
   const map: Sprite = new Sprite(
     new Texture({
       source: assets["_map_1024x1024"],
-      frame: new Rectangle(0, 0, 1280, 1280),
+      frame: new Rectangle(0, 0, 3000, 3000),
     }),
   );
 
@@ -115,10 +123,36 @@ const audioContext = new AudioContext();
   world.addChild(player.container);
   world.addChild(...walls.map((wall) => wall.container));
 
+  world.scale.set(Constants.SCALE_FACTOR);
+
+  const mapRect = new Graphics()
+    .rect(0, 0, map.width, map.height)
+    .fill({ color: 0xffa500, alpha: 0.1 })
+    .stroke({ width: 1, color: 0xffa500 });
+
+  world.addChild(mapRect);
+
   enemiesList.push(enemy_01, enemy_02, enemy_03);
 
   const commandMapper: InputCommandMapper = new InputCommandMapper(player);
   const input = InputManager.get();
+
+  // TODO: fix map limits
+  // current 2000x2000
+  const cameraLimitX = {
+    1: -1522,
+    1.5: -1522,
+    2: -4522,
+  };
+  const cameraLimitY = {
+    1: -2170,
+    1.5: -2170,
+    2: -5170,
+  };
+  console.log(camera.height);
+  console.log(world.height);
+  console.log(map.height);
+  console.log("limit", cameraLimitY);
 
   game.ticker.add((ticker) => {
     input.poll();
@@ -131,15 +165,27 @@ const audioContext = new AudioContext();
     input.commit();
     DamageNumberManager.update(ticker.deltaMS);
 
-    const canMinX = -map.width;
+    const canMinX = cameraLimitX[Constants.SCALE_FACTOR];
     const canMaxX = 0;
 
-    camera.x = clamp(-player.container.x + window.innerWidth / 2, canMinX, canMaxX);
+    camera.x = clamp(
+      -player.container.x * Constants.SCALE_FACTOR + window.innerWidth / 2,
+      canMinX,
+      canMaxX,
+    );
 
-    const canMinY = -map.height;
+    const canMinY = cameraLimitY[Constants.SCALE_FACTOR];
     const canMaxY = 0;
 
-    camera.y = clamp(-player.container.y + window.innerHeight / 2, canMinY, canMaxY);
+    console.log("canMinY", canMinY, "camera Y", camera.y);
+
+    camera.y = clamp(
+      -player.container.y * Constants.SCALE_FACTOR + window.innerHeight / 2,
+      canMinY,
+      canMaxY,
+    );
+
+    // console.log(camera.x, camera.y);
   });
 })();
 

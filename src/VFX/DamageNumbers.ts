@@ -35,7 +35,7 @@ export class DamageNumber {
 
     // leve random horizontal (Ragnarok clássico)
     this.text.x = x;
-    this.text.y = y - owner.position.y - 80;
+    this.text.y = y - owner.position.y - 20;
 
     this.crit = Math.random() > 0.1 ? false : true;
 

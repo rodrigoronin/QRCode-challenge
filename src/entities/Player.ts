@@ -4,7 +4,6 @@ import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
 import { Collider } from "../core/Collider";
 import { AttackCollider } from "../core/AttackCollider";
-import * as Constants from "../utils/Constants";
 import { CollisionManager } from "../core/CollisionManager";
 import { AttackComponent } from "../core/AttackComponent";
 import { DamageNumberManager } from "../VFX/DamageNumberManager";
@@ -19,7 +18,7 @@ export class Player extends Entity {
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private speed = 150 * Constants.SCALE_FACTOR; // pixels/second
+  private speed = 150; // pixels/second
   public tag: string = "player";
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
@@ -53,18 +52,17 @@ export class Player extends Entity {
 
     this.sprite = new Sprite(this.frames["idle_down"][0]);
     this.sprite.anchor.set(0.5);
-    this.sprite.scale.set(Constants.SCALE_FACTOR);
     this.anim = new AnimationController(this.sprite, true);
     this.setupAnimations();
 
-    this.dashSpeed = (this.dashDistance / (this.dashDuration / 1000)) * Constants.SCALE_FACTOR;
+    this.dashSpeed = this.dashDistance / (this.dashDuration / 1000);
 
     this.container.addChild(this.sprite);
 
     // Create the Colliders last so the debugDraw appears over the player
     this.attackCollider = new AttackCollider(
-      61 * Constants.SCALE_FACTOR,
-      61 * Constants.SCALE_FACTOR,
+      61,
+      61,
       this.ATTACK_LOCK_DURATION,
       this.container,
       this,
@@ -77,14 +75,7 @@ export class Player extends Entity {
       target: "enemy",
     });
 
-    this.collider = new Collider(
-      12 * Constants.SCALE_FACTOR,
-      26 * Constants.SCALE_FACTOR,
-      0,
-      4,
-      this.container,
-      this,
-    );
+    this.collider = new Collider(20, 52, 0, 2, this.container, this);
     CollisionManager.registerEntityCollider(this.collider);
   }
 
@@ -108,7 +99,7 @@ export class Player extends Entity {
       this.updateAttackLock(deltaTime);
 
       if (this.attackCollider?.active) {
-        // this.attackCollider.drawDebug();
+        this.attackCollider.drawDebug();
         this.attackCollider.updatePosition();
         this.attackCollider.update(deltaTime);
       }
@@ -130,10 +121,10 @@ export class Player extends Entity {
       this.updateDirection(move);
 
       if (move.x !== 0 || move.y !== 0) {
-        if (this.currentDir === "left") this.sprite.scale.x = -Constants.SCALE_FACTOR;
-        else if (this.currentDir === "right") this.sprite.scale.x = Constants.SCALE_FACTOR;
-        if (this.currentDir === "up") this.sprite.scale.x = -Constants.SCALE_FACTOR;
-        else if (this.currentDir === "down") this.sprite.scale.x = Constants.SCALE_FACTOR;
+        if (this.currentDir === "left") this.sprite.scale.x = -1;
+        else if (this.currentDir === "right") this.sprite.scale.x = 1;
+        if (this.currentDir === "up") this.sprite.scale.x = -1;
+        else if (this.currentDir === "down") this.sprite.scale.x = 1;
         this.anim.play(`walk_${this.currentDir}`);
       } else {
         this.anim.play(`idle_${this.currentDir}`);
@@ -146,7 +137,7 @@ export class Player extends Entity {
       }
     }
 
-    // this.collider.drawDebug();
+    this.collider.drawDebug();
   }
 
   setupAnimations() {
@@ -236,7 +227,7 @@ export class Player extends Entity {
 
     this.attackComponent.direction = this.currentDir;
 
-    this.attackCollider?.activate(this.currentDir, 30 * Constants.SCALE_FACTOR);
+    this.attackCollider?.activate(this.currentDir, 30);
     this.isAttacking = true;
     this.attackComponent.activate();
     this.attackTimer = this.ATTACK_LOCK_DURATION;
@@ -275,8 +266,6 @@ export class Player extends Entity {
           (filter) => filter !== this.hitFlashFilter,
         );
         this.hitFlashingTimer = 0;
-        // this.sprite.x = prevX;
-        // this.sprite.y = prevY;
       }
     }
   }

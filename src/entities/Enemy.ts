@@ -21,7 +21,7 @@ export class Enemy extends Entity {
   // DATA
   private maxHealthPoints: number = 20;
   private healthPoints: number = this.maxHealthPoints;
-  private speed: number = 140 * Constants.SCALE_FACTOR; // pixels/second
+  private speed: number = 140; // pixels/second
   private isDead: boolean = false;
   private perceptionRange: number = 250; // pixels
   private playerRef: Player;
@@ -54,7 +54,6 @@ export class Enemy extends Entity {
     this.frames = frames;
     this.sprite = new Sprite(this.frames["idle_down"][0]);
     this.sprite.anchor.set(0.5);
-    this.sprite.scale.set(Constants.SCALE_FACTOR);
     this.anim = new AnimationController(this.sprite);
     this.setupAnimation();
 
@@ -62,24 +61,10 @@ export class Enemy extends Entity {
 
     this.container.addChild(this.sprite);
 
-    this.collider = new Collider(
-      16 * Constants.SCALE_FACTOR,
-      16 * Constants.SCALE_FACTOR,
-      0,
-      0,
-      this.container,
-      this,
-    );
+    this.collider = new Collider(32, 32, 0, 0, this.container, this);
     CollisionManager.registerEntityCollider(this.collider);
 
-    this.attackCollider = new AttackCollider(
-      40 * Constants.SCALE_FACTOR,
-      40 * Constants.SCALE_FACTOR,
-      420,
-      this.container,
-      this,
-      this.VFXFrames,
-    );
+    this.attackCollider = new AttackCollider(40, 40, 420, this.container, this, this.VFXFrames);
 
     this.attackManager = new AttackComponent(this, {
       attackCollider: this.attackCollider,
@@ -89,7 +74,7 @@ export class Enemy extends Entity {
 
     this.playerRef = playerRef;
 
-    // this.collider.drawDebug();
+    this.collider.drawDebug();
   }
 
   update(_deltaTime: number): void {
@@ -288,7 +273,7 @@ export class Enemy extends Entity {
     if (this.attackTimer > 0) return;
 
     this.attackTimer = this.attackCooldown;
-    this.attackCollider.activate(this.currentDir, 45 * Constants.SCALE_FACTOR);
+    this.attackCollider.activate(this.currentDir, 45);
     this.isAttacking = true;
     this.attackManager.activate();
   }

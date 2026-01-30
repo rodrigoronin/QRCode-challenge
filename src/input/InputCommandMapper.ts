@@ -1,5 +1,6 @@
 import { AttackCommand } from "../core/commands/AttackCommand";
 import { DashCommand } from "../core/commands/DashCommand";
+import * as Constants from "../utils/Constants";
 import type { Command } from "../core/commands/Command";
 import type { Player } from "../entities/Player";
 

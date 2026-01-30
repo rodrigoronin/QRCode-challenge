@@ -95,10 +95,9 @@ export class AttackCollider {
       if (frames && frames.length > 0) {
         this.VFXSprite = new Sprite(frames[0]);
         this.VFXSprite.anchor.set(0.5);
-        this.VFXSprite.scale.set(Constants.SCALE_FACTOR);
-        if (direction === "left") this.VFXSprite.scale.x = -Constants.SCALE_FACTOR;
-        if (direction === "up") this.VFXSprite.scale.y = -Constants.SCALE_FACTOR;
-        if (direction === "down") this.VFXSprite.scale.x = -Constants.SCALE_FACTOR;
+        if (direction === "left") this.VFXSprite.scale.x = -1;
+        if (direction === "up") this.VFXSprite.scale.y = -1;
+        if (direction === "down") this.VFXSprite.scale.x = -1;
         // TODO: use offset of the current equipped weapon
         this.VFXSprite?.position.set(
           this.VFXSprite.position.x + this.offsetX, // offset by half the AttackCollider width

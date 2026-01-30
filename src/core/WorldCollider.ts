@@ -15,8 +15,8 @@ export class WorldCollider {
   public container: Container;
 
   constructor({ posX, posY, width, height }: WorldColliderProps) {
-    this.width = width * Constants.SCALE_FACTOR;
-    this.height = height * Constants.SCALE_FACTOR;
+    this.width = width;
+    this.height = height;
 
     this.container = new Container();
     this.container.x = posX;

@@ -8,7 +8,6 @@ export class Collider {
   private height: number;
   private offsetX: number;
   private offsetY: number;
-  private scale: number;
   private debug: Graphics;
   public container: Container;
   public owner: Enemy | Player;
@@ -21,9 +20,8 @@ export class Collider {
     container: Container,
     owner: Enemy | Player,
   ) {
-    this.scale = Constants.SCALE_FACTOR;
-    this.width = width * this.scale;
-    this.height = height * this.scale;
+    this.width = width;
+    this.height = height;
     this.offsetX = offsetX;
     this.offsetY = offsetY;
 
