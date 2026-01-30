@@ -19,13 +19,13 @@ export class Player extends Entity {
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private speed = 200; // pixels/second
+  private speed = 150 * Constants.SCALE_FACTOR; // pixels/second
   public tag: string = "player";
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   // Dash variables
   private isDashing: boolean = false;
-  private dashDistance: number = 100;
+  private dashDistance: number = 150;
   private dashTime: number = 0;
   // how many frames is the dash in millisecons (60 = 1 frame)
   private dashDuration: number = 180;
@@ -57,7 +57,7 @@ export class Player extends Entity {
     this.anim = new AnimationController(this.sprite, true);
     this.setupAnimations();
 
-    this.dashSpeed = this.dashDistance / (this.dashDuration / 1000);
+    this.dashSpeed = (this.dashDistance / (this.dashDuration / 1000)) * Constants.SCALE_FACTOR;
 
     this.container.addChild(this.sprite);
 
@@ -236,7 +236,7 @@ export class Player extends Entity {
 
     this.attackComponent.direction = this.currentDir;
 
-    this.attackCollider?.activate(this.currentDir, 60);
+    this.attackCollider?.activate(this.currentDir, 30 * Constants.SCALE_FACTOR);
     this.isAttacking = true;
     this.attackComponent.activate();
     this.attackTimer = this.ATTACK_LOCK_DURATION;

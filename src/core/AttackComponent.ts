@@ -51,7 +51,7 @@ export class AttackComponent {
       }
 
       if (closestEnemy) {
-        closestEnemy.owner?.takeDamage(1, this.direction);
+        closestEnemy.owner?.takeDamage(3, this.direction);
         this.damagedSet.add(closestEnemy);
       }
     }

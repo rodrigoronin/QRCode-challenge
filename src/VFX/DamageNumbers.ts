@@ -6,14 +6,15 @@ export class DamageNumber {
   private phase: "up" | "down" | "hold" = "up";
   private crit: boolean = false;
 
-  private readonly UP_TIME = 280;
-  private readonly DOWN_TIME = 380;
-  private readonly TEXT_DIRECTION: number = Math.random() > 0.3 ? 0.05 : -0.05;
+  private UP_TIME = 250;
+  private readonly DOWN_TIME = 300;
+  private readonly HOLD_TIME = 130;
+  private TEXT_DIRECTION: number = Math.random() > 0.5 ? 0.15 : -0.15;
 
-  constructor(parent: Container, value: number, x: number, y: number) {
+  constructor(owner: Container, value: number, x: number, y: number) {
     const style = new TextStyle({
       fontFamily: "Arial",
-      fontSize: 32,
+      fontSize: 28,
       fontWeight: "bold",
       fill: 0xffffff,
       stroke: 0x000000,
@@ -34,34 +35,45 @@ export class DamageNumber {
 
     // leve random horizontal (Ragnarok clássico)
     this.text.x = x;
-    this.text.y = y - 20;
+    this.text.y = y - owner.position.y - 80;
 
-    this.crit = Math.random() > 0.5 ? true : false;
+    this.crit = Math.random() > 0.1 ? false : true;
 
-    parent.addChild(this.text);
+    owner.addChild(this.text);
   }
 
   update(deltaMS: number): boolean {
     this.timer += deltaMS;
 
-    this.text.alpha -= 0.001 * deltaMS;
+    this.text.alpha -= 0.0015 * deltaMS;
 
     if (this.crit) {
       this.text.style.fill = "orange";
-      this.text.scale.set(1.2);
+      this.text.scale.set(1.3);
+      this.TEXT_DIRECTION = 0;
+      this.UP_TIME = 500;
     }
 
     switch (this.phase) {
       case "up":
-        this.text.y -= 0.25 * deltaMS;
+        this.text.y -= 0.3 * deltaMS;
+        this.text.x += this.TEXT_DIRECTION * deltaMS;
         if (this.timer >= this.UP_TIME) {
+          this.timer = 0;
+          this.phase = "hold";
+        }
+        break;
+      case "hold":
+        this.text.y -= 0.05 * deltaMS;
+        this.text.x += this.TEXT_DIRECTION * deltaMS;
+        if (this.timer >= this.HOLD_TIME) {
           this.timer = 0;
           this.phase = "down";
         }
         break;
 
       case "down":
-        this.text.y += 0.1 * deltaMS;
+        this.text.y += 0.2 * deltaMS;
         this.text.x += this.TEXT_DIRECTION * deltaMS;
         if (this.timer >= this.DOWN_TIME) {
           this.timer = 0;

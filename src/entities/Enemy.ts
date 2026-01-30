@@ -19,9 +19,9 @@ export class Enemy extends Entity {
   private anim: AnimationController;
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
   // DATA
-  private maxHealthPoints: number = 3;
+  private maxHealthPoints: number = 20;
   private healthPoints: number = this.maxHealthPoints;
-  private speed: number = 160; // pixels/second
+  private speed: number = 140 * Constants.SCALE_FACTOR; // pixels/second
   private isDead: boolean = false;
   private perceptionRange: number = 250; // pixels
   private playerRef: Player;
@@ -35,15 +35,22 @@ export class Enemy extends Entity {
   private isHitFlashing: boolean = false;
   private hitFlashingTimer: number = 0;
   private HIT_FLASH_DURATION: number = 150;
+  private VFXFrames: Record<string, Texture[]>;
   // BEHAVIOUR
   private roamTarget: Point | null = null;
   private roamWaitTimer: number = 0;
   private isInCombat: boolean = false;
   private isPassive: boolean = true;
+  private isInvincible: boolean = false;
 
-  constructor(frames: Record<string, Texture[]>, playerRef: Player) {
+  constructor(
+    frames: Record<string, Texture[]>,
+    playerRef: Player,
+    VFXFrames: Record<string, Texture[]>,
+  ) {
     super();
 
+    this.VFXFrames = VFXFrames;
     this.frames = frames;
     this.sprite = new Sprite(this.frames["idle_down"][0]);
     this.sprite.anchor.set(0.5);
@@ -56,9 +63,9 @@ export class Enemy extends Entity {
     this.container.addChild(this.sprite);
 
     this.collider = new Collider(
-      14 * Constants.SCALE_FACTOR,
-      12 * Constants.SCALE_FACTOR,
-      2,
+      16 * Constants.SCALE_FACTOR,
+      16 * Constants.SCALE_FACTOR,
+      0,
       0,
       this.container,
       this,
@@ -66,11 +73,12 @@ export class Enemy extends Entity {
     CollisionManager.registerEntityCollider(this.collider);
 
     this.attackCollider = new AttackCollider(
-      20 * Constants.SCALE_FACTOR,
-      20 * Constants.SCALE_FACTOR,
-      250,
+      40 * Constants.SCALE_FACTOR,
+      40 * Constants.SCALE_FACTOR,
+      420,
       this.container,
       this,
+      this.VFXFrames,
     );
 
     this.attackManager = new AttackComponent(this, {
@@ -81,7 +89,7 @@ export class Enemy extends Entity {
 
     this.playerRef = playerRef;
 
-    this.collider.drawDebug();
+    // this.collider.drawDebug();
   }
 
   update(_deltaTime: number): void {
@@ -138,8 +146,10 @@ export class Enemy extends Entity {
         break;
     }
 
-    this.healthPoints -= damage;
-    this.isHitFlashing = true;
+    if (!this.isInvincible) {
+      this.healthPoints -= damage;
+      this.isHitFlashing = true;
+    }
 
     DamageNumberManager.spawn(this.container.parent!, damage, this.container.x, this.container.y);
 
@@ -278,7 +288,7 @@ export class Enemy extends Entity {
     if (this.attackTimer > 0) return;
 
     this.attackTimer = this.attackCooldown;
-    this.attackCollider.activate(this.currentDir, 90);
+    this.attackCollider.activate(this.currentDir, 45 * Constants.SCALE_FACTOR);
     this.isAttacking = true;
     this.attackManager.activate();
   }

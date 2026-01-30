@@ -22,8 +22,8 @@ const audioContext = new AudioContext();
 (async () => {
   const game: Application = new Application();
   await game.init({
-    width: Constants.LOGICAL_WIDTH,
-    height: Constants.LOGICAL_HEIGHT,
+    width: window.innerWidth,
+    height: window.innerHeight,
     background: 0x003300,
     resizeTo: window,
   });
@@ -79,24 +79,24 @@ const audioContext = new AudioContext();
   };
 
   const player: Player = new Player(frames, daggerVFXFrames);
-  player.container.x = 800;
-  player.container.y = 512;
+  player.container.x = 200;
+  player.container.y = 200;
 
   // Enemy spawns
-  const enemy_01 = new Enemy(enemyFrames, player);
+  const enemy_01 = new Enemy(enemyFrames, player, daggerVFXFrames);
   enemy_01.container.x = 500;
   enemy_01.container.y = 512;
-  const enemy_02 = new Enemy(enemyFrames, player);
+  const enemy_02 = new Enemy(enemyFrames, player, daggerVFXFrames);
   enemy_02.container.x = 500;
   enemy_02.container.y = 612;
-  const enemy_03 = new Enemy(enemyFrames, player);
+  const enemy_03 = new Enemy(enemyFrames, player, daggerVFXFrames);
   enemy_03.container.x = 580;
   enemy_03.container.y = 512;
 
   const map: Sprite = new Sprite(
     new Texture({
       source: assets["_map_1024x1024"],
-      frame: new Rectangle(0, 0, 1024, 1024),
+      frame: new Rectangle(0, 0, 1280, 1280),
     }),
   );
 
@@ -131,12 +131,12 @@ const audioContext = new AudioContext();
     input.commit();
     DamageNumberManager.update(ticker.deltaMS);
 
-    const canMinX = -640;
+    const canMinX = -map.width;
     const canMaxX = 0;
 
     camera.x = clamp(-player.container.x + window.innerWidth / 2, canMinX, canMaxX);
 
-    const canMinY = -360;
+    const canMinY = -map.height;
     const canMaxY = 0;
 
     camera.y = clamp(-player.container.y + window.innerHeight / 2, canMinY, canMaxY);
@@ -257,7 +257,7 @@ function playAudio(
   source.connect(gainNode);
   gainNode.connect(context.destination);
 
-  source.start(0, 0.33);
+  source.start(0, 0.31);
   return source;
 }
 
