@@ -1,5 +1,4 @@
 import { Graphics, type Container } from "pixi.js";
-import * as Constants from "../utils/Constants";
 import type { Enemy } from "../entities/Enemy";
 import type { Player } from "../entities/Player";
 

@@ -1,5 +1,4 @@
 import { Container, Graphics } from "pixi.js";
-import * as Constants from "../utils/Constants";
 
 interface WorldColliderProps {
   posX: number;

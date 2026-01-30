@@ -3,7 +3,6 @@ import { Collider } from "./Collider";
 import { type Player } from "../entities/Player";
 import { type Enemy } from "../entities/Enemy";
 import { AnimationController } from "./AnimationController";
-import * as Constants from "../utils/Constants";
 
 export class AttackCollider {
   private container: Container;

@@ -5,7 +5,6 @@ import { CollisionManager } from "../core/CollisionManager";
 import { Player } from "./Player";
 import { AttackComponent } from "../core/AttackComponent";
 import { AttackCollider } from "../core/AttackCollider";
-import * as Constants from "../utils/Constants";
 import { AnimationController } from "../core/AnimationController";
 import { DamageNumberManager } from "../VFX/DamageNumberManager";
 
