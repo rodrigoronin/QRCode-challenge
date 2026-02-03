@@ -1,8 +1,0 @@
-{
-  "colliders": [
-    { "x": 789, "y": 320, "width": 28, "height": 16 },
-    { "x": 755, "y": 355, "width": 12, "height": 12 },
-    { "x": 320, "y": 355, "width": 28, "height": 16 },
-    { "x": 388, "y": 388, "width": 12, "height": 12 }
-  ]
-}
