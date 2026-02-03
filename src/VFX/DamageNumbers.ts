@@ -9,12 +9,12 @@ export class DamageNumber {
   private UP_TIME = 250;
   private readonly DOWN_TIME = 300;
   private readonly HOLD_TIME = 130;
-  private TEXT_DIRECTION: number = Math.random() > 0.5 ? 0.15 : -0.15;
+  private TEXT_DIRECTION: number = Math.random() > 0.5 ? 0.08 : -0.08;
 
   constructor(owner: Container, value: number, x: number, y: number) {
     const style = new TextStyle({
       fontFamily: "Arial",
-      fontSize: 28,
+      fontSize: 18,
       fontWeight: "bold",
       fill: 0xffffff,
       stroke: 0x000000,
@@ -37,7 +37,7 @@ export class DamageNumber {
     this.text.x = x;
     this.text.y = y - owner.position.y - 20;
 
-    this.crit = Math.random() > 0.1 ? false : true;
+    this.crit = Math.random() > 0.5 ? false : true;
 
     owner.addChild(this.text);
   }
@@ -56,7 +56,7 @@ export class DamageNumber {
 
     switch (this.phase) {
       case "up":
-        this.text.y -= 0.3 * deltaMS;
+        this.text.y -= 0.1 * deltaMS;
         this.text.x += this.TEXT_DIRECTION * deltaMS;
         if (this.timer >= this.UP_TIME) {
           this.timer = 0;
@@ -71,9 +71,8 @@ export class DamageNumber {
           this.phase = "down";
         }
         break;
-
       case "down":
-        this.text.y += 0.2 * deltaMS;
+        this.text.y += 0.1 * deltaMS;
         this.text.x += this.TEXT_DIRECTION * deltaMS;
         if (this.timer >= this.DOWN_TIME) {
           this.timer = 0;
