@@ -10,8 +10,6 @@ import {
 } from "pixi.js";
 import { Player } from "./entities/Player";
 import { Enemy } from "./entities/Enemy";
-import { WorldCollider } from "./core/WorldCollider";
-import { CollisionManager } from "./core/CollisionManager";
 import { InputCommandMapper } from "./input/InputCommandMapper";
 import { InputManager } from "./input/InputManager";
 import { DamageNumberManager } from "./VFX/DamageNumberManager";
@@ -23,7 +21,6 @@ import "./style.css";
 import playerSprite from "./assets/_wizard.png";
 import enemySprite from "./assets/_enemy-01.png";
 import goblinMaceSprite from "./assets/_goblin-mace-shield.png";
-import map_01_colliders from "./assets/maps/mock_map_01.json";
 import sword_vfx from "./assets/_sword_slash.png";
 import daggerHitAudio from "./assets/audio/dagger-hit.ogg";
 import trainingMapTiles from "./assets/_training-tiles.png";
@@ -127,9 +124,6 @@ const audioContext = new AudioContext();
     2000,
   );
 
-  // const colliders: { x: number; y: number; width: number; height: number }[] =
-  map_01_colliders.colliders;
-  // const walls = createWalls(colliders);
   const enemiesList: Enemy[] = [];
 
   // CONTAINER HIERARCHY
@@ -238,22 +232,22 @@ async function assetLoader(textures: string[]): Promise<Record<string, TextureSo
 }
 
 // All map geometry uses pixels base (1×). The game renders with global SCALE_FACTOR.
-function createWalls(transform: { x: number; y: number; width: number; height: number }[]) {
-  const wallList: WorldCollider[] = [];
+// function createWalls(transform: { x: number; y: number; width: number; height: number }[]) {
+//   const wallList: WorldCollider[] = [];
 
-  for (const col of transform) {
-    const wall = new WorldCollider({
-      posX: col.x,
-      posY: col.y,
-      width: col.width,
-      height: col.height,
-    });
-    CollisionManager.registerWorldCollider(wall);
-    wallList.push(wall);
-  }
+//   for (const col of transform) {
+//     const wall = new WorldCollider({
+//       posX: col.x,
+//       posY: col.y,
+//       width: col.width,
+//       height: col.height,
+//     });
+//     CollisionManager.registerWorldCollider(wall);
+//     wallList.push(wall);
+//   }
 
-  return wallList;
-}
+//   return wallList;
+// }
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
