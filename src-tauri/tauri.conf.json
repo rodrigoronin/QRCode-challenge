@@ -12,11 +12,11 @@
   "app": {
     "windows": [
       {
-        "title": "xiv-demake-ts",
+        "title": "FFXIV Demake",
         "width": 640,
         "height": 360,
         "resizable": true,
-        "fullscreen": true
+        "fullscreen": false
       }
     ],
     "security": {
