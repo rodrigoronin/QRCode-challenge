@@ -8,15 +8,20 @@ import { AttackCollider } from "../core/AttackCollider";
 import { AnimationController } from "../core/AnimationController";
 import { DamageNumberManager } from "../VFX/DamageNumberManager";
 
+type AttackState = "none" | "windup" | "active" | "recovery";
+type Direction = "up" | "down" | "left" | "right";
+
 export class Enemy extends Entity {
   // RENDER
   private sprite: Sprite;
   private collider: Collider;
   public tag: string = "enemy";
   private currentDir: string = "down";
+  private facingDir: Direction = "down";
   private frames: Record<string, Texture[]>;
   private anim: AnimationController;
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
+  private windupFilter: ColorMatrixFilter = new ColorMatrixFilter();
   // DATA
   private maxHealthPoints: number = 20;
   private healthPoints: number = this.maxHealthPoints;
@@ -26,10 +31,12 @@ export class Enemy extends Entity {
   private playerRef: Player;
   public target: Player | null = null;
   // COMBAT
-  private isAttacking: boolean = false;
+  private attackState: AttackState = "none";
   private attackManager: AttackComponent;
   private attackCollider: AttackCollider;
-  private attackCooldown: number = 2000;
+  private WINDUP_TIME: number = 450;
+  private ACTIVE_TIME: number = 420;
+  private RECOVERY_TIME: number = 2000;
   private attackTimer: number = 0;
   private isHitFlashing: boolean = false;
   private hitFlashingTimer: number = 0;
@@ -60,10 +67,17 @@ export class Enemy extends Entity {
 
     this.container.addChild(this.sprite);
 
-    this.collider = new Collider(32, 32, 0, 0, this.container, this);
+    this.collider = new Collider(22, 48, 3, 5, this.container, this);
     CollisionManager.registerEntityCollider(this.collider);
 
-    this.attackCollider = new AttackCollider(40, 40, 420, this.container, this, this.VFXFrames);
+    this.attackCollider = new AttackCollider(
+      40,
+      40,
+      this.ACTIVE_TIME,
+      this.container,
+      this,
+      this.VFXFrames,
+    );
 
     this.attackManager = new AttackComponent(this, {
       attackCollider: this.attackCollider,
@@ -73,7 +87,7 @@ export class Enemy extends Entity {
 
     this.playerRef = playerRef;
 
-    this.collider.drawDebug();
+    // this.collider.drawDebug();
   }
 
   update(_deltaTime: number): void {
@@ -87,14 +101,14 @@ export class Enemy extends Entity {
 
       this.roaming({ x: 400, y: 400, width: 300, height: 300 }, _deltaTime);
 
-      if (this.isAttacking) {
-        this.updateAttackLock(_deltaTime);
+      if (this.attackState !== "none") {
+        this.updateAttackPhases(_deltaTime);
 
         if (this.attackCollider.active) {
           this.attackManager.update();
           this.attackCollider.update(_deltaTime);
           this.attackCollider.updatePosition();
-          this.attackCollider.drawDebug();
+          // this.attackCollider.drawDebug();
         }
       }
     }
@@ -113,18 +127,20 @@ export class Enemy extends Entity {
 
     // TODO: create a system to handle directional knockback
     // and other effects later
+    const knockbackStrength = 20;
+
     switch (direction) {
       case "up":
-        this.container.position.y = this.container.position.y - 50;
+        this.container.position.y = this.container.position.y - knockbackStrength;
         break;
       case "down":
-        this.container.position.y = this.container.position.y + 50;
+        this.container.position.y = this.container.position.y + knockbackStrength;
         break;
       case "left":
-        this.container.position.x -= 50;
+        this.container.position.x -= knockbackStrength;
         break;
       case "right":
-        this.container.position.x = this.container.position.x + 50;
+        this.container.position.x = this.container.position.x + knockbackStrength;
         break;
       default:
         break;
@@ -138,7 +154,7 @@ export class Enemy extends Entity {
     DamageNumberManager.spawn(this.container.parent!, damage, this.container.x, this.container.y);
 
     this.hitFlashFilter.greyscale(1, false);
-    this.container.filters = [this.hitFlashFilter];
+    this.addFilter(this.hitFlashFilter);
 
     console.log(`Enemy HP: ${this.healthPoints} / ${this.maxHealthPoints}`);
 
@@ -157,12 +173,8 @@ export class Enemy extends Entity {
 
       if (this.hitFlashingTimer >= this.HIT_FLASH_DURATION) {
         this.isHitFlashing = false;
-        this.container.filters = this.container.filters.filter(
-          (filter) => filter !== this.hitFlashFilter,
-        );
+        this.removeFilter(this.hitFlashFilter);
         this.hitFlashingTimer = 0;
-        // this.sprite.x = prevX;
-        // this.sprite.y = prevY;
       }
     }
   }
@@ -193,7 +205,7 @@ export class Enemy extends Entity {
     const distance: number = Math.hypot(dx, dy);
 
     if (distance <= this.container.width) {
-      this.basicAttack();
+      this.windupAttack();
       return;
     }
 
@@ -214,7 +226,8 @@ export class Enemy extends Entity {
     if (CollisionManager.canMove(this.collider, this.container.x, this.container.y + moveY))
       this.container.y += moveY;
 
-    this.updateDirection({ x: moveX, y: moveY });
+    this.updateFacingDirection({ x: moveX, y: moveY });
+    this.applyFacingToSprite();
 
     if (this.container.x !== 0 || this.container.y !== 0) {
       this.anim.play(`walk_${this.currentDir}`);
@@ -239,7 +252,7 @@ export class Enemy extends Entity {
       return;
     }
 
-    // 50/50 to roam or stay still
+    // chance to roam or stay still
     if (!this.roamTarget) {
       if (Math.random() < 0.5) {
         this.roamWaitTimer = 800;
@@ -260,37 +273,121 @@ export class Enemy extends Entity {
 
     if (distance < 2) {
       this.roamTarget = null;
-      this.roamWaitTimer = 500 + Math.random() * 1000; // ms
+      this.roamWaitTimer = 4000;
       return;
     }
 
     this.move(dx, dy, distance, delta);
   }
 
+  protected windupAttack() {
+    if (!this.target) return;
+    if (this.attackState !== "none") return;
+
+    this.attackState = "windup";
+    this.attackTimer = this.WINDUP_TIME;
+
+    // TELEGRAPH
+    this.windupFilter.brightness(1.5, false);
+    this.sprite.tint = 0xff5555;
+
+    this.addFilter(this.windupFilter);
+  }
+
   protected basicAttack() {
     if (!this.target && !this.attackCollider.active) return;
-    if (this.attackTimer > 0) return;
 
-    this.attackTimer = this.attackCooldown;
-    this.attackCollider.activate(this.currentDir, 45);
-    this.isAttacking = true;
+    this.attackState = "active";
+    this.attackTimer = this.ACTIVE_TIME;
+
+    // CLEARS TELEGRAPH
+    this.removeFilter(this.windupFilter);
+    this.sprite.tint = 0xffffff;
+
+    this.attackCollider.activate(this.getAttackDirection(), 45);
     this.attackManager.activate();
   }
 
-  protected updateAttackLock(deltaMS: number) {
+  protected updateAttackPhases(deltaMS: number) {
+    if (this.attackState === "none") return;
+
     this.attackTimer -= deltaMS;
 
-    if (this.attackTimer <= 0) {
-      this.isAttacking = false;
-      this.attackManager.deactivate();
+    switch (this.attackState) {
+      case "windup":
+        if (this.attackTimer <= 0) this.basicAttack();
+        break;
+
+      case "active":
+        this.attackManager.update();
+        this.attackCollider.update(deltaMS);
+        this.attackCollider.updatePosition();
+
+        if (this.attackTimer <= 0) this.enterRecovery();
+        break;
+
+      case "recovery":
+        if (this.attackTimer <= 0) this.attackState = "none";
+        break;
     }
   }
 
-  protected updateDirection(m: { x: number; y: number }) {
-    if (Math.abs(m.x) > Math.abs(m.y)) {
-      this.currentDir = m.x > 0 ? "right" : "left";
-    } else if (m.y !== 0) {
-      this.currentDir = m.y > 0 ? "down" : "up";
+  private enterRecovery() {
+    this.attackState = "recovery";
+    this.attackTimer = this.RECOVERY_TIME;
+
+    this.attackManager.deactivate();
+    this.attackCollider.deactivate();
+  }
+
+  protected updateFacingDirection(m: { x: number; y: number }) {
+    // if (Math.abs(m.x) > Math.abs(m.y)) {
+    this.facingDir = m.x > 0 ? "right" : "left";
+    // } else if (m.y !== 0) {
+    //   this.facingDir = m.y > 0 ? "down" : "up";
+    // }
+  }
+
+  protected applyFacingToSprite() {
+    switch (this.facingDir) {
+      case "left":
+        this.sprite.scale.x = 1;
+        break;
+
+      case "right":
+        this.sprite.scale.x = -1;
+        break;
+
+      case "up":
+      case "down":
+        // TEMPORÁRIO:
+        // mantém a orientação anterior
+        break;
+    }
+  }
+
+  private addFilter(filter: ColorMatrixFilter) {
+    const filters = this.container.filters ?? [];
+    if (!filters.includes(filter)) {
+      this.container.filters = [...filters, filter];
+    }
+  }
+
+  private removeFilter(filter: ColorMatrixFilter) {
+    if (!this.container.filters) return;
+    this.container.filters = this.container.filters.filter((f) => f !== filter);
+  }
+
+  protected getAttackDirection(): Direction {
+    if (!this.target) return this.facingDir;
+
+    const dx = this.target.container.x - this.container.x;
+    const dy = this.target.container.y - this.container.y;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      return dx > 0 ? "right" : "left";
+    } else {
+      return dy > 0 ? "down" : "up";
     }
   }
 }

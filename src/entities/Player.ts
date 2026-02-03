@@ -137,7 +137,7 @@ export class Player extends Entity {
       }
     }
 
-    this.collider.drawDebug();
+    // this.collider.drawDebug();
   }
 
   setupAnimations() {
