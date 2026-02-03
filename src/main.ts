@@ -22,9 +22,11 @@ import "./style.css";
 // Assets
 import playerSprite from "./assets/_wizard.png";
 import enemySprite from "./assets/_enemy-01.png";
+import goblinMaceSprite from "./assets/_goblin-mace-shield.png";
 import map_01_colliders from "./assets/maps/mock_map_01.json";
 import sword_vfx from "./assets/_sword_slash.png";
 import daggerHitAudio from "./assets/audio/dagger-hit.ogg";
+import trainingMapTiles from "./assets/_training-tiles.png";
 
 const audioContext = new AudioContext();
 
@@ -33,12 +35,18 @@ const audioContext = new AudioContext();
   await game.init({
     width: window.innerWidth,
     height: window.innerHeight,
-    background: 0x003300,
+    background: "#d2d2d2",
     // resizeTo: window,
   });
   document.body.appendChild(game.canvas);
 
-  const assets = await assetLoader([playerSprite, enemySprite, sword_vfx]);
+  const assets = await assetLoader([
+    playerSprite,
+    enemySprite,
+    goblinMaceSprite,
+    sword_vfx,
+    trainingMapTiles,
+  ]);
 
   const world: Container = new Container();
   const camera: Container = new Container();
@@ -76,14 +84,14 @@ const audioContext = new AudioContext();
   };
 
   const enemyFrames = {
-    idle_down: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
-    idle_left: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
-    idle_up: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
-    idle_right: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
-    walk_down: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
-    walk_right: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
-    walk_up: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
-    walk_left: frameSlicer(assets["_enemy-01"], frameSize, 1, 0),
+    idle_down: frameSlicer(assets["_gobling-mace-shield"], frameSize, 1, 0),
+    idle_left: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
+    idle_up: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
+    idle_right: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
+    walk_down: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
+    walk_right: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
+    walk_up: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
+    walk_left: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
   };
 
   const player: Player = new Player(frames, daggerVFXFrames);
@@ -100,6 +108,9 @@ const audioContext = new AudioContext();
   const enemy_03 = new Enemy(enemyFrames, player, daggerVFXFrames);
   enemy_03.container.x = 580;
   enemy_03.container.y = 512;
+  const ranged_enemy_01 = new Enemy(enemyFrames, player, daggerVFXFrames);
+  ranged_enemy_01.container.x = 750;
+  ranged_enemy_01.container.y = 312;
 
   const map: Sprite = new Sprite(
     new Texture({
@@ -108,20 +119,30 @@ const audioContext = new AudioContext();
     }),
   );
 
-  const colliders: { x: number; y: number; width: number; height: number }[] =
-    map_01_colliders.colliders;
-  const walls = createWalls(colliders);
+  const testMap = generateTestMap(
+    frameSlicer(assets["_training-tiles"], 32, 3, 0),
+    32,
+    32,
+    2000,
+    2000,
+  );
+
+  // const colliders: { x: number; y: number; width: number; height: number }[] =
+  map_01_colliders.colliders;
+  // const walls = createWalls(colliders);
   const enemiesList: Enemy[] = [];
 
   // CONTAINER HIERARCHY
   game.stage.addChild(camera);
   camera.addChild(world);
   world.addChild(map);
+  world.addChild(testMap);
   world.addChild(enemy_01.container);
   world.addChild(enemy_02.container);
   world.addChild(enemy_03.container);
+  world.addChild(ranged_enemy_01.container);
   world.addChild(player.container);
-  world.addChild(...walls.map((wall) => wall.container));
+  // world.addChild(...walls.map((wall) => wall.container));
 
   world.scale.set(Constants.SCALE_FACTOR);
 
@@ -132,7 +153,7 @@ const audioContext = new AudioContext();
 
   world.addChild(mapRect);
 
-  enemiesList.push(enemy_01, enemy_02, enemy_03);
+  enemiesList.push(enemy_01, enemy_02, enemy_03, ranged_enemy_01);
 
   const commandMapper: InputCommandMapper = new InputCommandMapper(player);
   const input = InputManager.get();
@@ -148,7 +169,7 @@ const audioContext = new AudioContext();
     input.commit();
     DamageNumberManager.update(ticker.deltaMS);
 
-    const canMinX = -map.width - -(window.innerWidth - map.width);
+    const canMinX = window.innerWidth - testMap.width * Constants.SCALE_FACTOR;
     const canMaxX = 0;
 
     camera.x = clamp(
@@ -157,7 +178,7 @@ const audioContext = new AudioContext();
       canMaxX,
     );
 
-    const canMinY = -map.height - -(window.innerHeight - map.height);
+    const canMinY = window.innerHeight - testMap.height * Constants.SCALE_FACTOR;
     const canMaxY = 0;
 
     camera.y = clamp(
@@ -308,4 +329,39 @@ function keepAudioAlive(context: AudioContext) {
   gain.connect(context.destination);
 
   source.start();
+}
+
+function generateTestMap(
+  tiles: Texture<TextureSource<any>>[],
+  tileWidth: number,
+  tileHeight: number,
+  mapWidth: number,
+  mapHeight: number,
+): Container {
+  const container = new Container();
+
+  const cols = Math.ceil(mapWidth / tileWidth);
+  const rows = Math.ceil(mapHeight / tileHeight);
+
+  for (let y = 0; y < rows; y++) {
+    const isEvenRow = y % 2 === 0;
+
+    // linha par: tile 1 e 2
+    // linha ímpar: tile 1 e 3
+    const tileA = isEvenRow ? tiles[0] : tiles[3];
+    const tileB = isEvenRow ? tiles[1] : tiles[0];
+
+    for (let x = 0; x < cols; x++) {
+      const useTileA = x % 2 === 0;
+      const texture = useTileA ? tileA : tileB;
+
+      const sprite = new Sprite(texture);
+      sprite.x = x * tileWidth;
+      sprite.y = y * tileHeight;
+
+      container.addChild(sprite);
+    }
+  }
+
+  return container;
 }
