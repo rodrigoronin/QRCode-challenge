@@ -102,28 +102,28 @@ export class AttackCollider {
     }
   }
 
-  private vectorToDirection(x: number, y: number): "up" | "down" | "left" | "right" {
-    if (Math.abs(x) > Math.abs(y)) return x > 0 ? "right" : "left";
-    return y > 0 ? "down" : "up";
-  }
+  // private vectorToDirection(x: number, y: number): "up" | "down" | "left" | "right" {
+  //   if (Math.abs(x) > Math.abs(y)) return x > 0 ? "right" : "left";
+  //   return y > 0 ? "down" : "up";
+  // }
 
-  private directionToVector(direction: string): { x: number; y: number } {
-    const vector2 = { x: 0, y: 0 };
-    switch (direction) {
-      case "up":
-        vector2.x = 0;
-        vector2.y = -1;
-        break;
-      case "up":
-        break;
-      case "up":
-        break;
-      case "up":
-        break;
-    }
+  // private directionToVector(direction: string): { x: number; y: number } {
+  //   const vector2 = { x: 0, y: 0 };
+  //   switch (direction) {
+  //     case "up":
+  //       vector2.x = 0;
+  //       vector2.y = -1;
+  //       break;
+  //     case "up":
+  //       break;
+  //     case "up":
+  //       break;
+  //     case "up":
+  //       break;
+  //   }
 
-    return vector2;
-  }
+  //   return vector2;
+  // }
 
   deactivate() {
     this.active = false;
