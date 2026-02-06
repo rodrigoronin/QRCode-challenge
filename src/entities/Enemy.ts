@@ -48,8 +48,6 @@ export class Enemy extends Entity {
   private isInCombat: boolean = false;
   private isPassive: boolean = true;
   private isInvincible: boolean = false;
-  private allowFlanking: boolean = true;
-  private flankSide: number = Math.random() < 0.5 ? -1 : 1;
   private moveDir: Point = new Point(0, 0);
 
   constructor(
