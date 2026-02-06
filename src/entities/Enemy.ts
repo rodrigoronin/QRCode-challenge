@@ -99,7 +99,7 @@ export class Enemy extends Entity {
 
       if (!this.isPassive) {
         this.perceptionRadar();
-        this.followTarget(_deltaTime);
+        this.chaseTarget(_deltaTime);
       }
 
       this.roaming({ x: 400, y: 400, width: 300, height: 300 }, _deltaTime);
@@ -200,7 +200,7 @@ export class Enemy extends Entity {
     }
   }
 
-  protected followTarget(deltaMS: number) {
+  protected chaseTarget(deltaMS: number) {
     if (!this.target) return;
     if (this.attackState === "active") return;
 
@@ -208,42 +208,23 @@ export class Enemy extends Entity {
     const dy: number = this.target.container.y - this.container.y;
     const distance: number = Math.hypot(dx, dy);
 
-    if (distance <= this.container.width) {
+    const attackRange = this.container.width;
+
+    if (distance <= attackRange) {
       this.windupAttack();
       return;
     }
 
     if (distance <= 0.001) return;
 
-    const attackRange = this.container.width;
     const slowRadius = attackRange * 2.5;
     const speedScale = distance < slowRadius ? Math.max(0.35, distance / slowRadius) : 1;
 
     let dirX = dx / distance;
     let dirY = dy / distance;
 
-    if (this.allowFlanking) {
-      const flankRange = Math.max(slowRadius, attackRange * 4);
-      const flankT = Math.max(0, Math.min(1, (flankRange - distance) / flankRange));
-
-      if (flankT > 0) {
-        const perpX = -dirY;
-        const perpY = dirX;
-        const flankStrength = 0.9;
-        let steerX = dirX + perpX * this.flankSide * flankStrength * flankT;
-        let steerY = dirY + perpY * this.flankSide * flankStrength * flankT;
-        const steerDist = Math.hypot(steerX, steerY);
-
-        if (steerDist > 0.001) {
-          steerX /= steerDist;
-          steerY /= steerDist;
-          dirX = steerX;
-          dirY = steerY;
-        }
-      }
-    }
-
-    const blend = 0.18;
+    // how much movement the enemy will make to turn around
+    const blend = 0.3;
     this.moveDir.x += (dirX - this.moveDir.x) * blend;
     this.moveDir.y += (dirY - this.moveDir.y) * blend;
     const blendedDist = Math.hypot(this.moveDir.x, this.moveDir.y);
