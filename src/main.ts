@@ -216,24 +216,6 @@ async function assetLoader(textures: string[]): Promise<Record<string, TextureSo
   return result;
 }
 
-// All map geometry uses pixels base (1×). The game renders with global SCALE_FACTOR.
-// function createWalls(transform: { x: number; y: number; width: number; height: number }[]) {
-//   const wallList: WorldCollider[] = [];
-
-//   for (const col of transform) {
-//     const wall = new WorldCollider({
-//       posX: col.x,
-//       posY: col.y,
-//       width: col.width,
-//       height: col.height,
-//     });
-//     CollisionManager.registerWorldCollider(wall);
-//     wallList.push(wall);
-//   }
-
-//   return wallList;
-// }
-
 async function loadAudio(context: AudioContext, url: string): Promise<AudioBuffer> {
   const response = await fetch(url);
   const arrayBuffer = await response.arrayBuffer();
@@ -323,7 +305,7 @@ function generateTestMap(
 
     // linha par: tile 1 e 2
     // linha ímpar: tile 1 e 3
-    const tileA = isEvenRow ? tiles[0] : tiles[3];
+    const tileA = isEvenRow ? tiles[0] : tiles[2];
     const tileB = isEvenRow ? tiles[1] : tiles[0];
 
     for (let x = 0; x < cols; x++) {
