@@ -44,6 +44,8 @@ export class Player extends Entity {
   // stats
   private maxHealthPoints: number = 10;
   private healthPoints: number = 10;
+  private isInvincible: boolean = false;
+  private isImmortalObject: boolean = true;
 
   constructor(frames: Record<string, Texture[]>, VFXFrames: Record<string, Texture[]>) {
     super();
@@ -178,6 +180,7 @@ export class Player extends Entity {
 
     this.isDashing = true;
     this.dashTime = 0;
+    this.isInvincible = true;
 
     this.anim.play(`dash_${this.currentDir}`);
   }
@@ -206,6 +209,7 @@ export class Player extends Entity {
 
   private endDash() {
     this.isDashing = false;
+    this.isInvincible = false;
     this.dashCooldownTimer = this.dashCooldown;
   }
 
@@ -243,6 +247,8 @@ export class Player extends Entity {
   }
 
   takeDamage(damage: number): void {
+    if (this.isInvincible) return;
+
     this.healthPoints -= damage;
     DamageNumberManager.spawn(this.container.parent!, damage, this.container.x, this.container.y);
 
@@ -251,9 +257,21 @@ export class Player extends Entity {
     this.hitFlashFilter.greyscale(1, false);
     this.container.filters = [this.hitFlashFilter];
 
-    console.log(`Player Health: ${this.healthPoints} / ${this.maxHealthPoints}`);
+    if (this.healthPoints <= 0) {
+      this.healthPoints = 0;
+      this.death();
+    }
 
-    if (this.healthPoints <= 0) console.log("Player is incapacitated!");
+    console.log(`Player Health: ${this.healthPoints} / ${this.maxHealthPoints}`);
+  }
+
+  private death() {
+    if (this.isImmortalObject) return;
+
+    if (this.healthPoints <= 0) {
+      this.container.position.set(200);
+      this.healthPoints = this.maxHealthPoints;
+    }
   }
 
   private updateHitFlashFilter(deltaTime: number) {
