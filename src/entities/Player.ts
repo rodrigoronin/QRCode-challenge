@@ -9,9 +9,11 @@ import { AttackComponent } from "../core/AttackComponent";
 import { DamageNumberManager } from "../VFX/DamageNumberManager";
 
 type Direction = "up" | "down" | "left" | "right";
+type PlayerState = "idle" | "moving" | "attacking" | "dashing" | "conjuring" | "dead";
 
 export class Player extends Entity {
   private sprite: Sprite;
+  private state: PlayerState = "idle";
   private collider: Collider;
   private input = InputManager.get();
   public currentDir: Direction = "down";
@@ -25,7 +27,6 @@ export class Player extends Entity {
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   // Dash variables
-  private isDashing: boolean = false;
   private dashDistance: number = 150;
   private dashTime: number = 0;
   // how many frames is the dash in millisecons (60 = 1 frame)
@@ -160,11 +161,13 @@ export class Player extends Entity {
   }
 
   startDash() {
-    if (this.isDashing || this.dashCooldownTimer > 0) return;
+    if (this.state === "dashing") return;
 
-    if (this.isAttacking) {
+    if (this.state === "attacking") {
       this.cancelAttack();
     }
+
+    this.state = "dashing";
 
     this.dashDirection = this.input.getMovementVector();
 
@@ -226,6 +229,8 @@ export class Player extends Entity {
     this.isDashing = false;
     this.isInvincible = false;
     this.dashCooldownTimer = this.dashCooldown;
+
+    this.state = "idle";
   }
 
   private updateDirection(m: { x: number; y: number }) {
@@ -237,7 +242,11 @@ export class Player extends Entity {
   }
 
   startAttack() {
-    if (this.isAttacking || this.isDashing) return;
+    if (this.state === "dashing") return;
+    if (this.state === "attacking") return;
+
+    this.state = "attacking";
+
     this.basicAttack();
   }
 
@@ -258,6 +267,8 @@ export class Player extends Entity {
     if (this.attackTimer <= 0) {
       this.isAttacking = false;
       this.attackComponent.deactivate();
+
+      this.state = "idle";
     }
   }
 
