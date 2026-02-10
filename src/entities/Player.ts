@@ -1,4 +1,4 @@
-import { Sprite, Texture, ColorMatrixFilter } from "pixi.js";
+import { Sprite, Texture, ColorMatrixFilter, Point } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
@@ -14,7 +14,9 @@ export class Player extends Entity {
   private sprite: Sprite;
   private collider: Collider;
   private input = InputManager.get();
-  private currentDir: Direction = "down";
+  public currentDir: Direction = "down";
+  public moveVector: Point = new Point(0, 0);
+  public lastMovedVector: Point = new Point(0, 0);
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
@@ -45,7 +47,7 @@ export class Player extends Entity {
   private maxHealthPoints: number = 10;
   private healthPoints: number = 10;
   private isInvincible: boolean = false;
-  private isImmortalObject: boolean = true;
+  private isImmortalObject: boolean = false;
 
   constructor(frames: Record<string, Texture[]>, VFXFrames: Record<string, Texture[]>) {
     super();
@@ -84,6 +86,15 @@ export class Player extends Entity {
   update(deltaTime: number) {
     const deltaSec = deltaTime / 1000;
     const move = this.input.getMovementVector();
+
+    // saves the last direction the player was looking
+    if (this.moveVector.x !== 0 || this.moveVector.y !== 0) {
+      this.lastMovedVector.x = this.moveVector.x;
+      this.lastMovedVector.y = this.moveVector.y;
+    }
+
+    // saves the current direction the player is looking
+    this.moveVector.set(move.x, move.y);
 
     this.updateHitFlashFilter(deltaTime);
 
@@ -231,7 +242,7 @@ export class Player extends Entity {
 
     this.attackComponent.direction = this.currentDir;
 
-    this.attackCollider?.activate(this.currentDir, 40);
+    this.attackCollider?.activate(this.lastMovedVector, 40);
     this.isAttacking = true;
     this.attackComponent.activate();
     this.attackTimer = this.ATTACK_LOCK_DURATION;
