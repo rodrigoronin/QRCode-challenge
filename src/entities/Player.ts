@@ -197,6 +197,11 @@ export class Player extends Entity {
   }
 
   updateDash(deltaTime: number) {
+    if (this.isAttacking) {
+      this.attackCollider.deactivate();
+      this.attackComponent.deactivate();
+    }
+
     const deltaSec = deltaTime / 1000;
 
     const futureX = this.container.x + this.dashDirection.x * this.dashSpeed * deltaSec;
