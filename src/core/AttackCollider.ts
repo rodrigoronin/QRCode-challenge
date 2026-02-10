@@ -1,4 +1,4 @@
-import { Container, Graphics, Texture, Sprite } from "pixi.js";
+import { Container, Graphics, Texture, Sprite, Point } from "pixi.js";
 import { Collider } from "./Collider";
 import { type Player } from "../entities/Player";
 import { type Enemy } from "../entities/Enemy";
@@ -64,40 +64,29 @@ export class AttackCollider {
     container.addChild(this.debugGraphics);
   }
 
-  activate(direction: string, dist: number) {
+  activate(direction: Point, dist: number) {
     if (!this.debugGraphics.parent) this.attachTo(this.container);
 
     this.active = true;
     this.timer = this.duration;
 
-    switch (direction) {
-      case "up":
-        this.attackContainer.position.x = -this.offsetX;
-        this.attackContainer.position.y = -this.offsetY - dist;
-        break;
-      case "down":
-        this.attackContainer.position.x = -this.offsetX;
-        this.attackContainer.position.y = -this.offsetY + dist;
-        break;
-      case "left":
-        this.attackContainer.position.x = -this.offsetX - dist;
-        this.attackContainer.position.y = -this.offsetY;
-        break;
-      case "right":
-        this.attackContainer.position.x = -this.offsetX + dist;
-        this.attackContainer.position.y = -this.offsetY;
-        break;
-    }
+    const newX = Math.round(direction.x);
+    const newY = Math.round(direction.y);
+
+    this.attackContainer.position.x = newX * dist - this.offsetX;
+    this.attackContainer.position.y = newY * dist - this.offsetY;
 
     if (this.VFXFrames) {
-      const animName = `attack_${direction}`;
+      const visualDir = this.owner?.currentDir;
+      console.log(visualDir);
+      const animName = `attack_${visualDir}`;
       const frames = this.VFXFrames[animName];
       if (frames && frames.length > 0) {
         this.VFXSprite = new Sprite(frames[0]);
         this.VFXSprite.anchor.set(0.5);
-        if (direction === "left") this.VFXSprite.scale.x = -1;
-        if (direction === "up") this.VFXSprite.scale.y = -1;
-        if (direction === "down") this.VFXSprite.scale.x = -1;
+        if (visualDir === "left") this.VFXSprite.scale.x = -1;
+        if (visualDir === "up") this.VFXSprite.scale.y = -1;
+        if (visualDir === "down") this.VFXSprite.scale.x = -1;
         // TODO: use offset of the current equipped weapon
         this.VFXSprite?.position.set(
           this.VFXSprite.position.x + this.offsetX, // offset by half the AttackCollider width
@@ -111,6 +100,29 @@ export class AttackCollider {
         this.VFXAnim.setSpeed(60);
       }
     }
+  }
+
+  private vectorToDirection(x: number, y: number): "up" | "down" | "left" | "right" {
+    if (Math.abs(x) > Math.abs(y)) return x > 0 ? "right" : "left";
+    return y > 0 ? "down" : "up";
+  }
+
+  private directionToVector(direction: string): { x: number; y: number } {
+    const vector2 = { x: 0, y: 0 };
+    switch (direction) {
+      case "up":
+        vector2.x = 0;
+        vector2.y = -1;
+        break;
+      case "up":
+        break;
+      case "up":
+        break;
+      case "up":
+        break;
+    }
+
+    return vector2;
   }
 
   deactivate() {
