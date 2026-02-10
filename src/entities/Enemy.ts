@@ -16,8 +16,7 @@ export class Enemy extends Entity {
   private sprite: Sprite;
   private collider: Collider;
   public tag: string = "enemy";
-  private currentDir: string = "down";
-  private facingDir: Direction = "down";
+  public currentDir: string = "down";
   private frames: Record<string, Texture[]>;
   private anim: AnimationController;
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
@@ -34,6 +33,7 @@ export class Enemy extends Entity {
   private attackState: AttackState = "none";
   private attackManager: AttackComponent;
   private attackCollider: AttackCollider;
+  private attackDirection: Point | null = null;
   private WINDUP_TIME: number = 450;
   private ACTIVE_TIME: number = 420;
   private RECOVERY_TIME: number = 2000;
@@ -95,12 +95,12 @@ export class Enemy extends Entity {
     if (!this.isDead) {
       this.updateHitFlashFilter(_deltaTime);
 
+      this.roaming({ x: 400, y: 400, width: 300, height: 300 }, _deltaTime);
+
       if (!this.isPassive) {
         this.perceptionRadar();
         this.chaseTarget(_deltaTime);
       }
-
-      this.roaming({ x: 400, y: 400, width: 300, height: 300 }, _deltaTime);
 
       if (this.attackState !== "none") {
         this.updateAttackPhases(_deltaTime);
@@ -109,7 +109,7 @@ export class Enemy extends Entity {
           this.attackManager.update();
           this.attackCollider.update(_deltaTime);
           this.attackCollider.updatePosition();
-          // this.attackCollider.drawDebug();
+          this.attackCollider.drawDebug();
         }
       }
     }
@@ -249,8 +249,8 @@ export class Enemy extends Entity {
     if (CollisionManager.canMove(this.collider, this.container.x, this.container.y + moveY))
       this.container.y += moveY;
 
-    this.updateFacingDirection({ x: moveX, y: moveY });
-    this.applyFacingToSprite();
+    this.updateDirection({ x: moveX, y: moveY });
+    this.applyFacingToSprite({ x: moveX, y: moveY });
 
     if (this.container.x !== 0 || this.container.y !== 0) {
       this.anim.play(`walk_${this.currentDir}`);
@@ -314,11 +314,13 @@ export class Enemy extends Entity {
     this.windupFilter.brightness(1.5, false);
     this.sprite.tint = 0xff5555;
 
+    this.attackDirection = this.getAttackDirection();
+
     this.addFilter(this.windupFilter);
   }
 
   protected basicAttack() {
-    if (!this.target && !this.attackCollider.active) return;
+    if (!this.attackDirection) return;
 
     this.attackState = "active";
     this.attackTimer = this.ACTIVE_TIME;
@@ -327,7 +329,7 @@ export class Enemy extends Entity {
     this.removeFilter(this.windupFilter);
     this.sprite.tint = 0xffffff;
 
-    this.attackCollider.activate(this.getAttackDirection(), 45);
+    this.attackCollider.activate(this.attackDirection, 45);
     this.attackManager.activate();
   }
 
@@ -361,32 +363,20 @@ export class Enemy extends Entity {
 
     this.attackManager.deactivate();
     this.attackCollider.deactivate();
+
+    this.attackDirection = null;
   }
 
-  protected updateFacingDirection(m: { x: number; y: number }) {
-    // if (Math.abs(m.x) > Math.abs(m.y)) {
-    this.facingDir = m.x > 0 ? "right" : "left";
-    // } else if (m.y !== 0) {
-    //   this.facingDir = m.y > 0 ? "down" : "up";
-    // }
-  }
-
-  protected applyFacingToSprite() {
-    switch (this.facingDir) {
-      case "left":
-        this.sprite.scale.x = 1;
-        break;
-
-      case "right":
-        this.sprite.scale.x = -1;
-        break;
-
-      case "up":
-      case "down":
-        // TEMPORÁRIO:
-        // mantém a orientação anterior
-        break;
+  protected updateDirection(m: { x: number; y: number }) {
+    if (Math.abs(m.x) > Math.abs(m.y)) {
+      this.currentDir = m.x > 0 ? "right" : "left";
+    } else if (m.y !== 0) {
+      this.currentDir = m.y > 0 ? "down" : "up";
     }
+  }
+
+  protected applyFacingToSprite(m: { x: number; y: number }) {
+    m.x > 0 ? (this.sprite.scale.x = -1) : (this.sprite.scale.x = 1);
   }
 
   private addFilter(filter: ColorMatrixFilter) {
@@ -401,16 +391,17 @@ export class Enemy extends Entity {
     this.container.filters = this.container.filters.filter((f) => f !== filter);
   }
 
-  protected getAttackDirection(): Direction {
-    if (!this.target) return this.facingDir;
+  protected getAttackDirection(): Point {
+    if (!this.target) return new Point(0, 0);
+
+    const dir = new Point(0, 0);
 
     const dx = this.target.container.x - this.container.x;
     const dy = this.target.container.y - this.container.y;
+    const magnitude = Math.hypot(dx, dy);
 
-    if (Math.abs(dx) > Math.abs(dy)) {
-      return dx > 0 ? "right" : "left";
-    } else {
-      return dy > 0 ? "down" : "up";
-    }
+    magnitude > 0 ? dir.set(dx / magnitude, dy / magnitude) : dir.set(0, 1);
+
+    return dir;
   }
 }
