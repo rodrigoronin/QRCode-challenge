@@ -37,6 +37,7 @@ export class AttackCollider {
     this.offsetX = this.width / 2;
     this.offsetY = this.height / 2;
     this.VFXFrames = VFXFrames;
+    this.owner = owner;
 
     this.attackContainer = new Container();
     this.container = container;
