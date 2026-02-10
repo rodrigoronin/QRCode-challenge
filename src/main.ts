@@ -24,6 +24,7 @@ import goblinMaceSprite from "./assets/_goblin-mace-shield.png";
 import sword_vfx from "./assets/_sword_slash.png";
 import daggerHitAudio from "./assets/audio/dagger-hit.ogg";
 import trainingMapTiles from "./assets/_training-tiles.png";
+import { Camera } from "./core/Camera";
 
 const audioContext = new AudioContext();
 
@@ -46,7 +47,6 @@ const audioContext = new AudioContext();
   ]);
 
   const world: Container = new Container();
-  const camera: Container = new Container();
 
   const frameSize: number = 64;
   const playerTexture = playerSprite.slice(playerSprite.indexOf("_"), playerSprite.indexOf("."));
@@ -124,11 +124,13 @@ const audioContext = new AudioContext();
     2000,
   );
 
+  const camera = new Camera(testMap, player);
+
   const enemiesList: Enemy[] = [];
 
   // CONTAINER HIERARCHY
-  game.stage.addChild(camera);
-  camera.addChild(world);
+  game.stage.addChild(camera.container);
+  camera.container.addChild(world);
   world.addChild(map);
   world.addChild(testMap);
   world.addChild(enemy_01.container);
@@ -159,27 +161,10 @@ const audioContext = new AudioContext();
 
     player.update(ticker.deltaMS);
     enemiesList.forEach((enemy) => enemy.update(ticker.deltaMS));
+    camera.update();
 
     input.commit();
     DamageNumberManager.update(ticker.deltaMS);
-
-    const canMinX = window.innerWidth - testMap.width * Constants.SCALE_FACTOR;
-    const canMaxX = 0;
-
-    camera.x = clamp(
-      -player.container.x * Constants.SCALE_FACTOR + window.innerWidth / 2,
-      canMinX,
-      canMaxX,
-    );
-
-    const canMinY = window.innerHeight - testMap.height * Constants.SCALE_FACTOR;
-    const canMaxY = 0;
-
-    camera.y = clamp(
-      -player.container.y * Constants.SCALE_FACTOR + window.innerHeight / 2,
-      canMinY,
-      canMaxY,
-    );
   });
 })();
 
@@ -248,10 +233,6 @@ async function assetLoader(textures: string[]): Promise<Record<string, TextureSo
 
 //   return wallList;
 // }
-
-function clamp(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, value));
-}
 
 async function loadAudio(context: AudioContext, url: string): Promise<AudioBuffer> {
   const response = await fetch(url);
