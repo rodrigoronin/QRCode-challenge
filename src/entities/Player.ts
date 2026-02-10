@@ -162,6 +162,10 @@ export class Player extends Entity {
   startDash() {
     if (this.isDashing || this.dashCooldownTimer > 0) return;
 
+    if (this.isAttacking) {
+      this.cancelAttack();
+    }
+
     this.dashDirection = this.input.getMovementVector();
 
     // Dashing while idle
@@ -197,11 +201,6 @@ export class Player extends Entity {
   }
 
   updateDash(deltaTime: number) {
-    if (this.isAttacking) {
-      this.attackCollider.deactivate();
-      this.attackComponent.deactivate();
-    }
-
     const deltaSec = deltaTime / 1000;
 
     const futureX = this.container.x + this.dashDirection.x * this.dashSpeed * deltaSec;
@@ -260,6 +259,11 @@ export class Player extends Entity {
       this.isAttacking = false;
       this.attackComponent.deactivate();
     }
+  }
+
+  private cancelAttack() {
+    this.attackComponent.deactivate();
+    this.attackCollider.deactivate();
   }
 
   takeDamage(damage: number): void {
