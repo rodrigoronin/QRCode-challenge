@@ -48,6 +48,9 @@ export class Enemy extends Entity {
   private isInCombat: boolean = false;
   private isPassive: boolean = true;
   private isInvincible: boolean = false;
+  private allowFlanking: boolean = true;
+  private flankSide: number = Math.random() < 0.5 ? -1 : 1;
+  private moveDir: Point = new Point(0, 0);
 
   constructor(
     frames: Record<string, Texture[]>,
@@ -199,6 +202,7 @@ export class Enemy extends Entity {
 
   protected followTarget(deltaMS: number) {
     if (!this.target) return;
+    if (this.attackState === "active") return;
 
     const dx: number = this.target.container.x - this.container.x;
     const dy: number = this.target.container.y - this.container.y;
@@ -209,17 +213,57 @@ export class Enemy extends Entity {
       return;
     }
 
-    this.move(dx, dy, distance, deltaMS);
+    if (distance <= 0.001) return;
+
+    const attackRange = this.container.width;
+    const slowRadius = attackRange * 2.5;
+    const speedScale = distance < slowRadius ? Math.max(0.35, distance / slowRadius) : 1;
+
+    let dirX = dx / distance;
+    let dirY = dy / distance;
+
+    if (this.allowFlanking) {
+      const flankRange = Math.max(slowRadius, attackRange * 4);
+      const flankT = Math.max(0, Math.min(1, (flankRange - distance) / flankRange));
+
+      if (flankT > 0) {
+        const perpX = -dirY;
+        const perpY = dirX;
+        const flankStrength = 0.9;
+        let steerX = dirX + perpX * this.flankSide * flankStrength * flankT;
+        let steerY = dirY + perpY * this.flankSide * flankStrength * flankT;
+        const steerDist = Math.hypot(steerX, steerY);
+
+        if (steerDist > 0.001) {
+          steerX /= steerDist;
+          steerY /= steerDist;
+          dirX = steerX;
+          dirY = steerY;
+        }
+      }
+    }
+
+    const blend = 0.18;
+    this.moveDir.x += (dirX - this.moveDir.x) * blend;
+    this.moveDir.y += (dirY - this.moveDir.y) * blend;
+    const blendedDist = Math.hypot(this.moveDir.x, this.moveDir.y);
+
+    if (blendedDist > 0.001) {
+      this.moveDir.x /= blendedDist;
+      this.moveDir.y /= blendedDist;
+    }
+
+    this.move(this.moveDir.x, this.moveDir.y, 1, deltaMS, speedScale);
   }
 
-  protected move(dx: number, dy: number, distance: number, delta: number) {
+  protected move(dx: number, dy: number, distance: number, delta: number, speedScale: number = 1) {
     const dirX = dx / distance;
     const dirY = dy / distance;
 
     const deltaSec = delta / 1000;
 
-    const moveX = dirX * this.speed * deltaSec;
-    const moveY = dirY * this.speed * deltaSec;
+    const moveX = dirX * this.speed * speedScale * deltaSec;
+    const moveY = dirY * this.speed * speedScale * deltaSec;
 
     if (CollisionManager.canMove(this.collider, this.container.x + moveX, this.container.y))
       this.container.x += moveX;
