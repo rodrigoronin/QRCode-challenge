@@ -78,7 +78,6 @@ export class AttackCollider {
 
     if (this.VFXFrames) {
       const visualDir = this.owner?.currentDir;
-      console.log(visualDir);
       const animName = `attack_${visualDir}`;
       const frames = this.VFXFrames[animName];
       if (frames && frames.length > 0) {
@@ -135,7 +134,7 @@ export class AttackCollider {
     if (this.debugGraphics.parent) this.debugGraphics.parent.removeChild(this.debugGraphics);
 
     if (this.VFXSprite) {
-      this.container.removeChild(this.VFXSprite);
+      this.attackContainer.removeChild(this.VFXSprite);
       this.VFXSprite.destroy({ children: true });
       this.VFXSprite = null;
     }
