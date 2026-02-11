@@ -9,7 +9,7 @@ import { AnimationController } from "../core/AnimationController";
 import { DamageNumberManager } from "../VFX/DamageNumberManager";
 
 type AttackState = "none" | "windup" | "active" | "recovery";
-type Direction = "up" | "down" | "left" | "right";
+// type Direction = "up" | "down" | "left" | "right";
 
 export class Enemy extends Entity {
   // RENDER
@@ -36,7 +36,7 @@ export class Enemy extends Entity {
   private attackDirection: Point | null = null;
   private WINDUP_TIME: number = 450;
   private ACTIVE_TIME: number = 420;
-  private RECOVERY_TIME: number = 2000;
+  private RECOVERY_TIME: number = 1000;
   private attackTimer: number = 0;
   private isHitFlashing: boolean = false;
   private hitFlashingTimer: number = 0;
@@ -128,7 +128,7 @@ export class Enemy extends Entity {
 
     // TODO: create a system to handle directional knockback
     // and other effects later
-    const knockbackStrength = 20;
+    const knockbackStrength = 10;
 
     switch (direction) {
       case "up":
