@@ -1,4 +1,4 @@
-import { Sprite, Texture, ColorMatrixFilter } from "pixi.js";
+import { Sprite, Texture, ColorMatrixFilter, Point } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { InputManager } from "../input/InputManager";
 import { AnimationController } from "../core/AnimationController";
@@ -9,12 +9,16 @@ import { AttackComponent } from "../core/AttackComponent";
 import { DamageNumberManager } from "../VFX/DamageNumberManager";
 
 type Direction = "up" | "down" | "left" | "right";
+type PlayerState = "idle" | "moving" | "attacking" | "dashing" | "conjuring" | "dead";
 
 export class Player extends Entity {
   private sprite: Sprite;
+  private state: PlayerState = "idle";
   private collider: Collider;
   private input = InputManager.get();
-  private currentDir: Direction = "down";
+  public currentDir: Direction = "down";
+  public moveVector: Point = new Point(0, 0);
+  public lastMovedVector: Point = new Point(0, 0);
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
@@ -23,7 +27,6 @@ export class Player extends Entity {
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   // Dash variables
-  private isDashing: boolean = false;
   private dashDistance: number = 150;
   private dashTime: number = 0;
   // how many frames is the dash in millisecons (60 = 1 frame)
@@ -33,7 +36,6 @@ export class Player extends Entity {
   private dashSpeed: number;
   private dashDirection = { x: 0, y: 0 };
   // ATTACK DATA
-  private isAttacking: boolean = false;
   private attackCollider: AttackCollider;
   private attackTimer: number = 0;
   private ATTACK_LOCK_DURATION: number = 420;
@@ -45,7 +47,7 @@ export class Player extends Entity {
   private maxHealthPoints: number = 10;
   private healthPoints: number = 10;
   private isInvincible: boolean = false;
-  private isImmortalObject: boolean = true;
+  private isImmortalObject: boolean = false;
 
   constructor(frames: Record<string, Texture[]>, VFXFrames: Record<string, Texture[]>) {
     super();
@@ -85,10 +87,19 @@ export class Player extends Entity {
     const deltaSec = deltaTime / 1000;
     const move = this.input.getMovementVector();
 
+    // saves the last direction the player was looking
+    if (this.moveVector.x !== 0 || this.moveVector.y !== 0) {
+      this.lastMovedVector.x = this.moveVector.x;
+      this.lastMovedVector.y = this.moveVector.y;
+    }
+
+    // saves the current direction the player is looking
+    this.moveVector.set(move.x, move.y);
+
     this.updateHitFlashFilter(deltaTime);
 
     // DASH
-    if (this.isDashing) {
+    if (this.state === "dashing") {
       this.updateDash(deltaTime);
       return; // doesn't let the player move during dash
     }
@@ -97,7 +108,7 @@ export class Player extends Entity {
       this.attackComponent.update();
     }
 
-    if (this.isAttacking) {
+    if (this.state === "attacking") {
       this.updateAttackLock(deltaTime);
 
       if (this.attackCollider?.active) {
@@ -125,6 +136,7 @@ export class Player extends Entity {
       if (move.x !== 0 || move.y !== 0) {
         if (this.currentDir === "left") this.sprite.scale.x = -1;
         else if (this.currentDir === "right") this.sprite.scale.x = 1;
+        // TODO: replace with real up/down sprites
         if (this.currentDir === "up") this.sprite.scale.x = -1;
         else if (this.currentDir === "down") this.sprite.scale.x = 1;
         this.anim.play(`walk_${this.currentDir}`);
@@ -142,6 +154,19 @@ export class Player extends Entity {
     // this.collider.drawDebug();
   }
 
+  get currentHP() {
+    return this.healthPoints;
+  }
+  get maxHP() {
+    return this.maxHealthPoints;
+  }
+  get isAttacking() {
+    return this.state === "attacking";
+  }
+  get isDashing() {
+    return this.state === "dashing";
+  }
+
   setupAnimations() {
     for (const key in this.frames) {
       this.anim.addAnimation(key, this.frames[key]);
@@ -150,6 +175,12 @@ export class Player extends Entity {
 
   startDash() {
     if (this.isDashing || this.dashCooldownTimer > 0) return;
+
+    if (this.isAttacking) {
+      this.cancelAttack();
+    }
+
+    this.state = "dashing";
 
     this.dashDirection = this.input.getMovementVector();
 
@@ -178,7 +209,6 @@ export class Player extends Entity {
       this.dashDirection.y /= mag;
     }
 
-    this.isDashing = true;
     this.dashTime = 0;
     this.isInvincible = true;
 
@@ -208,7 +238,7 @@ export class Player extends Entity {
   }
 
   private endDash() {
-    this.isDashing = false;
+    this.state = "idle";
     this.isInvincible = false;
     this.dashCooldownTimer = this.dashCooldown;
   }
@@ -222,7 +252,11 @@ export class Player extends Entity {
   }
 
   startAttack() {
-    if (this.isAttacking || this.isDashing) return;
+    if (this.isDashing) return;
+    if (this.isAttacking) return;
+
+    this.state = "attacking";
+
     this.basicAttack();
   }
 
@@ -231,8 +265,7 @@ export class Player extends Entity {
 
     this.attackComponent.direction = this.currentDir;
 
-    this.attackCollider?.activate(this.currentDir, 40);
-    this.isAttacking = true;
+    this.attackCollider?.activate(this.lastMovedVector, 40);
     this.attackComponent.activate();
     this.attackTimer = this.ATTACK_LOCK_DURATION;
   }
@@ -241,9 +274,15 @@ export class Player extends Entity {
     this.attackTimer -= deltaMS;
 
     if (this.attackTimer <= 0) {
-      this.isAttacking = false;
       this.attackComponent.deactivate();
+
+      this.state = "idle";
     }
+  }
+
+  private cancelAttack() {
+    this.attackComponent.deactivate();
+    this.attackCollider.deactivate();
   }
 
   takeDamage(damage: number): void {
@@ -261,8 +300,6 @@ export class Player extends Entity {
       this.healthPoints = 0;
       this.death();
     }
-
-    console.log(`Player Health: ${this.healthPoints} / ${this.maxHealthPoints}`);
   }
 
   private death() {

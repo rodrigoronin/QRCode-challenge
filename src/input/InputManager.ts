@@ -73,7 +73,7 @@ export class InputManager {
   }
 
   public commit() {
-    this.prevButtons = { ...this.buttons };
+    this.prevButtons = { ...this.buttons, ...this.gamepadButtons };
   }
 
   private pollGamepad() {
