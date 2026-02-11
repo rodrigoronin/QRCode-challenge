@@ -157,28 +157,25 @@ const audioContext = new AudioContext();
 
   let step: number = 0;
 
-  game.ticker.add((ticker) => {
-    const deltaMS = ticker.deltaMS;
+  const healthHUD = document.createElement("span");
+  const magicHUD = document.createElement("span");
 
-    step += deltaMS;
+  generateHUD(magicHUD);
+  generateHUD(healthHUD);
+
+  magicHUD.style.left = "20rem";
+
+  navigator.getGamepads();
+
+  game.ticker.add((ticker) => {
+    step += ticker.deltaMS;
 
     while (step >= Constants.FIXED_TIMESTEP) {
-      updateGame();
+      updateGame(Constants.FIXED_TIMESTEP);
       step -= Constants.FIXED_TIMESTEP;
     }
 
     render();
-
-    input.poll();
-    if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
-    if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(ticker.deltaMS);
-
-    player.update(ticker.deltaMS);
-    enemiesList.forEach((enemy) => enemy.update(ticker.deltaMS));
-    camera.update();
-
-    input.commit();
-    DamageNumberManager.update(ticker.deltaMS);
   });
 
   function updateGame(deltaMS: number) {
@@ -191,6 +188,9 @@ const audioContext = new AudioContext();
     player.update(deltaMS);
     enemiesList.forEach((enemy) => enemy.update(deltaMS));
     camera.update();
+
+    healthHUD.innerText = `HP: ${player.currentHP} / ${player.maxHP}`;
+    magicHUD.innerText = `HP: ${5} / ${5}`;
 
     input.commit();
     DamageNumberManager.update(deltaMS);
@@ -356,4 +356,16 @@ function generateTestMap(
   }
 
   return container;
+}
+
+function generateHUD(elem: HTMLElement) {
+  elem.style.fontFamily = "Arial";
+  elem.style.color = "silver";
+  elem.style.fontSize = "2rem";
+  elem.style.fontWeight = "700";
+  elem.style.position = "absolute";
+  elem.style.top = "1rem";
+  elem.style.left = "1rem";
+
+  document.body.prepend(elem);
 }
