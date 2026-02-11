@@ -37,6 +37,7 @@ const audioContext = new AudioContext();
     // resizeTo: window,
   });
   document.body.appendChild(game.canvas);
+  game.ticker.maxFPS = 60;
 
   const assets = await assetLoader([
     playerSprite,
@@ -154,9 +155,22 @@ const audioContext = new AudioContext();
   const commandMapper: InputCommandMapper = new InputCommandMapper(player);
   const input = InputManager.get();
 
+  let step: number = 0;
+
   game.ticker.add((ticker) => {
+    const deltaMS = ticker.deltaMS;
+
+    step += deltaMS;
+
+    while (step >= Constants.FIXED_TIMESTEP) {
+      updateGame();
+      step -= Constants.FIXED_TIMESTEP;
+    }
+
+    render();
+
     input.poll();
-    if (input.wasJustPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
+    if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
     if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(ticker.deltaMS);
 
     player.update(ticker.deltaMS);
@@ -166,6 +180,26 @@ const audioContext = new AudioContext();
     input.commit();
     DamageNumberManager.update(ticker.deltaMS);
   });
+
+  function updateGame(deltaMS: number) {
+    input.poll();
+
+    if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(deltaMS);
+
+    if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(deltaMS);
+
+    player.update(deltaMS);
+    enemiesList.forEach((enemy) => enemy.update(deltaMS));
+    camera.update();
+
+    input.commit();
+    DamageNumberManager.update(deltaMS);
+  }
+
+  function render() {
+    // right now Pixi handles rendering automatically
+    // but we keep this here for future interpolation
+  }
 })();
 
 // To help speed animations during MVP
@@ -268,6 +302,7 @@ function randomRange(min: number, max: number): number {
   return Math.random() * (max - min) + min;
 }
 
+// TODO: remove this listener and create an AudioManager to handle audio configuration and initialization
 window.addEventListener("keydown", async (e: KeyboardEvent) => {
   if (e.key === "i") await initAudio();
 
