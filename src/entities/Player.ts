@@ -36,7 +36,6 @@ export class Player extends Entity {
   private dashSpeed: number;
   private dashDirection = { x: 0, y: 0 };
   // ATTACK DATA
-  private isAttacking: boolean = false;
   private attackCollider: AttackCollider;
   private attackTimer: number = 0;
   private ATTACK_LOCK_DURATION: number = 420;
@@ -100,7 +99,7 @@ export class Player extends Entity {
     this.updateHitFlashFilter(deltaTime);
 
     // DASH
-    if (this.isDashing) {
+    if (this.state === "dashing") {
       this.updateDash(deltaTime);
       return; // doesn't let the player move during dash
     }
@@ -109,7 +108,7 @@ export class Player extends Entity {
       this.attackComponent.update();
     }
 
-    if (this.isAttacking) {
+    if (this.state === "attacking") {
       this.updateAttackLock(deltaTime);
 
       if (this.attackCollider?.active) {
@@ -137,6 +136,7 @@ export class Player extends Entity {
       if (move.x !== 0 || move.y !== 0) {
         if (this.currentDir === "left") this.sprite.scale.x = -1;
         else if (this.currentDir === "right") this.sprite.scale.x = 1;
+        // TODO: replace with real up/down sprites
         if (this.currentDir === "up") this.sprite.scale.x = -1;
         else if (this.currentDir === "down") this.sprite.scale.x = 1;
         this.anim.play(`walk_${this.currentDir}`);
@@ -154,6 +154,19 @@ export class Player extends Entity {
     // this.collider.drawDebug();
   }
 
+  get currentHP() {
+    return this.healthPoints;
+  }
+  get maxHP() {
+    return this.maxHealthPoints;
+  }
+  get isAttacking() {
+    return this.state === "attacking";
+  }
+  get isDashing() {
+    return this.state === "dashing";
+  }
+
   setupAnimations() {
     for (const key in this.frames) {
       this.anim.addAnimation(key, this.frames[key]);
@@ -161,9 +174,9 @@ export class Player extends Entity {
   }
 
   startDash() {
-    if (this.state === "dashing") return;
+    if (this.isDashing || this.dashCooldownTimer > 0) return;
 
-    if (this.state === "attacking") {
+    if (this.isAttacking) {
       this.cancelAttack();
     }
 
@@ -196,7 +209,6 @@ export class Player extends Entity {
       this.dashDirection.y /= mag;
     }
 
-    this.isDashing = true;
     this.dashTime = 0;
     this.isInvincible = true;
 
@@ -226,11 +238,9 @@ export class Player extends Entity {
   }
 
   private endDash() {
-    this.isDashing = false;
+    this.state = "idle";
     this.isInvincible = false;
     this.dashCooldownTimer = this.dashCooldown;
-
-    this.state = "idle";
   }
 
   private updateDirection(m: { x: number; y: number }) {
@@ -242,8 +252,8 @@ export class Player extends Entity {
   }
 
   startAttack() {
-    if (this.state === "dashing") return;
-    if (this.state === "attacking") return;
+    if (this.isDashing) return;
+    if (this.isAttacking) return;
 
     this.state = "attacking";
 
@@ -256,7 +266,6 @@ export class Player extends Entity {
     this.attackComponent.direction = this.currentDir;
 
     this.attackCollider?.activate(this.lastMovedVector, 40);
-    this.isAttacking = true;
     this.attackComponent.activate();
     this.attackTimer = this.ATTACK_LOCK_DURATION;
   }
@@ -265,7 +274,6 @@ export class Player extends Entity {
     this.attackTimer -= deltaMS;
 
     if (this.attackTimer <= 0) {
-      this.isAttacking = false;
       this.attackComponent.deactivate();
 
       this.state = "idle";
@@ -292,8 +300,6 @@ export class Player extends Entity {
       this.healthPoints = 0;
       this.death();
     }
-
-    console.log(`Player Health: ${this.healthPoints} / ${this.maxHealthPoints}`);
   }
 
   private death() {
