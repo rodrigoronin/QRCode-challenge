@@ -5,6 +5,7 @@ export class InputManager {
   private buttons: Record<string, boolean> = {};
   private prevButtons: Record<string, boolean> = {};
   private static instance: InputManager;
+
   public static get() {
     if (!this.instance) this.instance = new InputManager();
     return this.instance;

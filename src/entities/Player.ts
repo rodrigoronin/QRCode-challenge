@@ -31,7 +31,7 @@ export class Player extends Entity {
   private dashTime: number = 0;
   // how many frames is the dash in millisecons (60 = 1 frame)
   private dashDuration: number = 180;
-  private dashCooldown: number = 500; // in milliseconds (1000 = 1 second)
+  private dashCooldown: number = 2000; // in milliseconds (1000 = 1 second)
   private dashCooldownTimer: number = 0;
   private dashSpeed: number;
   private dashDirection = { x: 0, y: 0 };
@@ -44,8 +44,8 @@ export class Player extends Entity {
   private hitFlashingTimer: number = 0;
   private HIT_FLASH_DURATION: number = 150;
   // stats
-  private maxHealthPoints: number = 10;
-  private healthPoints: number = 10;
+  private maxHealthPoints: number = 40;
+  private healthPoints: number = 40;
   private isInvincible: boolean = false;
   private isImmortalObject: boolean = false;
 
