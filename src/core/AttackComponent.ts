@@ -3,6 +3,7 @@ import type { Enemy } from "../entities/Enemy";
 import type { AttackCollider } from "./AttackCollider";
 import type { Collider } from "./Collider";
 import { CollisionManager } from "./CollisionManager";
+import { Time } from "./Time";
 
 interface Config {
   attackCollider: AttackCollider;
@@ -53,6 +54,8 @@ export class AttackComponent {
       if (closestEnemy) {
         closestEnemy.owner?.takeDamage(3, this.direction);
         this.damagedSet.add(closestEnemy);
+
+        Time.triggerHitstop(80);
       }
     }
   }
