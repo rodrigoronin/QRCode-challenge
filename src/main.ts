@@ -19,11 +19,14 @@ import { Time } from "./core/Time";
 import "./style.css";
 
 // Assets
-import playerSprite from "./assets/_wizard.png";
-import enemySprite from "./assets/_enemy-01.png";
-import goblinMaceSprite from "./assets/_goblin-mace-shield.png";
-import sword_vfx from "./assets/_sword_slash.png";
-import trainingMapTiles from "./assets/_training-tiles.png";
+import playerSprite from "./assets/sprites/_wizard.png";
+import elvenMageSprite from "./assets/sprites/_elven_mage.png";
+import blackSmithSprite from "./assets/sprites/_blacksmith.png";
+import fountainSprite from "./assets/sprites/_fountain.png";
+import treeSprite from "./assets/sprites/_tree.png";
+import goblinMaceSprite from "./assets/sprites/_goblin-mace-shield.png";
+import sword_vfx from "./assets/sprites/_sword_slash.png";
+import trainingMapTiles from "./assets/sprites/_training-tiles.png";
 import { Camera } from "./core/Camera";
 
 (async () => {
@@ -39,16 +42,27 @@ import { Camera } from "./core/Camera";
 
   const assets = await assetLoader([
     playerSprite,
-    enemySprite,
     goblinMaceSprite,
     sword_vfx,
     trainingMapTiles,
+    elvenMageSprite,
+    blackSmithSprite,
+    fountainSprite,
+    treeSprite,
   ]);
 
   const world: Container = new Container();
 
   const frameSize: number = 64;
   const playerTexture = playerSprite.slice(playerSprite.indexOf("_"), playerSprite.indexOf("."));
+  const elvenMageTexture = elvenMageSprite.slice(
+    elvenMageSprite.indexOf("_"),
+    elvenMageSprite.indexOf("."),
+  );
+  const blackSmithTexture = blackSmithSprite.slice(
+    blackSmithSprite.indexOf("_"),
+    blackSmithSprite.indexOf("."),
+  );
 
   // Current player animations spritesheet has:
   // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
@@ -71,6 +85,13 @@ import { Camera } from "./core/Camera";
     dash_left: frameSlicer(assets[playerTexture], frameSize, 1, 0),
   };
 
+  const elvenMageFrames = {
+    idle_down: frameSlicer(assets[elvenMageTexture], frameSize, 1, 0),
+  };
+  const blacksmithFrames = {
+    idle_down: frameSlicer(assets[blackSmithTexture], frameSize, 1, 0),
+  };
+
   const daggerVFXFrames = {
     attack_up: frameSlicer(assets["_sword_slash"], 81, 7, 1),
     attack_down: frameSlicer(assets["_sword_slash"], 81, 7, 1),
@@ -91,18 +112,23 @@ import { Camera } from "./core/Camera";
   };
 
   const player: Player = new Player(frames, daggerVFXFrames);
-  player.container.x = 200;
-  player.container.y = 200;
+  player.container.position.set(200);
+  const elvenMage: Player = new Player(elvenMageFrames, daggerVFXFrames);
+  elvenMage.container.position.x = 290;
+  elvenMage.container.position.y = 150;
+  const blacksmith: Player = new Player(blacksmithFrames, daggerVFXFrames);
+  blacksmith.container.position.x = 370;
+  blacksmith.container.position.y = 220;
 
   // Enemy spawns
   const enemy_01 = new Enemy(enemyFrames, player, daggerVFXFrames);
-  enemy_01.container.x = 500;
-  enemy_01.container.y = 512;
+  enemy_01.container.x = 1200;
+  enemy_01.container.y = 520;
   const enemy_02 = new Enemy(enemyFrames, player, daggerVFXFrames);
-  enemy_02.container.x = 500;
-  enemy_02.container.y = 612;
+  enemy_02.container.x = 1000;
+  enemy_02.container.y = 1000;
   const enemy_03 = new Enemy(enemyFrames, player, daggerVFXFrames);
-  enemy_03.container.x = 580;
+  enemy_03.container.x = 1000;
   enemy_03.container.y = 512;
   const ranged_enemy_01 = new Enemy(enemyFrames, player, daggerVFXFrames);
   ranged_enemy_01.container.x = 750;
@@ -123,6 +149,26 @@ import { Camera } from "./core/Camera";
     2000,
   );
 
+  const fountain: Sprite = new Sprite(
+    new Texture({
+      source: assets["_fountain"],
+      frame: new Rectangle(0, 0, 84, 71),
+    }),
+  );
+
+  fountain.position.x = 250;
+  fountain.position.y = 200;
+
+  const tree: Sprite = new Sprite(
+    new Texture({
+      source: assets["_tree"],
+      frame: new Rectangle(0, 0, 103, 140),
+    }),
+  );
+
+  tree.position.x = 1000;
+  tree.position.y = 350;
+
   const camera = new Camera(testMap, player);
 
   const enemiesList: Enemy[] = [];
@@ -136,6 +182,10 @@ import { Camera } from "./core/Camera";
   world.addChild(enemy_02.container);
   world.addChild(enemy_03.container);
   world.addChild(ranged_enemy_01.container);
+  world.addChild(fountain);
+  world.addChild(tree);
+  world.addChild(elvenMage.container);
+  world.addChild(blacksmith.container);
   world.addChild(player.container);
   // world.addChild(...walls.map((wall) => wall.container));
 
@@ -162,6 +212,9 @@ import { Camera } from "./core/Camera";
   generateHUD(healthHUD);
 
   magicHUD.style.left = "20rem";
+
+  healthHUD.innerText = `HP: ${player.currentHP} / ${player.maxHP}`;
+  magicHUD.innerText = `HP: ${5} / ${5}`;
 
   navigator.getGamepads();
 
@@ -193,9 +246,6 @@ import { Camera } from "./core/Camera";
     player.update(deltaMS);
     enemiesList.forEach((enemy) => enemy.update(deltaMS));
     camera.update();
-
-    healthHUD.innerText = `HP: ${player.currentHP} / ${player.maxHP}`;
-    magicHUD.innerText = `HP: ${5} / ${5}`;
 
     input.commit();
     DamageNumberManager.update(deltaMS);

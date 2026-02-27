@@ -6,7 +6,7 @@ export class Camera {
   public container: Container;
   public mapRef: Container;
   public playerRef: Player;
-  private readonly CAMERA_LERP: number = 0.1;
+  private readonly CAMERA_LERP: number = 0.15;
 
   constructor(map: Container, player: Player) {
     this.mapRef = map;

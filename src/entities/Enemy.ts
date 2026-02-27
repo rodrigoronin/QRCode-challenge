@@ -49,6 +49,10 @@ export class Enemy extends Entity {
   private isPassive: boolean = true;
   private isInvincible: boolean = false;
   private moveDir: Point = new Point(0, 0);
+  private flankSign: 1 | -1 = 1;
+  private flankSwitchTimerMS: number = 0;
+  private readonly FLANK_SPEED_SCALE: number = 0.7;
+  private readonly FLANK_RADIUS_MULT: number = 1.8;
 
   constructor(
     frames: Record<string, Texture[]>,
@@ -95,7 +99,7 @@ export class Enemy extends Entity {
     if (!this.isDead) {
       this.updateHitFlashFilter(_deltaTime);
 
-      this.roaming({ x: 400, y: 400, width: 300, height: 300 }, _deltaTime);
+      this.roaming({ x: 1000, y: 500, width: 300, height: 300 }, _deltaTime);
 
       if (!this.isPassive) {
         this.perceptionRadar();
@@ -200,7 +204,24 @@ export class Enemy extends Entity {
 
   protected chaseTarget(deltaMS: number) {
     if (!this.target) return;
+
+    // Don't slide during telegraph; just face the player.
+    if (this.attackState === "windup") {
+      const dx = this.target.container.x - this.container.x;
+      const dy = this.target.container.y - this.container.y;
+      this.updateDirection({ x: dx, y: dy });
+      this.applyFacingToSprite({ x: dx, y: dy });
+      this.anim.play(`idle_${this.currentDir}`);
+      return;
+    }
+
     if (this.attackState === "active") return;
+
+    // While recovering (cooldown), strafe sideways around the player.
+    if (this.attackState === "recovery") {
+      this.flankTarget(deltaMS);
+      return;
+    }
 
     const dx: number = this.target.container.x - this.container.x;
     const dy: number = this.target.container.y - this.container.y;
@@ -233,6 +254,61 @@ export class Enemy extends Entity {
     }
 
     this.move(this.moveDir.x, this.moveDir.y, 1, deltaMS, speedScale);
+  }
+
+  private flankTarget(deltaMS: number) {
+    if (!this.target) return;
+
+    const dx = this.target.container.x - this.container.x;
+    const dy = this.target.container.y - this.container.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist <= 0.001) return;
+
+    // Occasionally swap strafe side so it doesn't get stuck on walls.
+    this.flankSwitchTimerMS -= deltaMS;
+    if (this.flankSwitchTimerMS <= 0) {
+      this.flankSign = (this.flankSign * -1) as 1 | -1;
+      this.flankSwitchTimerMS = 650 + Math.random() * 650;
+    }
+
+    const toX = dx / dist;
+    const toY = dy / dist;
+
+    // Perpendicular (sideways) movement relative to player.
+    const sideX = -toY * this.flankSign;
+    const sideY = toX * this.flankSign;
+
+    // Keep a loose "orbit" radius so it feels like flanking, not fleeing.
+    const attackRange = this.container.width;
+    const desiredRadius = Math.max(16, attackRange * this.FLANK_RADIUS_MULT);
+    const radiusError = dist - desiredRadius; // + too far, - too close
+
+    const correctionStrength = 0.65;
+    const correctionScale = Math.min(1, Math.abs(radiusError) / desiredRadius) * correctionStrength;
+    const correctionDir = radiusError > 0 ? 1 : -1; // pull in if far, push out if close
+    const radialX = toX * correctionDir * correctionScale;
+    const radialY = toY * correctionDir * correctionScale;
+
+    let desiredX = sideX + radialX;
+    let desiredY = sideY + radialY;
+
+    const desiredMag = Math.hypot(desiredX, desiredY);
+    if (desiredMag > 0.001) {
+      desiredX /= desiredMag;
+      desiredY /= desiredMag;
+    }
+
+    const blend = 0.25;
+    this.moveDir.x += (desiredX - this.moveDir.x) * blend;
+    this.moveDir.y += (desiredY - this.moveDir.y) * blend;
+
+    const blendedMag = Math.hypot(this.moveDir.x, this.moveDir.y);
+    if (blendedMag > 0.001) {
+      this.moveDir.x /= blendedMag;
+      this.moveDir.y /= blendedMag;
+    }
+
+    this.move(this.moveDir.x, this.moveDir.y, 1, deltaMS, this.FLANK_SPEED_SCALE);
   }
 
   protected move(dx: number, dy: number, distance: number, delta: number, speedScale: number = 1) {
@@ -365,6 +441,10 @@ export class Enemy extends Entity {
     this.attackCollider.deactivate();
 
     this.attackDirection = null;
+
+    // Pick a strafe direction for the cooldown window.
+    this.flankSign = (Math.random() < 0.5 ? -1 : 1) as 1 | -1;
+    this.flankSwitchTimerMS = 650 + Math.random() * 650;
   }
 
   protected updateDirection(m: { x: number; y: number }) {
