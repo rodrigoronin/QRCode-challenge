@@ -1,5 +1,5 @@
-import type { Player } from "../entities/Player";
-import type { Enemy } from "../entities/Enemy";
+import type { Player } from "../Entities/Player";
+import type { Enemy } from "../Entities/Enemy";
 import type { AttackCollider } from "./AttackCollider";
 import type { Collider } from "./Collider";
 import { CollisionManager } from "./CollisionManager";

@@ -1,6 +1,6 @@
 import { Container } from "pixi.js";
 import * as Constants from "../utils/Constants";
-import type { Player } from "../entities/Player";
+import type { Player } from "../Entities/Player";
 
 export class Camera {
   public container: Container;
@@ -20,25 +20,21 @@ export class Camera {
     const canMaxX = 0;
 
     this.container.x +=
-      (this.clamp(
+      this.clamp(
         -this.playerRef.container.x * Constants.SCALE_FACTOR + window.innerWidth / 2,
         canMinX,
         canMaxX,
-      ) -
-        this.container.x) *
-      this.CAMERA_LERP;
+      ) - this.container.x;
 
     const canMinY = window.innerHeight - this.mapRef.height * Constants.SCALE_FACTOR;
     const canMaxY = 0;
 
     this.container.y +=
-      (this.clamp(
+      this.clamp(
         -this.playerRef.container.y * Constants.SCALE_FACTOR + window.innerHeight / 2,
         canMinY,
         canMaxY,
-      ) -
-        this.container.y) *
-      this.CAMERA_LERP;
+      ) - this.container.y;
   }
 
   private clamp(value: number, min: number, max: number) {

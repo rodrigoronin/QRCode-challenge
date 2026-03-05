@@ -8,13 +8,15 @@ import {
   Sprite,
   Graphics,
 } from "pixi.js";
-import { Player } from "./entities/Player";
-import { Enemy } from "./entities/Enemy";
+import { Player } from "./Entities/Player";
+import { Enemy } from "./Entities/Enemy";
 import { InputCommandMapper } from "./input/InputCommandMapper";
 import { InputManager } from "./input/InputManager";
 import { DamageNumberManager } from "./VFX/DamageNumberManager";
 import * as Constants from "./utils/Constants";
 import { Time } from "./core/Time";
+import { Camera } from "./core/Camera";
+import NPC from "./Entities/NPC";
 
 import "./style.css";
 
@@ -27,7 +29,6 @@ import treeSprite from "./assets/sprites/_tree.png";
 import goblinMaceSprite from "./assets/sprites/_goblin-mace-shield.png";
 import sword_vfx from "./assets/sprites/_sword_slash.png";
 import trainingMapTiles from "./assets/sprites/_training-tiles.png";
-import { Camera } from "./core/Camera";
 
 (async () => {
   const game: Application = new Application();
@@ -35,10 +36,8 @@ import { Camera } from "./core/Camera";
     width: window.innerWidth,
     height: window.innerHeight,
     background: "#d2d2d2",
-    // resizeTo: window,
   });
   document.body.appendChild(game.canvas);
-  game.ticker.maxFPS = 60;
 
   const assets = await assetLoader([
     playerSprite,
@@ -67,14 +66,14 @@ import { Camera } from "./core/Camera";
   // Current player animations spritesheet has:
   // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
   const frames = {
-    idle_down: frameSlicer(assets[playerTexture], frameSize, 1, 0),
-    walk_down: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    idle_down: frameSlicer(assets[playerTexture], frameSize, 1, 0, 2),
+    walk_down: frameSlicer(assets[playerTexture], frameSize, 1, 0, 2),
 
     idle_left: frameSlicer(assets[playerTexture], frameSize, 1, 0),
     walk_left: frameSlicer(assets[playerTexture], frameSize, 1, 0),
 
-    idle_up: frameSlicer(assets[playerTexture], frameSize, 1, 0),
-    walk_up: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    idle_up: frameSlicer(assets[playerTexture], frameSize, 1, 0, 1),
+    walk_up: frameSlicer(assets[playerTexture], frameSize, 1, 0, 1),
 
     idle_right: frameSlicer(assets[playerTexture], frameSize, 1, 0),
     walk_right: frameSlicer(assets[playerTexture], frameSize, 1, 0),
@@ -113,7 +112,8 @@ import { Camera } from "./core/Camera";
 
   const player: Player = new Player(frames, daggerVFXFrames);
   player.container.position.set(200);
-  const elvenMage: Player = new Player(elvenMageFrames, daggerVFXFrames);
+  // const elvenMage: Player = new Player(elvenMageFrames, daggerVFXFrames);
+  const elvenMage: NPC = new NPC(elvenMageFrames["idle_down"][0]);
   elvenMage.container.position.x = 290;
   elvenMage.container.position.y = 150;
   const blacksmith: Player = new Player(blacksmithFrames, daggerVFXFrames);
@@ -189,7 +189,7 @@ import { Camera } from "./core/Camera";
   world.addChild(player.container);
   // world.addChild(...walls.map((wall) => wall.container));
 
-  world.scale.set(Constants.SCALE_FACTOR);
+  camera.container.scale.set(Constants.SCALE_FACTOR);
 
   const mapRect = new Graphics()
     .rect(0, 0, map.width, map.height)
@@ -213,7 +213,6 @@ import { Camera } from "./core/Camera";
 
   magicHUD.style.left = "20rem";
 
-  healthHUD.innerText = `HP: ${player.currentHP} / ${player.maxHP}`;
   magicHUD.innerText = `HP: ${5} / ${5}`;
 
   navigator.getGamepads();
@@ -244,6 +243,8 @@ import { Camera } from "./core/Camera";
     if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(deltaMS);
 
     player.update(deltaMS);
+    healthHUD.innerText = `HP: ${player.currentHP} / ${player.maxHP}`;
+
     enemiesList.forEach((enemy) => enemy.update(deltaMS));
     camera.update();
 

@@ -1,7 +1,7 @@
 import { Container, Graphics, Texture, Sprite, Point } from "pixi.js";
 import { Collider } from "./Collider";
-import { type Player } from "../entities/Player";
-import { type Enemy } from "../entities/Enemy";
+import { type Player } from "../Entities/Player";
+import { type Enemy } from "../Entities/Enemy";
 import { AnimationController } from "./AnimationController";
 
 export class AttackCollider {

@@ -1,7 +1,7 @@
 import { AttackCommand } from "../core/commands/AttackCommand";
 import { DashCommand } from "../core/commands/DashCommand";
 import type { Command } from "../core/commands/Command";
-import type { Player } from "../entities/Player";
+import type { Player } from "../Entities/Player";
 
 export class InputCommandMapper {
   private commands: Record<string, Command>;
