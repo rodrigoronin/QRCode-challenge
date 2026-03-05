@@ -222,17 +222,10 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
 
     Time.update(ticker.deltaMS);
 
-    if (Time.isStopped()) {
-      render();
-      return;
-    }
-
     while (step >= Constants.FIXED_TIMESTEP) {
       updateGame(Constants.FIXED_TIMESTEP);
       step -= Constants.FIXED_TIMESTEP;
     }
-
-    render();
   });
 
   function updateGame(deltaMS: number) {
@@ -246,15 +239,11 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
     healthHUD.innerText = `HP: ${player.currentHP} / ${player.maxHP}`;
 
     enemiesList.forEach((enemy) => enemy.update(deltaMS));
+    elvenMage.update();
     camera.update();
 
     input.commit();
     DamageNumberManager.update(deltaMS);
-  }
-
-  function render() {
-    // right now Pixi handles rendering automatically
-    // but we keep this here for future interpolation
   }
 })();
 
