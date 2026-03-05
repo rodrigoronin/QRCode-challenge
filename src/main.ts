@@ -113,7 +113,7 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
   const player: Player = new Player(frames, daggerVFXFrames);
   player.container.position.set(200);
   // const elvenMage: Player = new Player(elvenMageFrames, daggerVFXFrames);
-  const elvenMage: NPC = new NPC(elvenMageFrames["idle_down"][0]);
+  const elvenMage: NPC = new NPC(elvenMageFrames);
   elvenMage.container.position.x = 290;
   elvenMage.container.position.y = 150;
   const blacksmith: Player = new Player(blacksmithFrames, daggerVFXFrames);
