@@ -26,6 +26,7 @@ import elvenMageSprite from "./assets/sprites/_elven_mage.png";
 import blackSmithSprite from "./assets/sprites/_blacksmith.png";
 import fountainSprite from "./assets/sprites/_fountain.png";
 import treeSprite from "./assets/sprites/_tree.png";
+import mapSprite from "./assets/sprites/_map.png";
 import goblinMaceSprite from "./assets/sprites/_goblin-mace-shield.png";
 import sword_vfx from "./assets/sprites/_sword_slash.png";
 import trainingMapTiles from "./assets/sprites/_training-tiles.png";
@@ -48,6 +49,7 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
     blackSmithSprite,
     fountainSprite,
     treeSprite,
+    mapSprite,
   ]);
 
   const world: Container = new Container();
@@ -111,14 +113,13 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
   };
 
   const player: Player = new Player(frames, daggerVFXFrames);
-  player.container.position.set(200);
   // const elvenMage: Player = new Player(elvenMageFrames, daggerVFXFrames);
   const elvenMage: NPC = new NPC(elvenMageFrames);
-  elvenMage.container.position.x = 290;
-  elvenMage.container.position.y = 150;
+  elvenMage.container.position.x = 470;
+  elvenMage.container.position.y = 752;
   const blacksmith: Player = new Player(blacksmithFrames, daggerVFXFrames);
-  blacksmith.container.position.x = 370;
-  blacksmith.container.position.y = 220;
+  blacksmith.container.position.x = 410;
+  blacksmith.container.position.y = 280;
 
   // Enemy spawns
   const enemy_01 = new Enemy(enemyFrames, player, daggerVFXFrames);
@@ -136,17 +137,21 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
 
   const map: Sprite = new Sprite(
     new Texture({
-      source: assets["_map_1024x1024"],
-      frame: new Rectangle(0, 0, 3000, 3000),
+      source: assets["_map"],
+      frame: new Rectangle(0, 0, 1024, 1024),
     }),
   );
+  map.texture.source.scaleMode = "nearest";
+
+  player.container.position.x = map.width / 2;
+  player.container.position.y = map.height / 2;
 
   const testMap = generateTestMap(
     frameSlicer(assets["_training-tiles"], 32, 3, 0),
     32,
     32,
-    2000,
-    2000,
+    2048,
+    2048,
   );
 
   const fountain: Sprite = new Sprite(
@@ -176,13 +181,13 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
   // CONTAINER HIERARCHY
   game.stage.addChild(camera.container);
   camera.container.addChild(world);
-  world.addChild(map);
+  // world.addChild(map);
   world.addChild(testMap);
   world.addChild(enemy_01.container);
   world.addChild(enemy_02.container);
   world.addChild(enemy_03.container);
   world.addChild(ranged_enemy_01.container);
-  world.addChild(fountain);
+  // world.addChild(fountain);
   world.addChild(tree);
   world.addChild(elvenMage.container);
   world.addChild(blacksmith.container);
@@ -190,13 +195,6 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
   // world.addChild(...walls.map((wall) => wall.container));
 
   camera.container.scale.set(Constants.SCALE_FACTOR);
-
-  const mapRect = new Graphics()
-    .rect(0, 0, map.width, map.height)
-    .fill({ color: 0xffa500, alpha: 0.1 })
-    .stroke({ width: 1, color: 0xffa500 });
-
-  world.addChild(mapRect);
 
   enemiesList.push(enemy_01, enemy_02, enemy_03, ranged_enemy_01);
 
@@ -211,9 +209,8 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
   generateHUD(magicHUD);
   generateHUD(healthHUD);
 
-  magicHUD.style.left = "20rem";
-
-  magicHUD.innerText = `HP: ${5} / ${5}`;
+  magicHUD.style.left = "18rem";
+  magicHUD.innerText = `MP: ${20} / ${20}`;
 
   navigator.getGamepads();
 
@@ -332,7 +329,7 @@ function generateTestMap(
 
 function generateHUD(elem: HTMLElement) {
   elem.style.fontFamily = "Arial";
-  elem.style.color = "silver";
+  // elem.style.color = "silver";
   elem.style.fontSize = "2rem";
   elem.style.fontWeight = "700";
   elem.style.position = "absolute";

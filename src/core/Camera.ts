@@ -6,7 +6,11 @@ export class Camera {
   public container: Container;
   public mapRef: Container;
   public playerRef: Player;
-  private readonly CAMERA_LERP: number = 0.15;
+  private canMaxX: number = 0;
+  private canMinX: number = 0;
+  private canMaxY: number = 0;
+  private canMinY: number = 0;
+  private readonly CAMERA_LERP: number = 0.1;
 
   constructor(map: Container, player: Player) {
     this.mapRef = map;
@@ -16,28 +20,32 @@ export class Camera {
   }
 
   public update() {
-    const canMinX = window.innerWidth - this.mapRef.width * Constants.SCALE_FACTOR;
-    const canMaxX = 0;
+    this.canMaxX = window.innerWidth - this.mapRef.width * Constants.SCALE_FACTOR;
 
-    this.container.x +=
-      this.clamp(
+    this.container.x += Math.round(
+      (this.clamp(
         -this.playerRef.container.x * Constants.SCALE_FACTOR + window.innerWidth / 2,
-        canMinX,
-        canMaxX,
-      ) - this.container.x;
+        this.canMaxX,
+        this.canMinX,
+      ) -
+        this.container.x) *
+        this.CAMERA_LERP,
+    );
 
-    const canMinY = window.innerHeight - this.mapRef.height * Constants.SCALE_FACTOR;
-    const canMaxY = 0;
+    this.canMaxY = window.innerHeight - this.mapRef.height * Constants.SCALE_FACTOR;
 
-    this.container.y +=
-      this.clamp(
+    this.container.y += Math.round(
+      (this.clamp(
         -this.playerRef.container.y * Constants.SCALE_FACTOR + window.innerHeight / 2,
-        canMinY,
-        canMaxY,
-      ) - this.container.y;
+        this.canMaxY,
+        this.canMinY,
+      ) -
+        this.container.y) *
+        this.CAMERA_LERP,
+    );
   }
 
-  private clamp(value: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, value));
+  private clamp(value: number, max: number, min: number) {
+    return Math.max(max, Math.min(min, value));
   }
 }
