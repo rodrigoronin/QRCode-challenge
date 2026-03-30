@@ -1,13 +1,13 @@
 import { Application, Assets, Container, Texture, Rectangle, TextureSource, Sprite } from "pixi.js";
-import { Player } from "./entities/Player";
-import { Enemy } from "./Entities/Enemy";
+import { Player } from "@entities/Player";
+import { Enemy } from "@entities/Enemy";
 import { InputCommandMapper } from "./input/InputCommandMapper";
 import { InputManager } from "./input/InputManager";
 import { DamageNumberManager } from "./VFX/DamageNumberManager";
 import * as Constants from "./utils/Constants";
 import { Time } from "./core/Time";
 import { Camera } from "./core/Camera";
-import NPC from "./entities/NPC";
+import NPC from "@entities/NPC";
 
 import "./style.css";
 
@@ -28,6 +28,8 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
     height: Constants.LOGICAL_HEIGHT,
     background: "#d2d2d2",
     resizeTo: window,
+    resolution: window.devicePixelRatio,
+    autoDensity: true,
   });
   document.body.appendChild(game.canvas);
 
