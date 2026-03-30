@@ -1,7 +1,7 @@
 {
-  "name": "xiv-demake-ts",
-  "private": true,
+  "name": "exuvia-engine",
   "version": "0.5.2",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",

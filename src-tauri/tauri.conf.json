@@ -5,14 +5,14 @@
   "identifier": "com.tauri.dev",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:5173",
+    "devUrl": "http://localhost:3000",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },
   "app": {
     "windows": [
       {
-        "title": "FFXIV Demake",
+        "title": "Exuvia Engine v0.5.2",
         "width": 640,
         "height": 360,
         "resizable": true,
