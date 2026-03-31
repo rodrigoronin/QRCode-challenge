@@ -1,25 +1,25 @@
 import { Application, Assets, Container, Texture, Rectangle, TextureSource, Sprite } from "pixi.js";
 import { Player } from "@entities/Player";
 import { Enemy } from "@entities/Enemy";
-import { InputCommandMapper } from "./input/InputCommandMapper";
-import { InputManager } from "./input/InputManager";
+import { InputCommandMapper } from "@input/InputCommandMapper";
+import { InputManager } from "@input/InputManager";
 import { DamageNumberManager } from "./VFX/DamageNumberManager";
-import * as Constants from "./utils/Constants";
-import { Time } from "./core/Time";
+import * as Constants from "@utils/Constants";
+import { Time } from "@core/Time";
 import { Camera } from "./core/Camera";
 import NPC from "@entities/NPC";
 
 import "./style.css";
 
 // Assets
-import playerSprite from "./assets/sprites/_wizard.png";
-import elvenMageSprite from "./assets/sprites/_elven_mage.png";
-import blackSmithSprite from "./assets/sprites/_blacksmith.png";
-import fountainSprite from "./assets/sprites/_fountain.png";
-import treeSprite from "./assets/sprites/_tree.png";
-import goblinMaceSprite from "./assets/sprites/_goblin-mace-shield.png";
-import sword_vfx from "./assets/sprites/_sword_slash.png";
-import trainingMapTiles from "./assets/sprites/_training-tiles.png";
+import playerSprite from "@sprites/_wizard.png";
+import elvenMageSprite from "@sprites/_elven_mage.png";
+import blackSmithSprite from "@sprites/_blacksmith.png";
+import fountainSprite from "@sprites/_fountain.png";
+import treeSprite from "@sprites/_tree.png";
+import goblinMaceSprite from "@sprites/_goblin-mace-shield.png";
+import sword_vfx from "@sprites/_sword_slash.png";
+import trainingMapTiles from "@sprites/_training-tiles.png";
 
 (async () => {
   const game: Application = new Application();

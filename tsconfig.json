@@ -30,6 +30,18 @@
     "paths": {
       "@entities/*": [
         "src/entities/*"
+      ],
+      "@sprites/*": [
+        "src/assets/sprites/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@input/*": [
+        "src/input/*"
+      ],
+      "@core/*": [
+        "src/core/*"
       ]
     },
   },
