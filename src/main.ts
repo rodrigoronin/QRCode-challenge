@@ -1,22 +1,13 @@
-import {
-  Application,
-  Assets,
-  Container,
-  Texture,
-  Rectangle,
-  TextureSource,
-  Sprite,
-  Graphics,
-} from "pixi.js";
-import { Player } from "./Entities/Player";
-import { Enemy } from "./Entities/Enemy";
+import { Application, Assets, Container, Texture, Rectangle, TextureSource, Sprite } from "pixi.js";
+import { Player } from "@entities/Player";
+import { Enemy } from "@entities/Enemy";
 import { InputCommandMapper } from "./input/InputCommandMapper";
 import { InputManager } from "./input/InputManager";
 import { DamageNumberManager } from "./VFX/DamageNumberManager";
 import * as Constants from "./utils/Constants";
 import { Time } from "./core/Time";
 import { Camera } from "./core/Camera";
-import NPC from "./Entities/NPC";
+import NPC from "@entities/NPC";
 
 import "./style.css";
 
@@ -26,7 +17,6 @@ import elvenMageSprite from "./assets/sprites/_elven_mage.png";
 import blackSmithSprite from "./assets/sprites/_blacksmith.png";
 import fountainSprite from "./assets/sprites/_fountain.png";
 import treeSprite from "./assets/sprites/_tree.png";
-import mapSprite from "./assets/sprites/_map.png";
 import goblinMaceSprite from "./assets/sprites/_goblin-mace-shield.png";
 import sword_vfx from "./assets/sprites/_sword_slash.png";
 import trainingMapTiles from "./assets/sprites/_training-tiles.png";
@@ -34,9 +24,12 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
 (async () => {
   const game: Application = new Application();
   await game.init({
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: Constants.LOGICAL_WIDTH,
+    height: Constants.LOGICAL_HEIGHT,
     background: "#d2d2d2",
+    resizeTo: window,
+    resolution: window.devicePixelRatio,
+    autoDensity: true,
   });
   document.body.appendChild(game.canvas);
 
@@ -49,7 +42,6 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
     blackSmithSprite,
     fountainSprite,
     treeSprite,
-    mapSprite,
   ]);
 
   const world: Container = new Container();
@@ -174,7 +166,7 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
   tree.position.x = 1000;
   tree.position.y = 350;
 
-  const camera = new Camera(testMap, player);
+  const camera = new Camera(game, testMap, player);
 
   const enemiesList: Enemy[] = [];
 
@@ -193,8 +185,6 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
   world.addChild(blacksmith.container);
   world.addChild(player.container);
   // world.addChild(...walls.map((wall) => wall.container));
-
-  camera.container.scale.set(Constants.SCALE_FACTOR);
 
   enemiesList.push(enemy_01, enemy_02, enemy_03, ranged_enemy_01);
 
@@ -219,6 +209,8 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
 
     Time.update(ticker.deltaMS);
 
+    healthHUD.innerText = `HP: ${player.currentHP} / ${player.maxHP}`;
+
     while (step >= Constants.FIXED_TIMESTEP) {
       updateGame(Constants.FIXED_TIMESTEP);
       step -= Constants.FIXED_TIMESTEP;
@@ -229,11 +221,9 @@ import trainingMapTiles from "./assets/sprites/_training-tiles.png";
     input.poll();
 
     if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(deltaMS);
-
     if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(deltaMS);
 
     player.update(deltaMS);
-    healthHUD.innerText = `HP: ${player.currentHP} / ${player.maxHP}`;
 
     enemiesList.forEach((enemy) => enemy.update(deltaMS));
     elvenMage.update();

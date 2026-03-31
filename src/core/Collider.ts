@@ -1,6 +1,6 @@
 import { Graphics, type Container } from "pixi.js";
-import type { Enemy } from "../Entities/Enemy";
-import type { Player } from "../Entities/Player";
+import type { Enemy } from "@entities/Enemy";
+import type { Player } from "@entities/Player";
 
 export class Collider {
   private width: number;

@@ -1,7 +1,7 @@
 {
-  "name": "xiv-demake-ts",
+  "name": "exuvia-engine",
+  "version": "0.6.0",
   "private": true,
-  "version": "0.5.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,10 +11,11 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.10.1",
+    "@types/node": "^25.5.0",
     "typescript": "~5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^8.0.3"
   },
   "dependencies": {
-    "pixi.js": "^8.16.0"
+    "pixi.js": "^8.17.1"
   }
 }
