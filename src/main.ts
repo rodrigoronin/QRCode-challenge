@@ -1,4 +1,5 @@
-import { Application, Assets, Container, Texture, Rectangle, TextureSource, Sprite } from "pixi.js";
+import { Application, Container, Texture, Rectangle, TextureSource, Sprite } from "pixi.js";
+import { AssetLoader } from "@core/AssetLoader";
 import { Player } from "@entities/Player";
 import { Enemy } from "@entities/Enemy";
 import { InputCommandMapper } from "@input/InputCommandMapper";
@@ -10,16 +11,6 @@ import { Camera } from "./core/Camera";
 import NPC from "@entities/NPC";
 
 import "./style.css";
-
-// Assets
-import playerSprite from "@sprites/_wizard.png";
-import elvenMageSprite from "@sprites/_elven_mage.png";
-import blackSmithSprite from "@sprites/_blacksmith.png";
-import fountainSprite from "@sprites/_fountain.png";
-import treeSprite from "@sprites/_tree.png";
-import goblinMaceSprite from "@sprites/_goblin-mace-shield.png";
-import sword_vfx from "@sprites/_sword_slash.png";
-import trainingMapTiles from "@sprites/_training-tiles.png";
 
 (async () => {
   const game: Application = new Application();
@@ -33,79 +24,70 @@ import trainingMapTiles from "@sprites/_training-tiles.png";
   });
   document.body.appendChild(game.canvas);
 
-  const assets = await assetLoader([
-    playerSprite,
-    goblinMaceSprite,
-    sword_vfx,
-    trainingMapTiles,
-    elvenMageSprite,
-    blackSmithSprite,
-    fountainSprite,
-    treeSprite,
-  ]);
+  const assets = new AssetLoader();
+  await assets.init();
 
   const world: Container = new Container();
 
+  const playerTexture = assets.getTexture("sprites/_wizard");
+  const elvenMageTexture = assets.getTexture("sprites/elven_mage");
+  const blackSmithTexture = assets.getTexture("sprites/_blacksmith");
+  const swordSlash = assets.getTexture("sprites/_sword_slash");
+  const goblinMaceShield = assets.getTexture("sprites/goblin-mace-shield");
+  const trainingMapTexture = assets.getTexture("sprites/training-tiles");
+  const fountainTexture = assets.getTexture("sprites/fountain");
+  const treeTexture = assets.getTexture("sprites/tree");
+
   const frameSize: number = 64;
-  const playerTexture = playerSprite.slice(playerSprite.indexOf("_"), playerSprite.indexOf("."));
-  const elvenMageTexture = elvenMageSprite.slice(
-    elvenMageSprite.indexOf("_"),
-    elvenMageSprite.indexOf("."),
-  );
-  const blackSmithTexture = blackSmithSprite.slice(
-    blackSmithSprite.indexOf("_"),
-    blackSmithSprite.indexOf("."),
-  );
 
-  // Current player animations spritesheet has:
-  // Lines 0, 1, 2, 3 -> idle_down, walk_left, walk_down, walk_up
   const frames = {
-    idle_down: frameSlicer(assets[playerTexture], frameSize, 1, 0, 2),
-    walk_down: frameSlicer(assets[playerTexture], frameSize, 1, 0, 2),
+    idle_down: frameSlicer(playerTexture, frameSize, 1, 0, 2),
+    walk_down: frameSlicer(playerTexture, frameSize, 1, 0, 2),
 
-    idle_left: frameSlicer(assets[playerTexture], frameSize, 1, 0),
-    walk_left: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    idle_left: frameSlicer(playerTexture, frameSize, 1, 0),
+    walk_left: frameSlicer(playerTexture, frameSize, 1, 0),
 
-    idle_up: frameSlicer(assets[playerTexture], frameSize, 1, 0, 1),
-    walk_up: frameSlicer(assets[playerTexture], frameSize, 1, 0, 1),
+    idle_up: frameSlicer(playerTexture, frameSize, 1, 0, 1),
+    walk_up: frameSlicer(playerTexture, frameSize, 1, 0, 1),
 
-    idle_right: frameSlicer(assets[playerTexture], frameSize, 1, 0),
-    walk_right: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    idle_right: frameSlicer(playerTexture, frameSize, 1, 0),
+    walk_right: frameSlicer(playerTexture, frameSize, 1, 0),
 
-    dash_down: frameSlicer(assets[playerTexture], frameSize, 1, 0),
-    dash_right: frameSlicer(assets[playerTexture], frameSize, 1, 0),
-    dash_up: frameSlicer(assets[playerTexture], frameSize, 1, 0),
-    dash_left: frameSlicer(assets[playerTexture], frameSize, 1, 0),
+    dash_down: frameSlicer(playerTexture, frameSize, 1, 0),
+    dash_right: frameSlicer(playerTexture, frameSize, 1, 0),
+    dash_up: frameSlicer(playerTexture, frameSize, 1, 0),
+    dash_left: frameSlicer(playerTexture, frameSize, 1, 0),
   };
 
   const elvenMageFrames = {
-    idle_down: frameSlicer(assets[elvenMageTexture], frameSize, 1, 0),
+    idle_down: frameSlicer(elvenMageTexture, frameSize, 1, 0),
   };
   const blacksmithFrames = {
-    idle_down: frameSlicer(assets[blackSmithTexture], frameSize, 1, 0),
+    idle_down: frameSlicer(blackSmithTexture, frameSize, 1, 0),
   };
 
   const daggerVFXFrames = {
-    attack_up: frameSlicer(assets["_sword_slash"], 81, 7, 1),
-    attack_down: frameSlicer(assets["_sword_slash"], 81, 7, 1),
+    attack_up: frameSlicer(swordSlash, 81, 7, 1),
+    attack_down: frameSlicer(swordSlash, 81, 7, 1),
 
-    attack_right: frameSlicer(assets["_sword_slash"], 81, 7, 0),
-    attack_left: frameSlicer(assets["_sword_slash"], 81, 7, 0),
+    attack_right: frameSlicer(swordSlash, 81, 7, 0),
+    attack_left: frameSlicer(swordSlash, 81, 7, 0),
   };
 
   const enemyFrames = {
-    idle_down: frameSlicer(assets["_gobling-mace-shield"], frameSize, 1, 0),
-    idle_left: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
-    idle_up: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
-    idle_right: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
-    walk_down: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
-    walk_right: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
-    walk_up: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
-    walk_left: frameSlicer(assets["_goblin-mace-shield"], frameSize, 1, 0),
+    idle_down: frameSlicer(goblinMaceShield, frameSize, 1, 0),
+    idle_left: frameSlicer(goblinMaceShield, frameSize, 1, 0),
+    idle_up: frameSlicer(goblinMaceShield, frameSize, 1, 0),
+    idle_right: frameSlicer(goblinMaceShield, frameSize, 1, 0),
+    walk_down: frameSlicer(goblinMaceShield, frameSize, 1, 0),
+    walk_right: frameSlicer(goblinMaceShield, frameSize, 1, 0),
+    walk_up: frameSlicer(goblinMaceShield, frameSize, 1, 0),
+    walk_left: frameSlicer(goblinMaceShield, frameSize, 1, 0),
   };
 
   const player: Player = new Player(frames, daggerVFXFrames);
-  // const elvenMage: Player = new Player(elvenMageFrames, daggerVFXFrames);
+  player.container.position.x = 100;
+  player.container.position.y = 100;
   const elvenMage: NPC = new NPC(elvenMageFrames);
   elvenMage.container.position.x = 470;
   elvenMage.container.position.y = 752;
@@ -127,28 +109,11 @@ import trainingMapTiles from "@sprites/_training-tiles.png";
   ranged_enemy_01.container.x = 750;
   ranged_enemy_01.container.y = 312;
 
-  const map: Sprite = new Sprite(
-    new Texture({
-      source: assets["_map"],
-      frame: new Rectangle(0, 0, 1024, 1024),
-    }),
-  );
-  map.texture.source.scaleMode = "nearest";
-
-  player.container.position.x = map.width / 2;
-  player.container.position.y = map.height / 2;
-
-  const testMap = generateTestMap(
-    frameSlicer(assets["_training-tiles"], 32, 3, 0),
-    32,
-    32,
-    2048,
-    2048,
-  );
+  const testMap = generateTestMap(frameSlicer(trainingMapTexture, 32, 3, 0), 32, 32, 2048, 2048);
 
   const fountain: Sprite = new Sprite(
     new Texture({
-      source: assets["_fountain"],
+      source: fountainTexture.source,
       frame: new Rectangle(0, 0, 84, 71),
     }),
   );
@@ -158,7 +123,7 @@ import trainingMapTiles from "@sprites/_training-tiles.png";
 
   const tree: Sprite = new Sprite(
     new Texture({
-      source: assets["_tree"],
+      source: treeTexture.source,
       frame: new Rectangle(0, 0, 103, 140),
     }),
   );
@@ -238,7 +203,7 @@ import trainingMapTiles from "@sprites/_training-tiles.png";
 // TODO: Refactor this to accept bigger animations starting
 // from the columns > 0
 function frameSlicer(
-  s: TextureSource<any>,
+  texture: Texture,
   frameSize: number,
   frameCount: number,
   startRow: number,
@@ -249,7 +214,7 @@ function frameSlicer(
   if (frameCount === 1) {
     frames.push(
       new Texture({
-        source: s,
+        source: texture.source,
         frame: new Rectangle(startColumn * frameSize, startRow * frameSize, frameSize, frameSize),
       }),
     );
@@ -260,26 +225,13 @@ function frameSlicer(
   for (let i = 0; i < frameCount; i++) {
     frames.push(
       new Texture({
-        source: s,
+        source: texture.source,
         frame: new Rectangle(i * frameSize, startRow * frameSize, frameSize, frameSize),
       }),
     );
   }
 
   return frames;
-}
-
-async function assetLoader(textures: string[]): Promise<Record<string, TextureSource>> {
-  let result: Record<string, TextureSource> = {};
-  for (const texture of textures) {
-    const newTexture: Texture = await Assets.load(texture);
-    const source = newTexture.source;
-    source.scaleMode = "nearest";
-
-    result = { ...result, [texture.slice(texture.indexOf("_")).replace(".png", "")]: source };
-  }
-
-  return result;
 }
 
 function generateTestMap(
