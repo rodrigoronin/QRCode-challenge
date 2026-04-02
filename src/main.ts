@@ -328,3 +328,24 @@ function generateHUD(elem: HTMLElement) {
 
   document.body.prepend(elem);
 }
+
+export async function loadAllTextures() {
+  const modules: Record<string, any> = import.meta.glob("@assets/sprites/**/*.png", {
+    eager: true,
+    import: "default",
+  });
+
+  const textures = new Map<string, string>();
+
+  for (const path in modules) {
+    console.log(path);
+    const name: string = path.replace("/src/assets/", "").replace(".png", "");
+    const url: string = modules[path];
+
+    const texture = await Assets.load(url);
+    texture.source.scaleMode = "nearest";
+    textures.set(name, texture);
+  }
+}
+
+await loadAllTextures();
