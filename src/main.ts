@@ -335,10 +335,9 @@ export async function loadAllTextures() {
     import: "default",
   });
 
-  const textures = new Map<string, string>();
+  const textures = new Map<string, Texture>();
 
   for (const path in modules) {
-    console.log(path);
     const name: string = path.replace("/src/assets/", "").replace(".png", "");
     const url: string = modules[path];
 
