@@ -232,19 +232,6 @@ function frameSlicer(
   return frames;
 }
 
-async function assetLoader(textures: string[]): Promise<Record<string, TextureSource>> {
-  let result: Record<string, TextureSource> = {};
-  for (const texture of textures) {
-    const newTexture: Texture = await Assets.load(texture);
-    const source = newTexture.source;
-    source.scaleMode = "nearest";
-
-    result = { ...result, [texture.slice(texture.indexOf("_")).replace(".png", "")]: source };
-  }
-
-  return result;
-}
-
 function generateTestMap(
   tiles: Texture<TextureSource<any>>[],
   tileWidth: number,
@@ -290,26 +277,4 @@ function generateHUD(elem: HTMLElement) {
   elem.style.left = "1rem";
 
   document.body.prepend(elem);
-}
-
-export async function loadAllTextures(): Promise<Map<string, TextureSource>> {
-  const modules: Record<string, any> = import.meta.glob("@assets/sprites/**/*.png", {
-    eager: true,
-    import: "default",
-  });
-
-  const textures = new Map<string, TextureSource>();
-
-  for (const path in modules) {
-    const name: string = path.replace("/src/assets/", "").replace(".png", "");
-    const url: string = modules[path];
-
-    const texture: Texture = await Assets.load(url);
-    const source = texture.source;
-    source.scaleMode = "nearest";
-
-    textures.set(name, source);
-  }
-
-  return textures;
 }
