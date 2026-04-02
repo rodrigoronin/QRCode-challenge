@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Texture, Rectangle, TextureSource, Sprite } from "pixi.js";
+import { Application, Container, Texture, Rectangle, TextureSource, Sprite } from "pixi.js";
 import { AssetLoader } from "@core/AssetLoader";
 import { Player } from "@entities/Player";
 import { Enemy } from "@entities/Enemy";
@@ -29,7 +29,6 @@ import "./style.css";
 
   const world: Container = new Container();
 
-  const frameSize: number = 64;
   const playerTexture = assets.getTexture("sprites/_wizard");
   const elvenMageTexture = assets.getTexture("sprites/elven_mage");
   const blackSmithTexture = assets.getTexture("sprites/_blacksmith");
@@ -38,6 +37,8 @@ import "./style.css";
   const trainingMapTexture = assets.getTexture("sprites/training-tiles");
   const fountainTexture = assets.getTexture("sprites/fountain");
   const treeTexture = assets.getTexture("sprites/tree");
+
+  const frameSize: number = 64;
 
   const frames = {
     idle_down: frameSlicer(playerTexture, frameSize, 1, 0, 2),
@@ -85,7 +86,8 @@ import "./style.css";
   };
 
   const player: Player = new Player(frames, daggerVFXFrames);
-  // const elvenMage: Player = new Player(elvenMageFrames, daggerVFXFrames);
+  player.container.position.x = 100;
+  player.container.position.y = 100;
   const elvenMage: NPC = new NPC(elvenMageFrames);
   elvenMage.container.position.x = 470;
   elvenMage.container.position.y = 752;
