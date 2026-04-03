@@ -1,5 +1,31 @@
 # Patch Notes
 
+## [0.6.1] - Refactor
+
+### ✨ Added
+
+- Introduced `AssetLoader` class to centralize asset management
+
+### 🔧 Changed
+
+- Removed manual asset loading logic from `main.ts`
+- Moved texture loading flow into a dedicated system
+- Replaced direct asset imports with dynamic loading using `import.meta.glob`
+- Standardized asset naming and access through a `Map<string, Texture>`
+
+### ⚡ Improvements
+
+- Reduced complexity and size of `main.ts`
+- Improved scalability for adding new assets (no more manual imports required)
+- Simplified texture access via `getTexture()`
+
+### 🐛 Fixed
+
+- Fixed issue where textures were not being loaded due to missing function invocation (`loadAllTextures()`)
+- Ensured async initialization flow is properly awaited before asset usage
+
+---
+
 ## 0.6.0
 
 ### ✨ Added
