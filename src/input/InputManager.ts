@@ -75,19 +75,33 @@ export class InputManager {
   }
 
   public commit() {
-    this.prevButtons = { ...this.buttons, ...this.gamepadButtons };
+    const keys = new Set([
+      ...Object.keys(this.prevButtons),
+      ...Object.keys(this.buttons),
+      ...Object.keys(this.gamepadButtons),
+    ]);
+
+    for (const key of keys) {
+      this.prevButtons[key] = this.getActionState(key);
+    }
   }
 
   private pollGamepad() {
     this.gamepadActive = false;
     const pads = navigator.getGamepads();
-    if (!pads) return;
 
     const keyToAction: Record<string, InputAction> = {
       x: "ATTACK",
       a: "DASH",
       y: "INTERACT",
     };
+
+    if (!pads) {
+      for (const action of Object.values(keyToAction)) {
+        this.gamepadButtons[action] = false;
+      }
+      return;
+    }
 
     const gamePadMapper = {
       x: pads[0]?.buttons[2].pressed,
@@ -141,19 +155,23 @@ export class InputManager {
     }
   }
 
-  isPressed(key: string) {
+  private getActionState(key: string): boolean {
     return !!this.buttons[key] || !!this.gamepadButtons[key];
+  }
+
+  isPressed(key: string) {
+    return this.getActionState(key);
   }
 
   wasJustPressed(key: string): boolean {
     const prev = !!this.prevButtons[key];
-    const cur = !!this.buttons[key] || !!this.gamepadButtons[key];
+    const cur = this.getActionState(key);
     return !prev && cur;
   }
 
   wasJustReleased(key: string) {
     const prev = !!this.prevButtons[key];
-    const cur = !!this.buttons[key] || !!this.gamepadButtons[key];
+    const cur = this.getActionState(key);
     return prev && !cur;
   }
 

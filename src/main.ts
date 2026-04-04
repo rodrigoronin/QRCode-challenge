@@ -26,7 +26,7 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   document.body.appendChild(game.canvas);
 
   const assets = new AssetLoader();
-  const interactSystem = new InteractionSystem();
+  const interactionSystem = new InteractionSystem();
 
   await assets.init();
 
@@ -96,7 +96,7 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   blacksmith.container.position.x = 410;
   blacksmith.container.position.y = 150;
 
-  interactSystem.register(elvenMage.interactable);
+  interactionSystem.register(elvenMage.interactable);
 
   // Enemy spawns
   const enemy_01 = new Enemy(enemyFrames, player, daggerVFXFrames);
@@ -164,7 +164,7 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
 
   enemiesList.push(enemy_01, enemy_02, enemy_03, ranged_enemy_01);
 
-  const commandMapper: InputCommandMapper = new InputCommandMapper(player, interactSystem);
+  const commandMapper: InputCommandMapper = new InputCommandMapper(player, interactionSystem);
   const input = InputManager.get();
 
   let step: number = 0;
@@ -183,6 +183,8 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   navigator.getGamepads();
 
   game.ticker.add((ticker) => {
+    input.poll();
+
     step += ticker.deltaMS;
 
     Time.update(ticker.deltaMS);
@@ -191,13 +193,12 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
 
     while (step >= Constants.FIXED_TIMESTEP) {
       updateGame(Constants.FIXED_TIMESTEP);
+      input.commit();
       step -= Constants.FIXED_TIMESTEP;
     }
   });
 
   function updateGame(deltaMS: number) {
-    input.poll();
-
     if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(deltaMS);
     if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(deltaMS);
     if (input.wasJustPressed("INTERACT")) commandMapper.get("INTERACT")?.execute(deltaMS);
@@ -209,12 +210,11 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
     camera.update();
     updateInteractionHint();
 
-    input.commit();
     DamageNumberManager.update(deltaMS);
   }
 
   function updateInteractionHint() {
-    const interactable = interactSystem.getBestInRange(player);
+    const interactable = interactionSystem.getBestInRange(player);
 
     if (!interactable) {
       interactionHint.style.display = "none";
