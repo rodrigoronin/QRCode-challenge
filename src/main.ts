@@ -11,6 +11,7 @@ import { Camera } from "./core/Camera";
 import NPC from "@entities/NPC";
 
 import "./style.css";
+import { InteractionSystem } from "@core/systems/InteractionSystem";
 
 (async () => {
   const game: Application = new Application();
@@ -25,9 +26,9 @@ import "./style.css";
   document.body.appendChild(game.canvas);
 
   const assets = new AssetLoader();
-  await assets.init();
+  const interactSystem = new InteractionSystem();
 
-  const world: Container = new Container();
+  await assets.init();
 
   const playerTexture = assets.getTexture("sprites/_wizard");
   const elvenMageTexture = assets.getTexture("sprites/elven_mage");
@@ -90,10 +91,12 @@ import "./style.css";
   player.container.position.y = 100;
   const elvenMage: NPC = new NPC(elvenMageFrames);
   elvenMage.container.position.x = 470;
-  elvenMage.container.position.y = 752;
+  elvenMage.container.position.y = 150;
   const blacksmith: Player = new Player(blacksmithFrames, daggerVFXFrames);
   blacksmith.container.position.x = 410;
-  blacksmith.container.position.y = 280;
+  blacksmith.container.position.y = 150;
+
+  interactSystem.register(elvenMage.interactable);
 
   // Enemy spawns
   const enemy_01 = new Enemy(enemyFrames, player, daggerVFXFrames);
@@ -109,7 +112,13 @@ import "./style.css";
   ranged_enemy_01.container.x = 750;
   ranged_enemy_01.container.y = 312;
 
-  const testMap = generateTestMap(frameSlicer(trainingMapTexture, 32, 3, 0), 32, 32, 2048, 2048);
+  const trainingMap = generateTestMap(
+    frameSlicer(trainingMapTexture, 32, 3, 0),
+    32,
+    32,
+    2048,
+    2048,
+  );
 
   const fountain: Sprite = new Sprite(
     new Texture({
@@ -118,8 +127,8 @@ import "./style.css";
     }),
   );
 
-  fountain.position.x = 250;
-  fountain.position.y = 200;
+  fountain.position.x = 950;
+  fountain.position.y = 460;
 
   const tree: Sprite = new Sprite(
     new Texture({
@@ -131,38 +140,42 @@ import "./style.css";
   tree.position.x = 1000;
   tree.position.y = 350;
 
-  const camera = new Camera(game, testMap, player);
+  const camera = new Camera(game, trainingMap, player);
 
   const enemiesList: Enemy[] = [];
+
+  const world: Container = new Container();
 
   // CONTAINER HIERARCHY
   game.stage.addChild(camera.container);
   camera.container.addChild(world);
-  // world.addChild(map);
-  world.addChild(testMap);
-  world.addChild(enemy_01.container);
-  world.addChild(enemy_02.container);
-  world.addChild(enemy_03.container);
-  world.addChild(ranged_enemy_01.container);
-  // world.addChild(fountain);
-  world.addChild(tree);
-  world.addChild(elvenMage.container);
-  world.addChild(blacksmith.container);
-  world.addChild(player.container);
-  // world.addChild(...walls.map((wall) => wall.container));
+  world.addChild(
+    trainingMap,
+    ranged_enemy_01.container,
+    tree,
+    elvenMage.container,
+    blacksmith.container,
+    fountain,
+    enemy_01.container,
+    enemy_02.container,
+    enemy_03.container,
+    player.container,
+  );
 
   enemiesList.push(enemy_01, enemy_02, enemy_03, ranged_enemy_01);
 
-  const commandMapper: InputCommandMapper = new InputCommandMapper(player);
+  const commandMapper: InputCommandMapper = new InputCommandMapper(player, interactSystem);
   const input = InputManager.get();
 
   let step: number = 0;
 
   const healthHUD = document.createElement("span");
   const magicHUD = document.createElement("span");
+  const interactionHint = document.createElement("span");
 
   generateHUD(magicHUD);
   generateHUD(healthHUD);
+  generateInteractionHint(interactionHint);
 
   magicHUD.style.left = "18rem";
   magicHUD.innerText = `MP: ${20} / ${20}`;
@@ -187,15 +200,29 @@ import "./style.css";
 
     if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(deltaMS);
     if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(deltaMS);
+    if (input.wasJustPressed("INTERACT")) commandMapper.get("INTERACT")?.execute(deltaMS);
 
     player.update(deltaMS);
 
     enemiesList.forEach((enemy) => enemy.update(deltaMS));
     elvenMage.update();
     camera.update();
+    updateInteractionHint();
 
     input.commit();
     DamageNumberManager.update(deltaMS);
+  }
+
+  function updateInteractionHint() {
+    const interactable = interactSystem.getBestInRange(player);
+
+    if (!interactable) {
+      interactionHint.style.display = "none";
+      return;
+    }
+
+    interactionHint.innerText = `Press X to ${interactable.interactionText}`;
+    interactionHint.style.display = "block";
   }
 })();
 
@@ -271,12 +298,31 @@ function generateTestMap(
 
 function generateHUD(elem: HTMLElement) {
   elem.style.fontFamily = "Arial";
-  // elem.style.color = "silver";
+  elem.style.color = "black";
+  elem.style.backgroundColor = "green";
   elem.style.fontSize = "2rem";
   elem.style.fontWeight = "700";
   elem.style.position = "absolute";
   elem.style.top = "1rem";
   elem.style.left = "1rem";
+
+  document.body.prepend(elem);
+}
+
+function generateInteractionHint(elem: HTMLElement) {
+  elem.style.fontFamily = "Arial";
+  elem.style.color = "white";
+  elem.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
+  elem.style.fontSize = "1.5rem";
+  elem.style.fontWeight = "700";
+  elem.style.position = "absolute";
+  elem.style.left = "50%";
+  elem.style.bottom = "2rem";
+  elem.style.transform = "translateX(-50%)";
+  elem.style.padding = "0.75rem 1rem";
+  elem.style.borderRadius = "0.5rem";
+  elem.style.display = "none";
+  elem.style.pointerEvents = "none";
 
   document.body.prepend(elem);
 }
