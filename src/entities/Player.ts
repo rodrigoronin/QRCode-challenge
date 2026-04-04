@@ -1,11 +1,11 @@
 import { Sprite, Texture, ColorMatrixFilter, Point } from "pixi.js";
-import { Entity } from "../core/Entity";
-import { InputManager } from "../input/InputManager";
-import { AnimationController } from "../core/AnimationController";
-import { Collider } from "../core/Collider";
-import { AttackCollider } from "../core/AttackCollider";
-import { CollisionManager } from "../core/CollisionManager";
-import { AttackComponent } from "../core/AttackComponent";
+import { Entity } from "@core/Entity";
+import { InputManager } from "@input/InputManager";
+import { AnimationController } from "@core/AnimationController";
+import { Collider } from "@core/Collider";
+import { AttackCollider } from "@core/AttackCollider";
+import { CollisionManager } from "@core/CollisionManager";
+import { AttackComponent } from "@core/AttackComponent";
 import { DamageNumberManager } from "../VFX/DamageNumberManager";
 
 type Direction = "up" | "down" | "left" | "right";
@@ -22,7 +22,7 @@ export class Player extends Entity {
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private speed = 150; // pixels/second
+  private speed = 350; // pixels/second
   public tag: string = "player";
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
