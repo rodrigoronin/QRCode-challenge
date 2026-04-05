@@ -17,7 +17,7 @@ class NPC extends Entity {
     this.frames = frames;
     this.anim = new AnimationController(this.sprite, true);
     this.setupAnimations();
-    this.interactable = new InteractableComponent(this, 1, "Talk", this.onInteract);
+    this.interactable = new InteractableComponent(this, 1, "Talk", this.onInteract.bind(this));
 
     this.container.addChild(this.sprite);
   }
@@ -33,7 +33,7 @@ class NPC extends Entity {
   }
 
   onInteract() {
-    console.log("Interacted!");
+    console.log(`Interacted with ${this.tag}`);
   }
 }
 

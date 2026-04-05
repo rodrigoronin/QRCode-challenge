@@ -22,8 +22,7 @@ export class Player extends Entity {
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private speed = 350; // pixels/second
-  public tag: string = "player";
+  private speed = 150; // pixels/second
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   // Dash variables
@@ -54,6 +53,7 @@ export class Player extends Entity {
     this.frames = frames;
     this.VFXFrames = VFXFrames;
 
+    this.setTag("Player");
     this.sprite = new Sprite(this.frames["idle_down"][0]);
     this.sprite.anchor.set(0.5);
     this.anim = new AnimationController(this.sprite, true);
