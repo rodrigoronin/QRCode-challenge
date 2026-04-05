@@ -1,11 +1,11 @@
 import { Sprite, Texture, ColorMatrixFilter, Point } from "pixi.js";
-import { Entity } from "../core/Entity";
-import { InputManager } from "../input/InputManager";
-import { AnimationController } from "../core/AnimationController";
-import { Collider } from "../core/Collider";
-import { AttackCollider } from "../core/AttackCollider";
-import { CollisionManager } from "../core/CollisionManager";
-import { AttackComponent } from "../core/AttackComponent";
+import { Entity } from "@core/Entity";
+import { InputManager } from "@input/InputManager";
+import { AnimationController } from "@core/AnimationController";
+import { Collider } from "@core/Collider";
+import { AttackCollider } from "@core/AttackCollider";
+import { CollisionManager } from "@core/CollisionManager";
+import { AttackComponent } from "@core/AttackComponent";
 import { DamageNumberManager } from "../VFX/DamageNumberManager";
 
 type Direction = "up" | "down" | "left" | "right";
@@ -23,7 +23,6 @@ export class Player extends Entity {
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
   private speed = 150; // pixels/second
-  public tag: string = "player";
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   // Dash variables
@@ -54,6 +53,7 @@ export class Player extends Entity {
     this.frames = frames;
     this.VFXFrames = VFXFrames;
 
+    this.setTag("Player");
     this.sprite = new Sprite(this.frames["idle_down"][0]);
     this.sprite.anchor.set(0.5);
     this.anim = new AnimationController(this.sprite, true);

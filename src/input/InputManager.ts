@@ -1,4 +1,4 @@
-export type InputAction = "ATTACK" | "DASH";
+export type InputAction = "ATTACK" | "DASH" | "INTERACT";
 
 export class InputManager {
   private gamepadButtons: Record<string, boolean> = {};
@@ -39,6 +39,7 @@ export class InputManager {
     const keyToAction: Record<string, InputAction> = {
       KeyJ: "ATTACK",
       Space: "DASH",
+      KeyX: "INTERACT",
     };
 
     window.addEventListener("keydown", (e) => {
@@ -74,22 +75,38 @@ export class InputManager {
   }
 
   public commit() {
-    this.prevButtons = { ...this.buttons, ...this.gamepadButtons };
+    const keys = new Set([
+      ...Object.keys(this.prevButtons),
+      ...Object.keys(this.buttons),
+      ...Object.keys(this.gamepadButtons),
+    ]);
+
+    for (const key of keys) {
+      this.prevButtons[key] = this.getActionState(key);
+    }
   }
 
   private pollGamepad() {
     this.gamepadActive = false;
     const pads = navigator.getGamepads();
-    if (!pads) return;
 
     const keyToAction: Record<string, InputAction> = {
       x: "ATTACK",
       a: "DASH",
+      y: "INTERACT",
     };
+
+    if (!pads) {
+      for (const action of Object.values(keyToAction)) {
+        this.gamepadButtons[action] = false;
+      }
+      return;
+    }
 
     const gamePadMapper = {
       x: pads[0]?.buttons[2].pressed,
       a: pads[0]?.buttons[0].pressed,
+      y: pads[0]?.buttons[3].pressed,
     };
 
     for (const pad of pads) {
@@ -117,6 +134,9 @@ export class InputManager {
     // DASH (XBOX B)
     if (gamePadMapper.a) this.gamepadButtons[keyToAction.a] = true;
     else this.gamepadButtons[keyToAction.a] = false;
+    // INTERACT (XBOX Y)
+    if (gamePadMapper.y) this.gamepadButtons[keyToAction.y] = true;
+    else this.gamepadButtons[keyToAction.y] = false;
   }
 
   private combineSources() {
@@ -135,19 +155,23 @@ export class InputManager {
     }
   }
 
-  isPressed(key: string) {
+  private getActionState(key: string): boolean {
     return !!this.buttons[key] || !!this.gamepadButtons[key];
+  }
+
+  isPressed(key: string) {
+    return this.getActionState(key);
   }
 
   wasJustPressed(key: string): boolean {
     const prev = !!this.prevButtons[key];
-    const cur = !!this.buttons[key] || !!this.gamepadButtons[key];
+    const cur = this.getActionState(key);
     return !prev && cur;
   }
 
   wasJustReleased(key: string) {
     const prev = !!this.prevButtons[key];
-    const cur = !!this.buttons[key] || !!this.gamepadButtons[key];
+    const cur = this.getActionState(key);
     return prev && !cur;
   }
 
