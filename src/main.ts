@@ -32,7 +32,7 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
 
   const playerTexture = assets.getTexture("sprites/_wizard");
   const elvenMageTexture = assets.getTexture("sprites/elven_mage");
-  const blackSmithTexture = assets.getTexture("sprites/_blacksmith");
+  const blackSmithTexture = assets.getTexture("sprites/blacksmith");
   const swordSlash = assets.getTexture("sprites/_sword_slash");
   const goblinMaceShield = assets.getTexture("sprites/goblin-mace-shield");
   const trainingMapTexture = assets.getTexture("sprites/training-tiles");
@@ -90,13 +90,16 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   player.container.position.x = 100;
   player.container.position.y = 100;
   const elvenMage: NPC = new NPC(elvenMageFrames);
+  elvenMage.setTag("Elven Mage");
   elvenMage.container.position.x = 470;
   elvenMage.container.position.y = 150;
-  const blacksmith: Player = new Player(blacksmithFrames, daggerVFXFrames);
-  blacksmith.container.position.x = 410;
+  const blacksmith: NPC = new NPC(blacksmithFrames);
+  blacksmith.tag = "Balcksmith";
+  blacksmith.container.position.x = 400;
   blacksmith.container.position.y = 150;
 
   interactionSystem.register(elvenMage.interactable);
+  interactionSystem.register(blacksmith.interactable);
 
   // Enemy spawns
   const enemy_01 = new Enemy(enemyFrames, player, daggerVFXFrames);
@@ -207,6 +210,7 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
 
     enemiesList.forEach((enemy) => enemy.update(deltaMS));
     elvenMage.update();
+    blacksmith.update();
     camera.update();
     updateInteractionHint();
 
