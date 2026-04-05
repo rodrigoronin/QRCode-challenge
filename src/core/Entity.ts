@@ -2,6 +2,7 @@ import { Container, Point } from "pixi.js";
 
 export abstract class Entity {
   public container: Container;
+  public tag: string = "entity";
 
   constructor() {
     this.container = new Container();
@@ -26,5 +27,9 @@ export abstract class Entity {
     const dy = this.position.y - other.position.y;
 
     return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  setTag(name: string) {
+    this.tag = name;
   }
 }
