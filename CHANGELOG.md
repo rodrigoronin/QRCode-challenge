@@ -1,5 +1,35 @@
 # Patch Notes
 
+## [0.7.0] - Interaction System (Initial)
+
+### ✨ Added
+
+* Basic InteractionSystem
+* InteractableComponent
+* Player interaction input
+* Priority-based selection
+* Basic tag system for Entity
+
+🔧 Changes
+
+None
+
+⚡ Improvements
+
+None
+
+🐛 Fixed
+
+* Blacksmith NPC was using Player class, changed to use NPC class
+* Preserve just-pressed input state across keyboard and gamepad sources
+
+📝 Notes
+
+* Initial implementation (no collider integration yet)
+Tooltip is placeholder
+
+---
+
 ## [0.6.1] - Refactor
 
 ### ✨ Added
