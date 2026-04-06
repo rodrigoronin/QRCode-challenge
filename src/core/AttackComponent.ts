@@ -37,7 +37,7 @@ export class AttackComponent {
 
     if (this.attackCollider.active) {
       for (let i = 0; i < hits.length; i++) {
-        if (hits[i].owner.tag !== this.target) continue;
+        if (hits[i].owner.tag.toLowerCase() !== this.target.toLowerCase()) continue;
 
         if (this.damagedSet.size < this.maxTargets && !this.damagedSet.has(hits[i])) {
           const dX = hits[i].container.x - this.owner.container.x;
