@@ -209,9 +209,11 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
     const healthPercentage = player.currentHP / player.maxHP;
 
     healthBarText.textContent = `${player.currentHP} / ${player.maxHP}`;
-    healthBar.style.width = `${healthPercentage * 11.6}rem`
+    healthBar.style.width = `${healthPercentage * 192 - 6}px`
 
     manaBarText.textContent = `${20} / ${20}`;
+
+    updateInteractionHint();
 
     // FIXED UPDATE
     while (step >= Constants.FIXED_TIMESTEP) {
@@ -222,14 +224,12 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   });
 
   function updateGame(deltaMS: number) {
-
     player.update(deltaMS);
 
     enemiesList.forEach((enemy) => enemy.update(deltaMS));
     elvenMage.update();
     blacksmith.update();
     camera.update();
-    updateInteractionHint();
 
     DamageNumberManager.update(deltaMS);
   }
@@ -242,7 +242,7 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
       return;
     }
 
-    interactionHint.innerText = `Press X to ${interactable.interactionText}`;
+    interactionHint.innerText = `Press B to ${interactable.interactionText}`;
     interactionHint.style.display = "block";
   }
 })();
@@ -322,19 +322,19 @@ function generateHUD(type: string): HTMLElement {
   const elem: HTMLElement = document.createElement(type);
   elem.style.fontFamily = "Arial";
   elem.style.color = "black";
-  elem.style.width = '12rem';
+  elem.style.width = '192px';
   elem.style.fontSize = "1.5rem";
   elem.style.fontWeight = "700";
   elem.style.position = "absolute";
   elem.style.top = "1rem";
   elem.style.left = "1rem";
-  elem.style.border = '3px solid rgba(0,0,0,0.5)'
+  elem.style.border = '3px solid rgba(0,0,0,0.75)'
   elem.style.borderTopRightRadius = '8px';
   elem.style.borderBottomLeftRadius = '8px';
 
   const bar = document.createElement('div')
   bar.style.position = 'relative';
-  bar.style.width = '11.6rem';
+  bar.style.width = 'calc(192 - 6)px';
   bar.style.borderTopRightRadius = '4px';
   bar.style.borderBottomLeftRadius = '4px';
 
