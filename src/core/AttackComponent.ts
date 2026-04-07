@@ -56,8 +56,10 @@ export class AttackComponent {
       if (closestEnemy) {
         const targetEntity = closestEnemy.owner;
         if (targetEntity?.stats && this.owner["stats"]) {
-          const damage = DamageSystem.calculate(this.owner["stats"], targetEntity.stats);
-          const isCrit = damage + 30% === this.owner['stats'].critChance;
+          const { damage, isCrit } = DamageSystem.calculate(
+            this.owner["stats"],
+            targetEntity.stats,
+          );
 
           DamageNumberSystem.spawn({
             value: damage,

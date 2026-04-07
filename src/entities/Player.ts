@@ -45,9 +45,10 @@ export class Player extends Entity {
   // stats
   public stats = new StatsComponent({
     maxHP: 30,
-    attack: 10,
+    attack: 6,
     defense: 0,
-    critChance: 0.1,
+    critChance: 0.5,
+    critMultiplier: 1.5,
   });
   private isInvincible: boolean = false;
   private isImmortalObject: boolean = false;
