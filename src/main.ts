@@ -87,8 +87,8 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   };
 
   const player: Player = new Player(frames, daggerVFXFrames);
-  player.container.position.x = 100;
-  player.container.position.y = 100;
+  player.container.position.x = 1000;
+  player.container.position.y = 400;
   const elvenMage: NPC = new NPC(elvenMageFrames);
   elvenMage.setTag("Elven Mage");
   elvenMage.container.position.x = 470;
@@ -204,7 +204,6 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
     if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(ticker.deltaMS);
     if (input.wasJustPressed("INTERACT")) {
       commandMapper.get("INTERACT")?.execute(ticker.deltaMS);
-      console.log(player.collider.getBounds());
     }
 
     // HUD
@@ -214,6 +213,8 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
     healthBar.style.width = `${healthPercentage * 192 - 6}px`;
 
     manaBarText.textContent = `${20} / ${20}`;
+
+    DamageNumberManager.update(ticker.deltaMS);
 
     updateInteractionHint();
 
@@ -232,8 +233,6 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
     elvenMage.update();
     blacksmith.update();
     camera.update();
-
-    DamageNumberManager.update(deltaMS);
   }
 
   function updateInteractionHint() {
