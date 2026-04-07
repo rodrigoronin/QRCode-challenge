@@ -186,7 +186,6 @@ export class Enemy extends Entity {
 
   protected perceptionRadar() {
     if (!this.playerRef) return;
-    if (this.playerRef.tag !== "player") return;
 
     const dx = this.playerRef.container.x - this.container.x;
     const dy = this.playerRef.container.y - this.container.y;

@@ -94,7 +94,7 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   elvenMage.container.position.x = 470;
   elvenMage.container.position.y = 150;
   const blacksmith: NPC = new NPC(blacksmithFrames);
-  blacksmith.tag = "Balcksmith";
+  blacksmith.setTag("Blacksmith");
   blacksmith.container.position.x = 400;
   blacksmith.container.position.y = 150;
 
@@ -172,28 +172,50 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
 
   let step: number = 0;
 
-  const healthHUD = document.createElement("span");
-  const magicHUD = document.createElement("span");
-  const interactionHint = document.createElement("span");
-
-  generateHUD(magicHUD);
-  generateHUD(healthHUD);
+  // TODO: refactor this later to add a proper HUD manager
+  const healthHUD = generateHUD('div');
+  const healthBar = healthHUD.firstElementChild as HTMLElement;
+  const healthBarText = healthHUD.lastElementChild as HTMLElement;
+  healthBar.style.backgroundColor = 'green';
+  healthBar.style.color = 'green';
+  healthBar.textContent = '.';
+  
+  const magicHUD = generateHUD('div');
+  magicHUD.style.left = "16rem";
+  const manaBar: HTMLElement = magicHUD.firstElementChild as HTMLElement;
+  const manaBarText: HTMLElement = magicHUD.lastElementChild as HTMLElement;
+  manaBar.style.backgroundColor = 'RoyalBlue';
+  manaBar.style.color = 'RoyalBlue';
+  manaBar.textContent = `.`;
+  
+  const interactionHint = document.createElement("div");
   generateInteractionHint(interactionHint);
 
-  magicHUD.style.left = "18rem";
-  magicHUD.innerText = `MP: ${20} / ${20}`;
-
+  
   navigator.getGamepads();
-
+  
   game.ticker.add((ticker) => {
     input.poll();
-
+    
     step += ticker.deltaMS;
-
+    
     Time.update(ticker.deltaMS);
+    
+    if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
+    if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(ticker.deltaMS);
+    if (input.wasJustPressed("INTERACT")) commandMapper.get("INTERACT")?.execute(ticker.deltaMS);
 
-    healthHUD.innerText = `HP: ${player.currentHP} / ${player.maxHP}`;
+    // HUD
+    const healthPercentage = player.currentHP / player.maxHP;
 
+    healthBarText.textContent = `${player.currentHP} / ${player.maxHP}`;
+    healthBar.style.width = `${healthPercentage * 192 - 6}px`
+
+    manaBarText.textContent = `${20} / ${20}`;
+
+    updateInteractionHint();
+
+    // FIXED UPDATE
     while (step >= Constants.FIXED_TIMESTEP) {
       updateGame(Constants.FIXED_TIMESTEP);
       input.commit();
@@ -202,17 +224,12 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   });
 
   function updateGame(deltaMS: number) {
-    if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(deltaMS);
-    if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(deltaMS);
-    if (input.wasJustPressed("INTERACT")) commandMapper.get("INTERACT")?.execute(deltaMS);
-
     player.update(deltaMS);
 
     enemiesList.forEach((enemy) => enemy.update(deltaMS));
     elvenMage.update();
     blacksmith.update();
     camera.update();
-    updateInteractionHint();
 
     DamageNumberManager.update(deltaMS);
   }
@@ -225,7 +242,7 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
       return;
     }
 
-    interactionHint.innerText = `Press X to ${interactable.interactionText}`;
+    interactionHint.innerText = `Press B to ${interactable.interactionText}`;
     interactionHint.style.display = "block";
   }
 })();
@@ -300,17 +317,37 @@ function generateTestMap(
   return container;
 }
 
-function generateHUD(elem: HTMLElement) {
+// TODO: refactor this later to add a proper HUD manager
+function generateHUD(type: string): HTMLElement {
+  const elem: HTMLElement = document.createElement(type);
   elem.style.fontFamily = "Arial";
   elem.style.color = "black";
-  elem.style.backgroundColor = "green";
-  elem.style.fontSize = "2rem";
+  elem.style.width = '192px';
+  elem.style.fontSize = "1.5rem";
   elem.style.fontWeight = "700";
   elem.style.position = "absolute";
   elem.style.top = "1rem";
   elem.style.left = "1rem";
+  elem.style.border = '3px solid rgba(0,0,0,0.75)'
+  elem.style.borderTopRightRadius = '8px';
+  elem.style.borderBottomLeftRadius = '8px';
 
+  const bar = document.createElement('div')
+  bar.style.position = 'relative';
+  bar.style.width = 'calc(192 - 6)px';
+  bar.style.borderTopRightRadius = '4px';
+  bar.style.borderBottomLeftRadius = '4px';
+
+  const text = document.createElement('div');
+  text.style.position = 'absolute';
+  text.style.top = '0px';
+  text.style.left = '1rem';
+
+  elem.appendChild(bar);
+  elem.appendChild(text);
   document.body.prepend(elem);
+
+  return elem;
 }
 
 function generateInteractionHint(elem: HTMLElement) {

@@ -39,7 +39,7 @@ export class InputManager {
     const keyToAction: Record<string, InputAction> = {
       KeyJ: "ATTACK",
       Space: "DASH",
-      KeyX: "INTERACT",
+      KeyE: "INTERACT",
     };
 
     window.addEventListener("keydown", (e) => {
@@ -93,7 +93,7 @@ export class InputManager {
     const keyToAction: Record<string, InputAction> = {
       x: "ATTACK",
       a: "DASH",
-      y: "INTERACT",
+      b: "INTERACT",
     };
 
     if (!pads) {
@@ -107,6 +107,7 @@ export class InputManager {
       x: pads[0]?.buttons[2].pressed,
       a: pads[0]?.buttons[0].pressed,
       y: pads[0]?.buttons[3].pressed,
+      b: pads[0]?.buttons[1].pressed,
     };
 
     for (const pad of pads) {
@@ -134,9 +135,9 @@ export class InputManager {
     // DASH (XBOX B)
     if (gamePadMapper.a) this.gamepadButtons[keyToAction.a] = true;
     else this.gamepadButtons[keyToAction.a] = false;
-    // INTERACT (XBOX Y)
-    if (gamePadMapper.y) this.gamepadButtons[keyToAction.y] = true;
-    else this.gamepadButtons[keyToAction.y] = false;
+    // INTERACT (XBOX B)
+    if (gamePadMapper.b) this.gamepadButtons[keyToAction.b] = true;
+    else this.gamepadButtons[keyToAction.b] = false;
   }
 
   private combineSources() {
