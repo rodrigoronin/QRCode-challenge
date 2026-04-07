@@ -11,9 +11,9 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.10.1",
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.5.2",
     "typescript": "~5.9.3",
-    "vite": "^8.0.3"
+    "vite": "^8.0.7"
   },
   "dependencies": {
     "pixi.js": "^8.17.1"
