@@ -7,6 +7,7 @@ import { AttackComponent } from "../core/AttackComponent";
 import { AttackCollider } from "../core/AttackCollider";
 import { AnimationController } from "../core/AnimationController";
 import { DamageNumberManager } from "../VFX/DamageNumberManager";
+import { StatsComponent } from "@core/components/StatsComponent";
 
 type AttackState = "none" | "windup" | "active" | "recovery";
 // type Direction = "up" | "down" | "left" | "right";
@@ -22,8 +23,12 @@ export class Enemy extends Entity {
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
   private windupFilter: ColorMatrixFilter = new ColorMatrixFilter();
   // DATA
-  private maxHealthPoints: number = 20;
-  private healthPoints: number = this.maxHealthPoints;
+  public stats = new StatsComponent({
+    maxHP: 20,
+    attack: 6,
+    defense: 1,
+    critChance: 0.1,
+  });
   private speed: number = 140; // pixels/second
   private isDead: boolean = false;
   private perceptionRange: number = 250; // pixels
@@ -152,7 +157,7 @@ export class Enemy extends Entity {
     }
 
     if (!this.isInvincible) {
-      this.healthPoints -= damage;
+      this.stats.currentHP -= damage;
       this.isHitFlashing = true;
     }
 
@@ -161,9 +166,9 @@ export class Enemy extends Entity {
     this.hitFlashFilter.greyscale(1, false);
     this.addFilter(this.hitFlashFilter);
 
-    console.log(`Enemy HP: ${this.healthPoints} / ${this.maxHealthPoints}`);
+    console.log(`Enemy HP: ${this.stats.currentHP} / ${this.stats.maxHP}`);
 
-    if (this.healthPoints <= 0) this.die();
+    if (this.stats.currentHP <= 0) this.die();
   }
 
   private die() {

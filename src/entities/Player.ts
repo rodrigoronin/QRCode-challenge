@@ -7,6 +7,7 @@ import { AttackCollider } from "@core/AttackCollider";
 import { CollisionManager } from "@core/CollisionManager";
 import { AttackComponent } from "@core/AttackComponent";
 import { DamageNumberManager } from "../VFX/DamageNumberManager";
+import { StatsComponent } from "@core/components/StatsComponent";
 
 type Direction = "up" | "down" | "left" | "right";
 type PlayerState = "idle" | "moving" | "attacking" | "dashing" | "conjuring" | "dead";
@@ -43,8 +44,12 @@ export class Player extends Entity {
   private hitFlashingTimer: number = 0;
   private HIT_FLASH_DURATION: number = 150;
   // stats
-  private maxHealthPoints: number = 40;
-  private healthPoints: number = 40;
+  public stats = new StatsComponent({
+    maxHP: 30,
+    attack: 10,
+    defense: 0,
+    critChance: 0.1,
+  });
   private isInvincible: boolean = false;
   private isImmortalObject: boolean = false;
 
@@ -155,10 +160,10 @@ export class Player extends Entity {
   }
 
   get currentHP() {
-    return this.healthPoints;
+    return this.stats.currentHP;
   }
   get maxHP() {
-    return this.maxHealthPoints;
+    return this.stats.maxHP;
   }
   get isAttacking() {
     return this.state === "attacking";
@@ -288,7 +293,7 @@ export class Player extends Entity {
   takeDamage(damage: number): void {
     if (this.isInvincible) return;
 
-    this.healthPoints -= damage;
+    this.stats.currentHP -= damage;
     DamageNumberManager.spawn(this.container.parent!, damage, this.container.x, this.container.y);
 
     this.isHitFlashing = true;
@@ -296,8 +301,8 @@ export class Player extends Entity {
     this.hitFlashFilter.greyscale(1, false);
     this.container.filters = [this.hitFlashFilter];
 
-    if (this.healthPoints <= 0) {
-      this.healthPoints = 0;
+    if (this.stats.currentHP <= 0) {
+      this.stats.currentHP = 0;
       this.death();
     }
   }
@@ -305,9 +310,9 @@ export class Player extends Entity {
   private death() {
     if (this.isImmortalObject) return;
 
-    if (this.healthPoints <= 0) {
+    if (this.stats.currentHP <= 0) {
       this.container.position.set(200);
-      this.healthPoints = this.maxHealthPoints;
+      this.stats.currentHP = this.stats.maxHP;
     }
   }
 
