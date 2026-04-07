@@ -14,7 +14,7 @@ type PlayerState = "idle" | "moving" | "attacking" | "dashing" | "conjuring" | "
 export class Player extends Entity {
   private sprite: Sprite;
   private state: PlayerState = "idle";
-  private collider: Collider;
+  public collider: Collider;
   private input = InputManager.get();
   public currentDir: Direction = "down";
   public moveVector: Point = new Point(0, 0);
@@ -79,7 +79,7 @@ export class Player extends Entity {
       target: "enemy",
     });
 
-    this.collider = new Collider(20, 52, 0, 2, this.container, this);
+    this.collider = new Collider(20, 48, 0, 4, this.container, this);
     CollisionManager.registerEntityCollider(this.collider);
   }
 
@@ -151,7 +151,7 @@ export class Player extends Entity {
       }
     }
 
-    // this.collider.drawDebug();
+    this.collider.drawDebug();
   }
 
   get currentHP() {
