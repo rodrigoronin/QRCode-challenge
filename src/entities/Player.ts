@@ -6,7 +6,6 @@ import { Collider } from "@core/Collider";
 import { AttackCollider } from "@core/AttackCollider";
 import { CollisionManager } from "@core/CollisionManager";
 import { AttackComponent } from "@core/AttackComponent";
-import { DamageNumberManager } from "../VFX/DamageNumberManager";
 import { StatsComponent } from "@core/components/StatsComponent";
 
 type Direction = "up" | "down" | "left" | "right";
@@ -294,7 +293,6 @@ export class Player extends Entity {
     if (this.isInvincible) return;
 
     this.stats.currentHP -= damage;
-    DamageNumberManager.spawn(this.container.parent!, damage, this.container.x, this.container.y);
 
     this.isHitFlashing = true;
 

@@ -4,14 +4,14 @@ import { Player } from "@entities/Player";
 import { Enemy } from "@entities/Enemy";
 import { InputCommandMapper } from "@input/InputCommandMapper";
 import { InputManager } from "@input/InputManager";
-import { DamageNumberManager } from "./VFX/DamageNumberManager";
 import * as Constants from "@utils/Constants";
 import { Time } from "@core/Time";
 import { Camera } from "./core/Camera";
+import { InteractionSystem } from "@core/systems/InteractionSystem";
+import { DamageNumberSystem } from "./VFX/DamageNumberSystem";
 import NPC from "@entities/NPC";
 
 import "./style.css";
-import { InteractionSystem } from "@core/systems/InteractionSystem";
 
 (async () => {
   const game: Application = new Application();
@@ -148,10 +148,11 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   const enemiesList: Enemy[] = [];
 
   const world: Container = new Container();
+  const worldVFX: Container = new Container();
 
   // CONTAINER HIERARCHY
   game.stage.addChild(camera.container);
-  camera.container.addChild(world);
+  camera.container.addChild(world, worldVFX);
   world.addChild(
     trainingMap,
     ranged_enemy_01.container,
@@ -164,6 +165,8 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
     enemy_03.container,
     player.container,
   );
+
+  DamageNumberSystem.initialize(worldVFX);
 
   enemiesList.push(enemy_01, enemy_02, enemy_03, ranged_enemy_01);
 
@@ -202,9 +205,7 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
 
     if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
     if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(ticker.deltaMS);
-    if (input.wasJustPressed("INTERACT")) {
-      commandMapper.get("INTERACT")?.execute(ticker.deltaMS);
-    }
+    if (input.wasJustPressed("INTERACT")) commandMapper.get("INTERACT")?.execute(ticker.deltaMS);
 
     // HUD
     const healthPercentage = player.currentHP / player.maxHP;
@@ -214,7 +215,7 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
 
     manaBarText.textContent = `${20} / ${20}`;
 
-    DamageNumberManager.update(ticker.deltaMS);
+    DamageNumberSystem.update(ticker.deltaMS);
 
     updateInteractionHint();
 
