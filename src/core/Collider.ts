@@ -43,8 +43,8 @@ export class Collider {
     if (this.container.destroyed) return null;
 
     return {
-      x: this.container.x + this.offsetX - this.width / 2,
-      y: this.container.y + this.offsetY - this.height / 2,
+      x: Number((this.container.x + this.offsetX - this.width / 2).toFixed()),
+      y: Number((this.container.y + this.offsetY - this.height / 2).toFixed()),
       width: this.width,
       height: this.height,
     };
@@ -70,6 +70,6 @@ export class Collider {
     this.debug
       .rect(x + this.offsetX, y + this.offsetY, this.width, this.height)
       .fill({ color: 0x00ff00, alpha: 0.2 })
-      .stroke({ width: 2, color: 0xff0000, alpha: 0.2 });
+      .stroke({ width: 1, color: 0x00ff00 });
   }
 }

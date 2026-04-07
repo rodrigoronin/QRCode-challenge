@@ -14,7 +14,7 @@ export class Camera {
   private canMaxY: number = 0;
   private canMinY: number = 0;
 
-  private readonly CAMERA_LERP: number = 0.08;
+  private readonly CAMERA_LERP: number = 0.1;
 
   private zoom: number = 2;
   private readonly MIN_ZOOM = 1;

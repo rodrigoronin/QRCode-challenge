@@ -1,4 +1,5 @@
 import { Container, Text, TextStyle } from "pixi.js";
+import type { DamagePayload } from "src/data/DamagePayload";
 
 export class DamageNumber {
   private text: Text;
@@ -11,12 +12,14 @@ export class DamageNumber {
   private readonly HOLD_TIME = 130;
   private TEXT_DIRECTION: number = Math.random() > 0.5 ? 0.08 : -0.08;
 
-  constructor(owner: Container, value: number, x: number, y: number) {
+  constructor(payload: DamagePayload, parent: Container) {
+    const { value, isCrit, position, type } = payload;
+
     const style = new TextStyle({
       fontFamily: "Arial",
       fontSize: 18,
       fontWeight: "bold",
-      fill: 0xffffff,
+      fill: this.getColor(type, isCrit),
       stroke: 0x000000,
       dropShadow: {
         color: "#000000",
@@ -33,13 +36,14 @@ export class DamageNumber {
     });
     this.text.anchor.set(0.5);
 
-    // leve random horizontal (Ragnarok clássico)
-    this.text.x = x;
-    this.text.y = y - owner.position.y - 20;
+    // Damage numbers live in a stable world VFX layer, so they can finish
+    // animating even after the hit entity is removed.
+    this.text.x = position.x;
+    this.text.y = position.y - 20;
 
-    this.crit = Math.random() > 0.5 ? false : true;
+    this.crit = isCrit;
 
-    owner.addChild(this.text);
+    parent.addChild(this.text);
   }
 
   update(deltaMS: number): boolean {
@@ -48,7 +52,6 @@ export class DamageNumber {
     this.text.alpha -= 0.0015 * deltaMS;
 
     if (this.crit) {
-      this.text.style.fill = "orange";
       this.text.scale.set(1.3);
       this.TEXT_DIRECTION = 0;
       this.UP_TIME = 500;
@@ -83,6 +86,21 @@ export class DamageNumber {
     }
 
     return false;
+  }
+
+  private getColor(type?: string, isCrit?: boolean): number {
+    if (isCrit) return 0xffa500;
+
+    switch (type) {
+      case "fire":
+        return 0xff4500;
+      case "ice":
+        return 0x00bfff;
+      case "poison":
+        return 0x32cd32;
+      default:
+        return 0xffffff;
+    }
   }
 
   private destroy() {

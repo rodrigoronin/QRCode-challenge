@@ -4,6 +4,8 @@ import type { AttackCollider } from "./AttackCollider";
 import type { Collider } from "./Collider";
 import { CollisionManager } from "./CollisionManager";
 import { Time } from "./Time";
+import { DamageSystem } from "./systems/DamageSystem";
+import { DamageNumberSystem } from "../VFX/DamageNumberSystem";
 
 interface Config {
   attackCollider: AttackCollider;
@@ -52,7 +54,23 @@ export class AttackComponent {
       }
 
       if (closestEnemy) {
-        closestEnemy.owner?.takeDamage(3, this.direction);
+        const targetEntity = closestEnemy.owner;
+        if (targetEntity?.stats && this.owner["stats"]) {
+          const { damage, isCrit } = DamageSystem.calculate(
+            this.owner["stats"],
+            targetEntity.stats,
+          );
+
+          DamageNumberSystem.spawn({
+            value: damage,
+            isCrit,
+            type: "physical",
+            position: { x: closestEnemy.container.x, y: closestEnemy.container.y },
+          });
+
+          targetEntity.takeDamage(damage, this.direction);
+        }
+
         this.damagedSet.add(closestEnemy);
 
         Time.triggerHitstop(80);

@@ -4,14 +4,14 @@ import { Player } from "@entities/Player";
 import { Enemy } from "@entities/Enemy";
 import { InputCommandMapper } from "@input/InputCommandMapper";
 import { InputManager } from "@input/InputManager";
-import { DamageNumberManager } from "./VFX/DamageNumberManager";
 import * as Constants from "@utils/Constants";
 import { Time } from "@core/Time";
 import { Camera } from "./core/Camera";
+import { InteractionSystem } from "@core/systems/InteractionSystem";
+import { DamageNumberSystem } from "./VFX/DamageNumberSystem";
 import NPC from "@entities/NPC";
 
 import "./style.css";
-import { InteractionSystem } from "@core/systems/InteractionSystem";
 
 (async () => {
   const game: Application = new Application();
@@ -87,8 +87,8 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   };
 
   const player: Player = new Player(frames, daggerVFXFrames);
-  player.container.position.x = 100;
-  player.container.position.y = 100;
+  player.container.position.x = 1000;
+  player.container.position.y = 400;
   const elvenMage: NPC = new NPC(elvenMageFrames);
   elvenMage.setTag("Elven Mage");
   elvenMage.container.position.x = 470;
@@ -148,10 +148,11 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   const enemiesList: Enemy[] = [];
 
   const world: Container = new Container();
+  const worldVFX: Container = new Container();
 
   // CONTAINER HIERARCHY
   game.stage.addChild(camera.container);
-  camera.container.addChild(world);
+  camera.container.addChild(world, worldVFX);
   world.addChild(
     trainingMap,
     ranged_enemy_01.container,
@@ -165,6 +166,8 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
     player.container,
   );
 
+  DamageNumberSystem.initialize(worldVFX);
+
   enemiesList.push(enemy_01, enemy_02, enemy_03, ranged_enemy_01);
 
   const commandMapper: InputCommandMapper = new InputCommandMapper(player, interactionSystem);
@@ -173,34 +176,33 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
   let step: number = 0;
 
   // TODO: refactor this later to add a proper HUD manager
-  const healthHUD = generateHUD('div');
+  const healthHUD = generateHUD("div");
   const healthBar = healthHUD.firstElementChild as HTMLElement;
   const healthBarText = healthHUD.lastElementChild as HTMLElement;
-  healthBar.style.backgroundColor = 'green';
-  healthBar.style.color = 'green';
-  healthBar.textContent = '.';
-  
-  const magicHUD = generateHUD('div');
+  healthBar.style.backgroundColor = "green";
+  healthBar.style.color = "green";
+  healthBar.textContent = ".";
+
+  const magicHUD = generateHUD("div");
   magicHUD.style.left = "16rem";
   const manaBar: HTMLElement = magicHUD.firstElementChild as HTMLElement;
   const manaBarText: HTMLElement = magicHUD.lastElementChild as HTMLElement;
-  manaBar.style.backgroundColor = 'RoyalBlue';
-  manaBar.style.color = 'RoyalBlue';
+  manaBar.style.backgroundColor = "RoyalBlue";
+  manaBar.style.color = "RoyalBlue";
   manaBar.textContent = `.`;
-  
+
   const interactionHint = document.createElement("div");
   generateInteractionHint(interactionHint);
 
-  
   navigator.getGamepads();
-  
+
   game.ticker.add((ticker) => {
     input.poll();
-    
+
     step += ticker.deltaMS;
-    
+
     Time.update(ticker.deltaMS);
-    
+
     if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
     if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(ticker.deltaMS);
     if (input.wasJustPressed("INTERACT")) commandMapper.get("INTERACT")?.execute(ticker.deltaMS);
@@ -209,9 +211,11 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
     const healthPercentage = player.currentHP / player.maxHP;
 
     healthBarText.textContent = `${player.currentHP} / ${player.maxHP}`;
-    healthBar.style.width = `${healthPercentage * 192 - 6}px`
+    healthBar.style.width = `${healthPercentage * 192 - 6}px`;
 
     manaBarText.textContent = `${20} / ${20}`;
+
+    DamageNumberSystem.update(ticker.deltaMS);
 
     updateInteractionHint();
 
@@ -230,8 +234,6 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
     elvenMage.update();
     blacksmith.update();
     camera.update();
-
-    DamageNumberManager.update(deltaMS);
   }
 
   function updateInteractionHint() {
@@ -322,26 +324,26 @@ function generateHUD(type: string): HTMLElement {
   const elem: HTMLElement = document.createElement(type);
   elem.style.fontFamily = "Arial";
   elem.style.color = "black";
-  elem.style.width = '192px';
+  elem.style.width = "192px";
   elem.style.fontSize = "1.5rem";
   elem.style.fontWeight = "700";
   elem.style.position = "absolute";
   elem.style.top = "1rem";
   elem.style.left = "1rem";
-  elem.style.border = '3px solid rgba(0,0,0,0.75)'
-  elem.style.borderTopRightRadius = '8px';
-  elem.style.borderBottomLeftRadius = '8px';
+  elem.style.border = "3px solid rgba(0,0,0,0.75)";
+  elem.style.borderTopRightRadius = "8px";
+  elem.style.borderBottomLeftRadius = "8px";
 
-  const bar = document.createElement('div')
-  bar.style.position = 'relative';
-  bar.style.width = 'calc(192 - 6)px';
-  bar.style.borderTopRightRadius = '4px';
-  bar.style.borderBottomLeftRadius = '4px';
+  const bar = document.createElement("div");
+  bar.style.position = "relative";
+  bar.style.width = "calc(192 - 6)px";
+  bar.style.borderTopRightRadius = "4px";
+  bar.style.borderBottomLeftRadius = "4px";
 
-  const text = document.createElement('div');
-  text.style.position = 'absolute';
-  text.style.top = '0px';
-  text.style.left = '1rem';
+  const text = document.createElement("div");
+  text.style.position = "absolute";
+  text.style.top = "0px";
+  text.style.left = "1rem";
 
   elem.appendChild(bar);
   elem.appendChild(text);
