@@ -13,7 +13,7 @@ export class DamageNumber {
   private TEXT_DIRECTION: number = Math.random() > 0.5 ? 0.05 : -0.05;
 
   constructor(payload: DamagePayload, parent: Container) {
-    const { value, isCrit, position, type } = payload;
+    const { baseDamage, isCrit, position, type } = payload;
 
     const style = new TextStyle({
       fontFamily: "Arial",
@@ -31,7 +31,7 @@ export class DamageNumber {
     });
 
     this.text = new Text({
-      text: value,
+      text: baseDamage,
       style,
     });
     this.text.anchor.set(0.5);

@@ -308,7 +308,7 @@ export class Player extends Entity {
     if (this.isImmortalObject) return;
 
     if (this.stats.currentHP <= 0) {
-      this.container.position.set(200);
+      this.container.position.set(210, 380);
       this.stats.currentHP = this.stats.maxHP;
     }
   }
