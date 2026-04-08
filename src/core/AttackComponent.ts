@@ -65,7 +65,7 @@ export class AttackComponent {
             value: damage,
             isCrit,
             type: "physical",
-            position: { x: closestEnemy.container.x, y: closestEnemy.container.y },
+            position: { x: targetEntity.position.x, y: targetEntity.position.y },
           });
 
           targetEntity.takeDamage(damage, this.direction);
