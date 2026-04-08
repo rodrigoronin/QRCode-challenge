@@ -1,6 +1,15 @@
+import type { Enemy } from "@entities/Enemy";
+import type { Player } from "@entities/Player";
+
+type Entity = Player | Enemy;
+type DamageType = "physical" | "magical" | "fire" | "water" | "wind" | "earth" | "poison";
+
 export type DamagePayload = {
-  value: number,
-  isCrit: boolean,
-  type?: 'physical' | 'fire' | 'ice' | 'poison',
-  position: { x: number, y: number},
-}
+  source: Entity;
+  target: Entity;
+  baseDamage: number;
+  isCrit: boolean;
+  type?: DamageType;
+  position: { x: number; y: number };
+  direction: string | undefined;
+};

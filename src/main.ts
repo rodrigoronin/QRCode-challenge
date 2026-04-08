@@ -88,8 +88,8 @@ import "./style.css";
   };
 
   const player: Player = new Player(frames, daggerVFXFrames);
-  player.container.position.x = 80;
-  player.container.position.y = 270;
+  player.container.position.x = 210;
+  player.container.position.y = 380;
   const elvenMage: NPC = new NPC(elvenMageFrames);
   elvenMage.setTag("Elven Mage");
   elvenMage.container.position.x = 150;

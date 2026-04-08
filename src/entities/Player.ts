@@ -50,7 +50,7 @@ export class Player extends Entity {
     critChance: 0.5,
     critMultiplier: 1.5,
   });
-  private isInvincible: boolean = false;
+  public isInvincible: boolean = false;
   private isImmortalObject: boolean = false;
 
   constructor(frames: Record<string, Texture[]>, VFXFrames: Record<string, Texture[]>) {
@@ -290,10 +290,8 @@ export class Player extends Entity {
     this.attackCollider.deactivate();
   }
 
-  takeDamage(damage: number): void {
+  takeDamage(direction?: string | undefined): void {
     if (this.isInvincible) return;
-
-    this.stats.currentHP -= damage;
 
     this.isHitFlashing = true;
 

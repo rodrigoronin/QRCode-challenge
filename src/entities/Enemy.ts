@@ -51,7 +51,7 @@ export class Enemy extends Entity {
   private roamWaitTimer: number = 0;
   private isInCombat: boolean = false;
   private isPassive: boolean = true;
-  private isInvincible: boolean = false;
+  public isInvincible: boolean = false;
   private moveDir: Point = new Point(0, 0);
   private flankSign: 1 | -1 = 1;
   private flankSwitchTimerMS: number = 0;
@@ -131,7 +131,7 @@ export class Enemy extends Entity {
     }
   }
 
-  public takeDamage(damage: number, direction: string | undefined) {
+  public takeDamage(direction?: string | undefined): void {
     this.isPassive = false;
 
     // TODO: create a system to handle directional knockback
@@ -155,8 +155,8 @@ export class Enemy extends Entity {
         break;
     }
 
+    // Set hit flash if not invincible (maybe remove it in the future)
     if (!this.isInvincible) {
-      this.stats.currentHP -= damage;
       this.isHitFlashing = true;
     }
 

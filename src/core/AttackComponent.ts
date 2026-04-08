@@ -3,9 +3,7 @@ import type { Enemy } from "@entities/Enemy";
 import type { AttackCollider } from "./AttackCollider";
 import type { Collider } from "./Collider";
 import { CollisionManager } from "./CollisionManager";
-import { Time } from "./Time";
 import { DamageSystem } from "./systems/DamageSystem";
-import { DamageNumberSystem } from "../VFX/DamageNumberSystem";
 
 interface Config {
   attackCollider: AttackCollider;
@@ -55,25 +53,14 @@ export class AttackComponent {
 
       if (closestEnemy) {
         const targetEntity = closestEnemy.owner;
+
+        // TODO: adjust this check in the future for objects without stats
+        // or just add the StatsComponent to the object (needs definition)
         if (targetEntity?.stats && this.owner["stats"]) {
-          const { damage, isCrit } = DamageSystem.calculate(
-            this.owner["stats"],
-            targetEntity.stats,
-          );
-
-          DamageNumberSystem.spawn({
-            value: damage,
-            isCrit,
-            type: "physical",
-            position: { x: targetEntity.position.x, y: targetEntity.position.y },
-          });
-
-          targetEntity.takeDamage(damage, this.direction);
+          DamageSystem.applyDamage(this.owner, targetEntity, this.direction);
         }
 
         this.damagedSet.add(closestEnemy);
-
-        Time.triggerHitstop(80);
       }
     }
   }
