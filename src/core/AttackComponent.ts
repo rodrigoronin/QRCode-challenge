@@ -55,7 +55,8 @@ export class AttackComponent {
         const targetEntity = closestEnemy.owner;
 
         // TODO: adjust this check in the future for objects without stats
-        // or just add the StatsComponent to the object (needs definition)
+        // or just add the StatsComponent to the object (needs definition).
+        // Change the check for hasComponent(StatsComponent) or Damageable interface
         if (targetEntity?.stats && this.owner["stats"]) {
           DamageSystem.applyDamage(this.owner, targetEntity, this.direction);
         }
