@@ -8,7 +8,7 @@ import * as Constants from "@utils/Constants";
 import { Time } from "@core/Time";
 import { Camera } from "./core/Camera";
 import { InteractionSystem } from "@core/systems/InteractionSystem";
-import { DamageNumberSystem } from "./VFX/DamageNumberSystem";
+import { DamageNumberSystem } from "@fx/DamageNumberSystem";
 import NPC from "@entities/NPC";
 
 import "./style.css";
@@ -30,7 +30,7 @@ import "./style.css";
 
   await assets.init();
 
-  const playerTexture = assets.getTexture("sprites/_wizard");
+  const playerTexture = assets.getTexture("sprites/mage");
   const elvenMageTexture = assets.getTexture("sprites/elven_mage");
   const blackSmithTexture = assets.getTexture("sprites/blacksmith");
   const swordSlash = assets.getTexture("sprites/_sword_slash");
@@ -38,6 +38,7 @@ import "./style.css";
   const trainingMapTexture = assets.getTexture("sprites/training-tiles");
   const fountainTexture = assets.getTexture("sprites/fountain");
   const treeTexture = assets.getTexture("sprites/tree");
+  const houseTexture = assets.getTexture("sprites/house");
 
   const frameSize: number = 64;
 
@@ -87,16 +88,16 @@ import "./style.css";
   };
 
   const player: Player = new Player(frames, daggerVFXFrames);
-  player.container.position.x = 1000;
-  player.container.position.y = 400;
+  player.container.position.x = 80;
+  player.container.position.y = 270;
   const elvenMage: NPC = new NPC(elvenMageFrames);
   elvenMage.setTag("Elven Mage");
-  elvenMage.container.position.x = 470;
-  elvenMage.container.position.y = 150;
+  elvenMage.container.position.x = 150;
+  elvenMage.container.position.y = 270;
   const blacksmith: NPC = new NPC(blacksmithFrames);
   blacksmith.setTag("Blacksmith");
-  blacksmith.container.position.x = 400;
-  blacksmith.container.position.y = 150;
+  blacksmith.container.position.x = 270;
+  blacksmith.container.position.y = 270;
 
   interactionSystem.register(elvenMage.interactable);
   interactionSystem.register(blacksmith.interactable);
@@ -130,8 +131,8 @@ import "./style.css";
     }),
   );
 
-  fountain.position.x = 950;
-  fountain.position.y = 460;
+  fountain.position.x = 167;
+  fountain.position.y = 310;
 
   const tree: Sprite = new Sprite(
     new Texture({
@@ -142,6 +143,16 @@ import "./style.css";
 
   tree.position.x = 1000;
   tree.position.y = 350;
+
+  const house: Sprite = new Sprite(
+    new Texture({
+      source: houseTexture.source,
+      frame: new Rectangle(0, 0, 218, 177),
+    }),
+  );
+
+  house.position.x = 100;
+  house.position.y = 100;
 
   const camera = new Camera(game, trainingMap, player);
 
@@ -157,6 +168,7 @@ import "./style.css";
     trainingMap,
     ranged_enemy_01.container,
     tree,
+    house,
     elvenMage.container,
     blacksmith.container,
     fountain,
