@@ -141,9 +141,6 @@ export class Player extends Entity {
       if (move.x !== 0 || move.y !== 0) {
         if (this.currentDir === "left") this.sprite.scale.x = -1;
         else if (this.currentDir === "right") this.sprite.scale.x = 1;
-        // TODO: replace with real up/down sprites
-        if (this.currentDir === "up") this.sprite.scale.x = -1;
-        else if (this.currentDir === "down") this.sprite.scale.x = 1;
         this.anim.play(`walk_${this.currentDir}`);
       } else {
         this.anim.play(`idle_${this.currentDir}`);

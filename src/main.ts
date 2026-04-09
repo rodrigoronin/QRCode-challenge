@@ -43,23 +43,25 @@ import "./style.css";
   const frameSize: number = 64;
 
   const frames = {
-    idle_down: frameSlicer(playerTexture, frameSize, 1, 0, 2),
-    walk_down: frameSlicer(playerTexture, frameSize, 1, 0, 2),
+    idle_down: frameSlicer(playerTexture, frameSize, 1, 1, 0),
+    walk_down: frameSlicer(playerTexture, frameSize, 1, 1, 0),
 
     idle_left: frameSlicer(playerTexture, frameSize, 1, 0),
-    walk_left: frameSlicer(playerTexture, frameSize, 1, 0),
+    walk_left: frameSlicer(playerTexture, frameSize, 6, 0, 1),
 
-    idle_up: frameSlicer(playerTexture, frameSize, 1, 0, 1),
-    walk_up: frameSlicer(playerTexture, frameSize, 1, 0, 1),
+    idle_up: frameSlicer(playerTexture, frameSize, 1, 2, 0),
+    walk_up: frameSlicer(playerTexture, frameSize, 1, 2, 0),
 
     idle_right: frameSlicer(playerTexture, frameSize, 1, 0),
-    walk_right: frameSlicer(playerTexture, frameSize, 1, 0),
+    walk_right: frameSlicer(playerTexture, frameSize, 6, 0, 1),
 
     dash_down: frameSlicer(playerTexture, frameSize, 1, 0),
     dash_right: frameSlicer(playerTexture, frameSize, 1, 0),
     dash_up: frameSlicer(playerTexture, frameSize, 1, 0),
     dash_left: frameSlicer(playerTexture, frameSize, 1, 0),
   };
+
+  console.log(frames.walk_right);
 
   const elvenMageFrames = {
     idle_down: frameSlicer(elvenMageTexture, frameSize, 1, 0),
@@ -262,8 +264,6 @@ import "./style.css";
 })();
 
 // To help speed animations during MVP
-// TODO: Refactor this to accept bigger animations starting
-// from the columns > 0
 function frameSlicer(
   texture: Texture,
   frameSize: number,
@@ -284,7 +284,8 @@ function frameSlicer(
     return frames;
   }
 
-  for (let i = 0; i < frameCount; i++) {
+  // TODO: add validations when frameCount > texture total frames
+  for (let i = startColumn; i < startColumn + frameCount; i++) {
     frames.push(
       new Texture({
         source: texture.source,
