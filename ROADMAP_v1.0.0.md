@@ -1,138 +1,197 @@
-# Fase 1 – Estrutura do Loop (Base Jogável Clara)
+# ROADMAP v1.0.0 - Vertical Slice
 
-### Objetivo: Ter um loop simples Cidade → Dungeon → Cidade.
+## Goal
 
-## 1.1 Estrutura da Vila (mínima)
+Deliver a publisher-ready vertical slice for a single-player action RPG.
 
-- Criar mapa fixo da vila
+The slice must prove:
 
-- Spawn do player na vila
+- satisfying action combat
+- exploration across interconnected areas
+- one short story arc
+- light RPG progression
+- one handcrafted dungeon
+- one memorable boss fight
+- a clean start-to-finish playable loop
 
-- NPC Vendor estático
+This roadmap replaces the older wave-based combat demo plan. The project direction is now:
 
-- Sistema simples de interação (tecla para interagir)
+`Title Screen -> Village -> Field -> Dungeon -> Boss -> Reward / Return`
 
-- UI básica de loja (comprar 1 poção)
+## Product Scope For v1.0.0
 
-> Sem economia complexa.
-> Só provar que o loop existe.
+The v1.0.0 slice should be playable in roughly 15 to 25 minutes and include:
 
-## 1.2 Sistema de Cena / Transição
+- title screen
+- one village hub
+- one outdoor field / connector area
+- one handcrafted dungeon with 4 to 6 rooms
+- 2 to 3 enemy archetypes
+- one boss encounter
+- player basic attack + dash + 1 offensive skill + 1 utility or defensive skill
+- NPC dialogue with a clear objective
+- thin progression: XP, one upgrade moment, one reward after completion
+- basic UI for HP, MP, objective, interaction, and completion flow
 
-- Sistema simples de “SceneManager”
+## Scope Excluded From v1.0.0
 
-- Transição vila → dungeon
+The following are explicitly out of scope for this version:
 
-- Transição dungeon → vila
+- multiplayer
+- post-game systems
+- procedural generation
+- multiple player archetypes
+- full discipline tree
+- crafting depth
+- full economy simulation
+- large equipment database
+- broad content expansion beyond the first slice
+- major architecture refactors that do not directly unblock the slice
 
-- Reset básico de inimigos
+## Milestone 1 - Slice Skeleton
 
-> Isso organiza o jogo estruturalmente.
+### Objective
 
-## 1.3 Wave System na Dungeon
+Create the game structure needed to stop building everything inside a single test bootstrap.
 
-- Spawn manager
+### Deliverables
 
-- Contador de waves
+- minimal scene or area manager
+- support for `village`, `field`, and `dungeon` areas
+- spawn points and exits
+- transition flow between areas
+- area-specific entity spawning
+- area-specific collision and props
 
-- Delay entre waves
+### Exit Criteria
 
-- Escalonamento simples (HP + dano)
+- player can travel village -> field -> dungeon -> village without manual code changes
+- camera, collision, NPCs, and enemies still work after transitions
 
-- Quando a wave X termina → boss aparece.
+## Milestone 2 - Core Content Slice
 
-> Isso vira o coração da demo.
+### Objective
 
-## Fase 2 – Arquétipos Jogáveis
+Build the first complete playable route through the game.
 
-> Objetivo: 3 estilos distintos de gameplay.
+### Deliverables
 
-### DPS
+- one village layout
+- one field layout
+- one handcrafted dungeon layout
+- one simple dungeon objective such as key, lever, or gate unlock
+- core NPC dialogue for intro, goal, and completion
 
-- Ataque básico rápido
+### Exit Criteria
 
-- Skill ativa 1 (burst)
+- a new player can understand where to go and what to do
+- the slice can be completed from start to finish
 
-- Skill ativa 2 (mobility)
+## Milestone 3 - Combat Depth
 
-- Passiva simples (crit chance)
+### Objective
 
-### Tank
+Raise combat quality enough to carry the demo and pitch footage.
 
-- Ataque mais lento
+### Deliverables
 
-- Skill taunt
+- locked player demo kit
+- 1 offensive skill
+- 1 utility or defensive skill
+- 2 to 3 enemy archetypes
+- 1 boss with readable telegraphs and at least 2 behavior sets
 
-- Skill escudo temporário
+### Exit Criteria
 
-- Passiva de redução de dano
+- combat is fun even before progression
+- enemy variety creates meaningful decisions
+- boss fight is readable and memorable
 
-### Healer
+## Milestone 4 - Thin RPG Progression
 
-- Ataque mágico básico
+### Objective
 
-- Heal single target
+Add enough progression to sell the RPG promise without overbuilding systems.
 
-- Área pequena de cura
+### Deliverables
 
-- Passiva regen
+- XP and level-up
+- one upgrade point in the village or after boss completion
+- simple reward flow
+- one visible increase in player power
 
-> Não precisa sistema completo de disciplinas ainda.
-> Só hardcoded por arquétipo.
+### Exit Criteria
 
-> Card pequeno por skill.
-> Nada de “Criar sistema de habilidades complexo”.
+- player feels stronger by the end of the slice
+- progression is understandable without external explanation
 
-## Fase 3 – Variedade de Inimigos
+## Milestone 5 - Presentation And Pitch Quality
 
-### Objetivo: Forçar uso das habilidades.
+### Objective
 
-Adicionar:
+Convert the playable prototype into a clean demo suitable for capture and external presentation.
 
-- Inimigo rápido (low HP, alta velocidade)
+### Deliverables
 
-- Inimigo tanky (alto HP)
+- title screen
+- dialogue UI
+- objective UI
+- improved HUD
+- interaction prompts
+- audio pass
+- completion screen or return-to-hub payoff
 
-- Inimigo ranged (projétil simples)
+### Exit Criteria
 
-- Boss com 2 fases
+- game can be recorded into a clear 60 to 90 second trailer-like video
+- a first-time player can finish the slice without developer guidance
 
-Boss precisa:
+## Milestone 6 - Stabilization
 
-- Telegraph visível
+### Objective
 
-- Mudança de padrão em 50% HP
+Lock down the slice, remove blockers, and package the build.
 
-> Isso cria espetáculo.
+### Deliverables
 
-## Fase 4 – Progressão Simples
+- bug fixing
+- balance pass
+- difficulty smoothing
+- removal of confusing unfinished features
+- build verification
 
-### Sem atributos complexos ainda.
+### Exit Criteria
 
-- XP por kill
+- no progression blockers
+- no softlocks
+- no major control or UI confusion
+- demo can be handed to an external player
 
-- Level up
+## Development Priorities
 
-- +HP e +Dano por level (fixo)
+Work in this order:
 
-- Sistema simples de gold
+1. structure and area flow
+2. content path
+3. combat depth
+4. progression
+5. presentation
+6. stabilization
 
-- Comprar upgrade fixo na vila
+If a task does not improve the first 20 minutes of the game or the quality of pitch footage, it is not a priority for v1.0.0.
 
-> Isso valida progressão sem precisar da tabela gigante do GDD.
+## Definition Of Done For v1.0.0
 
-## Fase 5 – Polimento Básico
+The version is done when:
 
-- Hit feedback melhorado
+1. the player starts from a title screen
+2. enters the village
+3. gets a clear objective from an NPC
+4. travels through the field
+5. enters the dungeon
+6. clears encounters and completes the dungeon objective
+7. defeats the boss
+8. receives a reward or unlock
+9. returns to the hub or reaches a short completion beat
 
-- Screen shake leve
-
-- SFX diferenciados
-
-- Barra de vida para inimigos
-
-- UI mais clara
-
-- Contador de wave na tela
-
-> Isso transforma protótipo técnico em demo apresentável.
+At that point the demo is ready for external playtesting and pitch preparation.
