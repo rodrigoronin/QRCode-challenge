@@ -35,7 +35,7 @@ export class Enemy extends Entity {
   public target: Player | null = null;
   // COMBAT
   private attackState: AttackState = "none";
-  private attackManager: AttackComponent;
+  private attackComponent: AttackComponent;
   private attackCollider: AttackCollider;
   private attackDirection: Point | null = null;
   private WINDUP_TIME: number = 450;
@@ -88,7 +88,7 @@ export class Enemy extends Entity {
       this.VFXFrames,
     );
 
-    this.attackManager = new AttackComponent(this, {
+    this.attackComponent = new AttackComponent(this, {
       attackCollider: this.attackCollider,
       maxTargets: 1,
       target: "player",
@@ -96,7 +96,7 @@ export class Enemy extends Entity {
 
     this.playerRef = playerRef;
 
-    // this.collider.drawDebug();
+    this.collider.drawDebug();
   }
 
   update(_deltaTime: number): void {
@@ -112,13 +112,6 @@ export class Enemy extends Entity {
 
       if (this.attackState !== "none") {
         this.updateAttackPhases(_deltaTime);
-
-        if (this.attackCollider.active) {
-          this.attackManager.update();
-          this.attackCollider.update(_deltaTime);
-          this.attackCollider.updatePosition();
-          this.attackCollider.drawDebug();
-        }
       }
     }
 
@@ -407,13 +400,11 @@ export class Enemy extends Entity {
     this.sprite.tint = 0xffffff;
 
     this.attackCollider.activate(this.attackDirection, 45);
-    this.attackManager.activate();
+    this.attackComponent.activate();
   }
 
   protected updateAttackPhases(deltaMS: number) {
     if (this.attackState === "none") return;
-
-    this.attackTimer -= deltaMS;
 
     switch (this.attackState) {
       case "windup":
@@ -421,9 +412,10 @@ export class Enemy extends Entity {
         break;
 
       case "active":
-        this.attackManager.update();
+        this.attackComponent.update();
         this.attackCollider.update(deltaMS);
         this.attackCollider.updatePosition();
+        this.attackCollider.drawDebug();
 
         if (this.attackTimer <= 0) this.enterRecovery();
         break;
@@ -432,13 +424,15 @@ export class Enemy extends Entity {
         if (this.attackTimer <= 0) this.attackState = "none";
         break;
     }
+
+    this.attackTimer -= deltaMS;
   }
 
   private enterRecovery() {
     this.attackState = "recovery";
     this.attackTimer = this.RECOVERY_TIME;
 
-    this.attackManager.deactivate();
+    this.attackComponent.deactivate();
     this.attackCollider.deactivate();
 
     this.attackDirection = null;

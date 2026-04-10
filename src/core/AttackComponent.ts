@@ -73,5 +73,6 @@ export class AttackComponent {
 
   deactivate() {
     this.isActive = false;
+    this.damagedSet.clear();
   }
 }

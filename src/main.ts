@@ -61,8 +61,6 @@ import "./style.css";
     dash_left: frameSlicer(playerTexture, frameSize, 1, 0),
   };
 
-  console.log(frames.walk_right);
-
   const elvenMageFrames = {
     idle_down: frameSlicer(elvenMageTexture, frameSize, 1, 0),
   };

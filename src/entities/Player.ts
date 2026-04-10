@@ -18,11 +18,10 @@ export class Player extends Entity {
   private input = InputManager.get();
   public currentDir: Direction = "down";
   public moveVector: Point = new Point(0, 0);
-  public lastMovedVector: Point = new Point(0, 0);
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private speed = 150; // pixels/second
+  private speed = 200; // pixels/second
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   // Dash variables
@@ -92,12 +91,6 @@ export class Player extends Entity {
     const deltaSec = deltaTime / 1000;
     const move = this.input.getMovementVector();
 
-    // saves the last direction the player was looking
-    if (this.moveVector.x !== 0 || this.moveVector.y !== 0) {
-      this.lastMovedVector.x = this.moveVector.x;
-      this.lastMovedVector.y = this.moveVector.y;
-    }
-
     // saves the current direction the player is looking
     this.moveVector.set(move.x, move.y);
 
@@ -139,10 +132,10 @@ export class Player extends Entity {
       this.updateDirection(move);
 
       if (move.x !== 0 || move.y !== 0) {
-        if (this.currentDir === "left") this.sprite.scale.x = -1;
-        else if (this.currentDir === "right") this.sprite.scale.x = 1;
+        this.applyFacingToSprite();
         this.anim.play(`walk_${this.currentDir}`);
       } else {
+        this.applyFacingToSprite();
         this.anim.play(`idle_${this.currentDir}`);
       }
 
@@ -153,7 +146,7 @@ export class Player extends Entity {
       }
     }
 
-    this.collider.drawDebug();
+    // this.collider.drawDebug();
   }
 
   get currentHP() {
@@ -182,38 +175,18 @@ export class Player extends Entity {
       this.cancelAttack();
     }
 
+    const move = this.input.getMovementVector();
+    if (move.x !== 0 || move.y !== 0) {
+      this.updateDirection(move);
+    }
+
     this.state = "dashing";
-
-    this.dashDirection = this.input.getMovementVector();
-
-    // Dashing while idle
-    if (this.dashDirection.x === 0 && this.dashDirection.y === 0) {
-      switch (this.currentDir) {
-        case "up":
-          this.dashDirection = { x: 0, y: -1 };
-          break;
-        case "down":
-          this.dashDirection = { x: 0, y: 1 };
-          break;
-        case "left":
-          this.dashDirection = { x: -1, y: 0 };
-          break;
-        case "right":
-          this.dashDirection = { x: 1, y: 0 };
-          break;
-      }
-    }
-
-    // Dash direction normalized
-    const mag = Math.hypot(this.dashDirection.x, this.dashDirection.y);
-    if (mag > 0) {
-      this.dashDirection.x /= mag;
-      this.dashDirection.y /= mag;
-    }
+    this.dashDirection = this.getActionDirectionVector();
 
     this.dashTime = 0;
     this.isInvincible = true;
 
+    this.applyFacingToSprite();
     this.anim.play(`dash_${this.currentDir}`);
   }
 
@@ -253,9 +226,41 @@ export class Player extends Entity {
     }
   }
 
+  private getDirectionVector() {
+    switch (this.currentDir) {
+      case "up":
+        return new Point(0, -1);
+      case "down":
+        return new Point(0, 1);
+      case "left":
+        return new Point(-1, 0);
+      case "right":
+        return new Point(1, 0);
+    }
+  }
+
+  private getActionDirectionVector() {
+    const move = this.input.getMovementVector();
+
+    if (move.x !== 0 || move.y !== 0) {
+      return new Point(move.x, move.y);
+    }
+
+    return this.getDirectionVector();
+  }
+
+  private applyFacingToSprite() {
+    this.sprite.scale.x = this.currentDir === "left" ? -1 : 1;
+  }
+
   startAttack() {
     if (this.isDashing) return;
     if (this.isAttacking) return;
+
+    const move = this.input.getMovementVector();
+    if (move.x !== 0 || move.y !== 0) {
+      this.updateDirection(move);
+    }
 
     this.state = "attacking";
 
@@ -266,9 +271,10 @@ export class Player extends Entity {
     if (this.attackCollider?.active) return;
 
     this.attackComponent.direction = this.currentDir;
-
-    this.attackCollider?.activate(this.lastMovedVector, 40);
     this.attackComponent.activate();
+
+    this.applyFacingToSprite();
+    this.attackCollider?.activate(this.getActionDirectionVector(), 40);
     this.attackTimer = this.ATTACK_LOCK_DURATION;
   }
 
