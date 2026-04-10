@@ -1,4 +1,4 @@
-import { Container, Text, TextStyle } from "pixi.js";
+import { BlurFilter, Container, Text, TextStyle } from "pixi.js";
 import type { DamagePayload } from "src/data/DamagePayload";
 
 export class DamageNumber {
@@ -10,10 +10,10 @@ export class DamageNumber {
   private UP_TIME = 250;
   private readonly DOWN_TIME = 300;
   private readonly HOLD_TIME = 130;
-  private TEXT_DIRECTION: number = Math.random() > 0.5 ? 0.08 : -0.08;
+  private TEXT_DIRECTION: number = Math.random() > 0.5 ? 0.05 : -0.05;
 
   constructor(payload: DamagePayload, parent: Container) {
-    const { value, isCrit, position, type } = payload;
+    const { baseDamage, isCrit, position, type } = payload;
 
     const style = new TextStyle({
       fontFamily: "Arial",
@@ -31,10 +31,11 @@ export class DamageNumber {
     });
 
     this.text = new Text({
-      text: value,
+      text: baseDamage,
       style,
     });
     this.text.anchor.set(0.5);
+    this.text.resolution = 2;
 
     // Damage numbers live in a stable world VFX layer, so they can finish
     // animating even after the hit entity is removed.
@@ -52,7 +53,7 @@ export class DamageNumber {
     this.text.alpha -= 0.0015 * deltaMS;
 
     if (this.crit) {
-      this.text.scale.set(1.3);
+      this.text.scale.set(1.2);
       this.TEXT_DIRECTION = 0;
       this.UP_TIME = 500;
     }
@@ -69,6 +70,9 @@ export class DamageNumber {
       case "hold":
         this.text.y -= 0.05 * deltaMS;
         this.text.x += this.TEXT_DIRECTION * deltaMS;
+        this.text.filters = new BlurFilter({
+          strength: 1,
+        });
         if (this.timer >= this.HOLD_TIME) {
           this.timer = 0;
           this.phase = "down";
@@ -77,6 +81,9 @@ export class DamageNumber {
       case "down":
         this.text.y += 0.1 * deltaMS;
         this.text.x += this.TEXT_DIRECTION * deltaMS;
+        this.text.filters = new BlurFilter({
+          strength: 2,
+        });
         if (this.timer >= this.DOWN_TIME) {
           this.timer = 0;
           this.destroy();

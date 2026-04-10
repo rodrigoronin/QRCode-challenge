@@ -14,6 +14,7 @@ export default defineConfig({
       "@input": path.resolve(__dirname, "src/input"),
       "@utils": path.resolve(__dirname, "src/utils"),
       "@assets": path.resolve(__dirname, "src/assets"),
+      "@fx": path.resolve(__dirname, "src/fx"),
     },
   },
 });
