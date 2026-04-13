@@ -21,7 +21,7 @@ export class Player extends Entity {
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private speed = 200; // pixels/second
+  private speed = 120; // pixels/second
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   // Dash variables
@@ -293,7 +293,7 @@ export class Player extends Entity {
     this.attackCollider.deactivate();
   }
 
-  takeDamage(direction?: string | undefined): void {
+  takeDamage(_direction?: string | undefined): void {
     if (this.isInvincible) return;
 
     this.isHitFlashing = true;
