@@ -11,6 +11,9 @@ import { DamageNumberSystem } from "@fx/DamageNumberSystem";
 import { MainScene } from "./game/scenes/MainScene";
 
 import "./style.css";
+import { Player } from "@entities/Player";
+import { frameSlicer } from "@utils/FrameSlicer";
+import { SceneManager } from "@core/systems/SceneManager";
 
 (async () => {
   const game: Application = new Application();
@@ -28,21 +31,57 @@ import "./style.css";
   await assets.init();
   const interactionSystem = new InteractionSystem();
 
-  const scene = new MainScene(assets);
-  const commandMapper: InputCommandMapper = new InputCommandMapper(scene.player, interactionSystem);
+  const playerTexture = assets.getTexture("sprites/mage");
+  const swordSlashTexture = assets.getTexture("sprites/_sword_slash");
+  const frameSize = 64;
+
+  const frames = {
+    idle_down: frameSlicer(playerTexture, frameSize, 1, 1, 0),
+    walk_down: frameSlicer(playerTexture, frameSize, 1, 1, 0),
+
+    idle_left: frameSlicer(playerTexture, frameSize, 1, 0),
+    walk_left: frameSlicer(playerTexture, frameSize, 6, 0, 1),
+
+    idle_up: frameSlicer(playerTexture, frameSize, 1, 2, 0),
+    walk_up: frameSlicer(playerTexture, frameSize, 1, 2, 0),
+
+    idle_right: frameSlicer(playerTexture, frameSize, 1, 0),
+    walk_right: frameSlicer(playerTexture, frameSize, 6, 0, 1),
+
+    dash_down: frameSlicer(playerTexture, frameSize, 1, 0),
+    dash_right: frameSlicer(playerTexture, frameSize, 1, 0),
+    dash_up: frameSlicer(playerTexture, frameSize, 1, 0),
+    dash_left: frameSlicer(playerTexture, frameSize, 1, 0),
+  };
+  const vfxFrames = {
+    attack_up: frameSlicer(swordSlashTexture, 81, 7, 1),
+    attack_down: frameSlicer(swordSlashTexture, 81, 7, 1),
+
+    attack_right: frameSlicer(swordSlashTexture, 81, 7, 0),
+    attack_left: frameSlicer(swordSlashTexture, 81, 7, 0),
+  };
+
+  const player = new Player(frames, vfxFrames);
+
+  const sceneData = {
+    assets,
+    player,
+  };
+
+  const commandMapper: InputCommandMapper = new InputCommandMapper(player, interactionSystem);
   const input = InputManager.get();
   const overlay = new GameOverlay();
 
-  const camera = new Camera(game, scene.map, scene.player);
-
   const world: Container = new Container();
   const worldVFX: Container = new Container();
+  const scene = new MainScene(sceneData);
+  const camera = new Camera(game, scene.map, player);
+  const sceneManager = new SceneManager(world, interactionSystem, camera);
 
   // CONTAINER HIERARCHY
   game.stage.addChild(camera.container);
   camera.container.addChild(world, worldVFX);
-  scene.mount(world);
-  scene.registerInteractions(interactionSystem);
+  sceneManager.changeScene(scene);
 
   DamageNumberSystem.initialize(worldVFX);
 
@@ -61,7 +100,7 @@ import "./style.css";
     if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(ticker.deltaMS);
     if (input.wasJustPressed("INTERACT")) commandMapper.get("INTERACT")?.execute(ticker.deltaMS);
 
-    overlay.update(interactionSystem, scene.player);
+    overlay.update(interactionSystem, player);
 
     // DAMAGE NUMBERS
     DamageNumberSystem.update(ticker.deltaMS);
@@ -75,7 +114,7 @@ import "./style.css";
   });
 
   function updateGame(deltaMS: number) {
-    scene.update(deltaMS);
+    sceneManager.update(deltaMS);
     camera.update();
   }
 })();

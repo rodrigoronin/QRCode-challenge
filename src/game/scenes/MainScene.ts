@@ -5,9 +5,20 @@ import type { AssetLoader } from "@core/AssetLoader";
 import { Enemy } from "@entities/Enemy";
 import NPC from "@entities/NPC";
 import type { InteractionSystem } from "@core/systems/InteractionSystem";
+import type { Scene } from "./Scene";
 
-export class MainScene {
-  public player!: Player;
+interface MainSceneConfig {
+  assets: AssetLoader;
+  player: Player;
+}
+
+export class MainScene implements Scene {
+  public readonly id = "main";
+  public readonly player: Player;
+  public map!: Container;
+
+  private readonly assets: AssetLoader;
+  private readonly root: Container = new Container();
   private enemy01!: Enemy;
   private enemy02!: Enemy;
   private enemy03!: Enemy;
@@ -16,42 +27,66 @@ export class MainScene {
   private fountain!: Sprite;
   private tree!: Sprite;
   private house!: Sprite;
-  private assets: AssetLoader;
-  public entities: Array<Player | Enemy> = [];
-  public npcs: NPC[] = [];
-  public props: Sprite[] = [];
-  public map!: Container;
+  private enemies: Enemy[] = [];
+  private npcs: NPC[] = [];
+  private props: Sprite[] = [];
 
-  constructor(assets: AssetLoader) {
+  constructor({ assets, player }: MainSceneConfig) {
     this.assets = assets;
+    this.player = player;
 
     this.init();
   }
 
   public update(deltaMS: number) {
-    this.entities.forEach((entity) => {
-      entity.update(deltaMS);
+    this.player.update(deltaMS);
+
+    this.enemies.forEach((enemy) => {
+      enemy.update(deltaMS);
     });
-    this.npcs.forEach((entity: NPC) => {
-      entity.update();
+
+    this.npcs.forEach((npc) => {
+      npc.update();
     });
   }
 
-  public mount(world: Container) {
-    world.addChild(this.map);
+  public mount(world: Container, interactionSystem: InteractionSystem) {
+    this.registerInteractions(interactionSystem);
+    this.enemies.forEach((enemy) => enemy.resume());
 
-    this.props.forEach((entity) => {
-      world.addChild(entity);
-    });
-    this.entities.forEach((entity) => {
-      world.addChild(entity.container);
-    });
-    this.npcs.forEach((entity) => {
-      world.addChild(entity.container);
-    });
+    if (this.root.children.length === 0) {
+      this.root.addChild(this.map);
+
+      this.props.forEach((prop) => {
+        this.root.addChild(prop);
+      });
+
+      this.enemies.forEach((enemy) => {
+        this.root.addChild(enemy.container);
+      });
+
+      this.npcs.forEach((npc) => {
+        this.root.addChild(npc.container);
+      });
+
+      this.root.addChild(this.player.container);
+    }
+
+    if (this.root.parent !== world) {
+      world.addChild(this.root);
+    }
   }
 
-  public registerInteractions(interactionSystem: InteractionSystem) {
+  public unmount(interactionSystem: InteractionSystem) {
+    this.npcs.forEach((npc) => {
+      interactionSystem.unregister(npc.interactable);
+    });
+    this.enemies.forEach((enemy) => enemy.suspend());
+
+    this.root.parent?.removeChild(this.root);
+  }
+
+  private registerInteractions(interactionSystem: InteractionSystem) {
     this.npcs.forEach((npc) => {
       interactionSystem.register(npc.interactable);
     });
@@ -60,38 +95,28 @@ export class MainScene {
   private init() {
     this.loadEntities();
 
-    this.player.container.position.x = 210;
-    this.player.container.position.y = 380;
+    this.player.container.position.set(210, 380);
 
-    this.enemy01.container.x = 1200;
-    this.enemy01.container.y = 520;
-    this.enemy02.container.x = 1000;
-    this.enemy02.container.y = 1000;
-    this.enemy03.container.x = 1000;
-    this.enemy03.container.y = 512;
+    this.enemy01.container.position.set(1200, 520);
+    this.enemy02.container.position.set(1000, 1000);
+    this.enemy03.container.position.set(1000, 512);
 
     this.elvenMage.setTag("Elven Mage");
-    this.elvenMage.container.position.x = 150;
-    this.elvenMage.container.position.y = 270;
+    this.elvenMage.container.position.set(150, 270);
 
     this.blacksmith.setTag("Blacksmith");
-    this.blacksmith.container.position.x = 270;
-    this.blacksmith.container.position.y = 270;
+    this.blacksmith.container.position.set(270, 270);
 
-    this.fountain.position.x = 167;
-    this.fountain.position.y = 310;
-    this.tree.position.x = 1000;
-    this.tree.position.y = 350;
-    this.house.position.x = 100;
-    this.house.position.y = 100;
+    this.fountain.position.set(167, 310);
+    this.tree.position.set(1000, 350);
+    this.house.position.set(100, 100);
 
-    this.entities.push(this.player, this.enemy01, this.enemy02, this.enemy03);
-    this.npcs.push(this.elvenMage, this.blacksmith);
-    this.props.push(this.fountain, this.tree, this.house);
+    this.enemies = [this.enemy01, this.enemy02, this.enemy03];
+    this.npcs = [this.elvenMage, this.blacksmith];
+    this.props = [this.fountain, this.tree, this.house];
   }
 
   private loadEntities() {
-    const playerTexture = this.assets.getTexture("sprites/mage");
     const goblinMaceShield = this.assets.getTexture("sprites/goblin-mace-shield");
     const swordSlashTexture = this.assets.getTexture("sprites/_sword_slash");
     const elvenMageTexture = this.assets.getTexture("sprites/elven_mage");
@@ -101,31 +126,13 @@ export class MainScene {
     const houseTexture = this.assets.getTexture("sprites/house");
     const frameSize = 64;
 
-    const frames = {
-      idle_down: frameSlicer(playerTexture, frameSize, 1, 1, 0),
-      walk_down: frameSlicer(playerTexture, frameSize, 1, 1, 0),
-
-      idle_left: frameSlicer(playerTexture, frameSize, 1, 0),
-      walk_left: frameSlicer(playerTexture, frameSize, 6, 0, 1),
-
-      idle_up: frameSlicer(playerTexture, frameSize, 1, 2, 0),
-      walk_up: frameSlicer(playerTexture, frameSize, 1, 2, 0),
-
-      idle_right: frameSlicer(playerTexture, frameSize, 1, 0),
-      walk_right: frameSlicer(playerTexture, frameSize, 6, 0, 1),
-
-      dash_down: frameSlicer(playerTexture, frameSize, 1, 0),
-      dash_right: frameSlicer(playerTexture, frameSize, 1, 0),
-      dash_up: frameSlicer(playerTexture, frameSize, 1, 0),
-      dash_left: frameSlicer(playerTexture, frameSize, 1, 0),
-    };
     const daggerVFXFrames = {
       attack_up: frameSlicer(swordSlashTexture, 81, 7, 1),
       attack_down: frameSlicer(swordSlashTexture, 81, 7, 1),
-
       attack_right: frameSlicer(swordSlashTexture, 81, 7, 0),
       attack_left: frameSlicer(swordSlashTexture, 81, 7, 0),
     };
+
     const enemyFrames = {
       idle_down: frameSlicer(goblinMaceShield, frameSize, 1, 0),
       idle_left: frameSlicer(goblinMaceShield, frameSize, 1, 0),
@@ -140,6 +147,7 @@ export class MainScene {
     const elvenMageFrames = {
       idle_down: frameSlicer(elvenMageTexture, frameSize, 1, 0),
     };
+
     const blacksmithFrames = {
       idle_down: frameSlicer(blackSmithTexture, frameSize, 1, 0),
     };
@@ -165,8 +173,6 @@ export class MainScene {
       }),
     );
 
-    this.player = new Player(frames, daggerVFXFrames);
-
     this.elvenMage = new NPC(elvenMageFrames);
     this.blacksmith = new NPC(blacksmithFrames);
 
@@ -191,26 +197,17 @@ export class MainScene {
     mapHeight: number,
   ): Container {
     const container = new Container();
-
     const cols = Math.ceil(mapWidth / tileWidth);
     const rows = Math.ceil(mapHeight / tileHeight);
 
     for (let y = 0; y < rows; y++) {
       const isEvenRow = y % 2 === 0;
-
-      // linha par: tile 1 e 2
-      // linha ímpar: tile 1 e 3
       const tileA = isEvenRow ? tiles[0] : tiles[2];
       const tileB = isEvenRow ? tiles[1] : tiles[0];
 
       for (let x = 0; x < cols; x++) {
-        const useTileA = x % 2 === 0;
-        const texture = useTileA ? tileA : tileB;
-
-        const sprite = new Sprite(texture);
-        sprite.x = x * tileWidth;
-        sprite.y = y * tileHeight;
-
+        const sprite = new Sprite(x % 2 === 0 ? tileA : tileB);
+        sprite.position.set(x * tileWidth, y * tileHeight);
         container.addChild(sprite);
       }
     }
