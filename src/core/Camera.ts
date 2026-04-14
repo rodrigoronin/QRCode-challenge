@@ -59,6 +59,10 @@ export class Camera {
     this.container.y = Math.round(this.container.y);
   }
 
+  public setMapRef(map: Container) {
+    this.mapRef = map;
+  }
+
   private setupZoom() {
     window.addEventListener("wheel", (e: WheelEvent) => {
       const zoomSpeed = 0.1;
