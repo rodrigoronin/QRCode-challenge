@@ -12,6 +12,10 @@ export class InteractionSystem {
     this.candidates.delete(interactable);
   }
 
+  clear() {
+    this.candidates.clear();
+  }
+
   getBestInRange(player: Entity): InteractableComponent | null {
     let best: InteractableComponent | null = null;
     let bestScore = -Infinity;

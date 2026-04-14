@@ -167,6 +167,28 @@ export class Enemy extends Entity {
     this.remove();
   }
 
+  public suspend() {
+    if (this.isDead) return;
+
+    this.attackComponent.deactivate();
+    this.attackCollider.deactivate();
+    CollisionManager.removeEntityCollider(this.collider);
+  }
+
+  public resume() {
+    if (this.isDead) return;
+
+    CollisionManager.registerEntityCollider(this.collider);
+  }
+
+  public dispose() {
+    this.isDead = true;
+    this.attackComponent.deactivate();
+    this.attackCollider.deactivate();
+    CollisionManager.removeEntityCollider(this.collider);
+    this.remove();
+  }
+
   private updateHitFlashFilter(deltaTime: number) {
     if (this.isHitFlashing) {
       this.hitFlashingTimer += deltaTime;
