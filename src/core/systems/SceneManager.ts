@@ -1,10 +1,10 @@
 import type { Container } from "pixi.js";
 import type { Camera } from "@core/Camera";
-import type { Scene } from "../../game/scenes/Scene";
+import type { SceneDefinition } from "../../game/scenes/SceneDefinition";
 import type { InteractionSystem } from "./InteractionSystem";
 
 export class SceneManager {
-  public currentScene: Scene | null = null;
+  public currentScene: SceneDefinition | null = null;
   private readonly world: Container;
   private readonly interactions: InteractionSystem;
   private readonly camera: Camera;
@@ -19,7 +19,7 @@ export class SceneManager {
     this.currentScene?.update(deltaMS);
   }
 
-  public changeScene(nextScene: Scene): void {
+  public changeScene(nextScene: SceneDefinition): void {
     if (this.currentScene?.id === nextScene.id) return;
 
     if (this.currentScene) {

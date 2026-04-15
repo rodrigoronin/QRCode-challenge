@@ -14,6 +14,7 @@ import "./style.css";
 import { Player } from "@entities/Player";
 import { frameSlicer } from "@utils/FrameSlicer";
 import { SceneManager } from "@core/systems/SceneManager";
+import { createMainArea } from "./game/areas/MainArea";
 
 (async () => {
   const game: Application = new Application();
@@ -63,10 +64,8 @@ import { SceneManager } from "@core/systems/SceneManager";
 
   const player = new Player(frames, vfxFrames);
 
-  const sceneData = {
-    assets,
-    player,
-  };
+  const area = createMainArea({ assets, player });
+  const scene = new MainScene(area, player);
 
   const commandMapper: InputCommandMapper = new InputCommandMapper(player, interactionSystem);
   const input = InputManager.get();
@@ -74,7 +73,6 @@ import { SceneManager } from "@core/systems/SceneManager";
 
   const world: Container = new Container();
   const worldVFX: Container = new Container();
-  const scene = new MainScene(sceneData);
   const camera = new Camera(game, scene.map, player);
   const sceneManager = new SceneManager(world, interactionSystem, camera);
 
