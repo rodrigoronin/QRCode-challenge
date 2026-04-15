@@ -1,6 +1,5 @@
 import { Graphics, type Container } from "pixi.js";
-import type { Enemy } from "@entities/Enemy";
-import type { Player } from "@entities/Player";
+import type { Entity } from "@core/Entity";
 
 export class Collider {
   private width: number;
@@ -9,7 +8,7 @@ export class Collider {
   private offsetY: number;
   private debug: Graphics;
   public container: Container;
-  public owner: Enemy | Player;
+  public owner: Entity;
 
   constructor(
     width: number,
@@ -17,7 +16,7 @@ export class Collider {
     offsetX: number,
     offsetY: number,
     container: Container,
-    owner: Enemy | Player,
+    owner: Entity,
   ) {
     this.width = width;
     this.height = height;
