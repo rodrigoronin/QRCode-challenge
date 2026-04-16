@@ -7,7 +7,8 @@ export class RangedEnemy extends Enemy {
     frames: Record<string, Texture[]>,
     playerRef: Player,
     VFXFrames: Record<string, Texture[]>,
+    roamingArea: { x: number; y: number; width: number; height: number },
   ) {
-    super(frames, playerRef, VFXFrames);
+    super(frames, playerRef, VFXFrames, roamingArea);
   }
 }
