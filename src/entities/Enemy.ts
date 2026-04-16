@@ -49,6 +49,7 @@ export class Enemy extends Entity {
   // BEHAVIOUR
   private roamTarget: Point | null = null;
   private roamWaitTimer: number = 0;
+  private roamingArea: { x: number; y: number; width: number; height: number };
   private isInCombat: boolean = false;
   private isPassive: boolean = true;
   public isInvincible: boolean = false;
@@ -62,6 +63,7 @@ export class Enemy extends Entity {
     frames: Record<string, Texture[]>,
     playerRef: Player,
     VFXFrames: Record<string, Texture[]>,
+    roamingArea: { x: number; y: number; width: number; height: number },
   ) {
     super();
 
@@ -94,6 +96,8 @@ export class Enemy extends Entity {
       target: "player",
     });
 
+    this.roamingArea = roamingArea;
+
     this.playerRef = playerRef;
 
     this.collider.drawDebug();
@@ -103,7 +107,7 @@ export class Enemy extends Entity {
     if (!this.isDead) {
       this.updateHitFlashFilter(_deltaTime);
 
-      this.roaming({ x: 1000, y: 500, width: 300, height: 300 }, _deltaTime);
+      this.roaming(this.roamingArea, _deltaTime);
 
       if (!this.isPassive) {
         this.perceptionRadar();
