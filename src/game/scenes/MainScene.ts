@@ -1,14 +1,17 @@
 import { Container } from "pixi.js";
 import { Player } from "@entities/Player";
+import { CollisionManager } from "@core/CollisionManager";
 import type { InteractionSystem } from "@core/systems/InteractionSystem";
 import type { SceneDefinition } from "./SceneDefinition";
 import type { AreaDefinition } from "../areas/AreaDefinition";
+import type { WorldCollider } from "@core/WorldCollider";
 
 export class MainScene implements SceneDefinition {
   public readonly id = "main";
   public readonly player: Player;
   public readonly map: Container;
   private area: AreaDefinition;
+  private activeTriggers: Set<string> = new Set();
 
   private readonly root: Container = new Container();
 
@@ -28,6 +31,39 @@ export class MainScene implements SceneDefinition {
     this.area.npcs.forEach((npc) => {
       npc.update();
     });
+
+    this.updateTriggers();
+  }
+
+  private updateTriggers(): void {
+    const playerBounds = this.player.collider.getBounds();
+
+    this.area.worldColliders.forEach((collider) => {
+      if (!collider.isTrigger) return;
+
+      const colliderBounds = collider.getBounds();
+      const overlaps = CollisionManager.rectIntersects(playerBounds, colliderBounds);
+
+      if (overlaps && !this.activeTriggers.has(collider.id)) {
+        this.handleTriggerEnter(collider);
+        this.activeTriggers.add(collider.id);
+      } else if (!overlaps && this.activeTriggers.has(collider.id)) {
+        this.handleTriggerExit(collider);
+        this.activeTriggers.delete(collider.id);
+      }
+    });
+  }
+
+  private handleTriggerEnter(trigger: WorldCollider): void {
+    console.log(`Player entered the area ${trigger.id}`);
+  }
+
+  private handleTriggerExit(trigger: WorldCollider): void {
+    console.log(`Player exited the area ${trigger.id}`);
+  }
+
+  private queueSceneChange(targetAreaId: string): void {
+    this.activeTriggers;
   }
 
   public mount(world: Container, interactionSystem: InteractionSystem) {
@@ -51,11 +87,11 @@ export class MainScene implements SceneDefinition {
         this.root.addChild(collider.container);
       });
 
-      this.root.addChild(this.player.container);
-
       this.area.props.forEach((prop) => {
         this.root.addChild(prop);
       });
+
+      this.root.addChild(this.player.container);
     }
 
     if (this.root.parent !== world) {

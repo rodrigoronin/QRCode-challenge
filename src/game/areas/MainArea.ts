@@ -126,15 +126,20 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
   treePortal_2.position.set(300, 600);
   treePortal_3.position.set(350, 650);
 
-  const portalCollider = new WorldCollider({
+  const portal = new WorldCollider({
     posX: 330,
     posY: 750,
     width: 30,
     height: 30,
-  });
-  portalCollider.isTrigger = true;
+  })
+    .setTrigger(true)
+    .setCallbacks({
+      onTriggerEnter: () => {
+        // request dungeon transition
+      },
+    });
 
-  CollisionManager.registerWorldCollider(portalCollider);
+  CollisionManager.registerWorldCollider(portal);
 
   const enemies = [enemy01, enemy02, enemy03];
   const npcs = [elvenMage, blacksmith];
@@ -147,7 +152,7 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
     props,
     npcs,
     enemies,
-    worldColliders: [portalCollider],
+    worldColliders: [portal],
     transitions: [],
   };
 }

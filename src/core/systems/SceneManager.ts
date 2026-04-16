@@ -19,6 +19,8 @@ export class SceneManager {
     this.currentScene?.update(deltaMS);
   }
 
+  public requestSceneChange(targetAreaId: string): void {}
+
   public changeScene(nextScene: SceneDefinition): void {
     if (this.currentScene?.id === nextScene.id) return;
 
