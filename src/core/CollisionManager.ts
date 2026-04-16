@@ -27,6 +27,12 @@ export class CollisionManager {
     this.worldColliders.add(col);
   }
 
+  static removeWorldCollider(col: WorldCollider): void {
+    if (this.worldColliders.has(col)) {
+      this.worldColliders.delete(col);
+    }
+  }
+
   static registerEntityCollider(col: Collider): void {
     if (this.entityColliders.has(col)) return;
 
