@@ -44,7 +44,7 @@ export class Enemy extends Entity {
   private attackTimer: number = 0;
   private isHitFlashing: boolean = false;
   private hitFlashingTimer: number = 0;
-  private HIT_FLASH_DURATION: number = 150;
+  private HIT_FLASH_DURATION: number = 200;
   private VFXFrames: Record<string, Texture[]>;
   // BEHAVIOUR
   private roamTarget: Point | null = null;
@@ -157,7 +157,9 @@ export class Enemy extends Entity {
       this.isHitFlashing = true;
     }
 
-    this.hitFlashFilter.greyscale(1, false);
+    // Matrix for white color
+    this.hitFlashFilter.matrix = [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0];
+
     this.addFilter(this.hitFlashFilter);
 
     console.log(`Enemy HP: ${this.stats.currentHP} / ${this.stats.maxHP}`);
