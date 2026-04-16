@@ -2,7 +2,7 @@ import { Container, Graphics } from "pixi.js";
 import type { Entity } from "./Entity";
 
 interface WorldColliderProps {
-  id?: string;
+  id: string;
   posX: number;
   posY: number;
   width: number;
@@ -19,7 +19,7 @@ export class WorldCollider {
   private debugGraphics: Graphics;
   public container: Container;
 
-  constructor({ id = crypto.randomUUID(), posX, posY, width, height }: WorldColliderProps) {
+  constructor({ id, posX, posY, width, height }: WorldColliderProps) {
     this.id = id;
     this.width = width;
     this.height = height;
@@ -47,6 +47,14 @@ export class WorldCollider {
     this.onTriggerExit = callbacks.onTriggerExit;
 
     return this;
+  }
+
+  public triggerEnter(entity: Entity): void {
+    this.onTriggerEnter?.(entity);
+  }
+
+  public triggerExit(entity: Entity): void {
+    this.onTriggerExit?.(entity);
   }
 
   getBounds() {

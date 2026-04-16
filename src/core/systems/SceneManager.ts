@@ -5,6 +5,7 @@ import type { InteractionSystem } from "./InteractionSystem";
 
 export class SceneManager {
   public currentScene: SceneDefinition | null = null;
+  private readonly sceneFactories: Map<string, () => SceneDefinition> = new Map();
   private readonly world: Container;
   private readonly interactions: InteractionSystem;
   private readonly camera: Camera;
@@ -19,7 +20,20 @@ export class SceneManager {
     this.currentScene?.update(deltaMS);
   }
 
-  public requestSceneChange(targetAreaId: string): void {}
+  public registerSceneFactory(areaId: string, factory: () => SceneDefinition): void {
+    this.sceneFactories.set(areaId, factory);
+  }
+
+  public requestSceneChange(targetAreaId: string): void {
+    const factory = this.sceneFactories.get(targetAreaId);
+
+    if (!factory) {
+      console.warn(`Scene not found: ${targetAreaId}`);
+      return;
+    }
+
+    this.changeScene(factory());
+  }
 
   public changeScene(nextScene: SceneDefinition): void {
     if (this.currentScene?.id === nextScene.id) return;

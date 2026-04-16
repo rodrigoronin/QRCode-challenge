@@ -4,9 +4,7 @@ import type { AreaDefinition } from "./AreaDefinition";
 import { frameSlicer } from "@utils/FrameSlicer";
 import { Container, Point, Rectangle, Sprite, Texture, TextureSource } from "pixi.js";
 import NPC from "@entities/NPC";
-import { Enemy } from "@entities/Enemy";
 import { WorldCollider } from "@core/WorldCollider";
-import { CollisionManager } from "@core/CollisionManager";
 
 type MainAreaConfig = {
   assets: AssetLoader;
@@ -14,34 +12,14 @@ type MainAreaConfig = {
 };
 
 export function createMainArea(config: MainAreaConfig): AreaDefinition {
-  const { assets, player } = config;
+  const { assets } = config;
 
-  const goblinMaceShield = assets.getTexture("sprites/goblin-mace-shield");
-  const swordSlashTexture = assets.getTexture("sprites/_sword_slash");
   const elvenMageTexture = assets.getTexture("sprites/elven_mage");
   const blackSmithTexture = assets.getTexture("sprites/blacksmith");
   const fountainTexture = assets.getTexture("sprites/fountain");
   const treeTexture = assets.getTexture("sprites/tree");
   const houseTexture = assets.getTexture("sprites/house");
   const frameSize = 64;
-
-  const daggerVFXFrames = {
-    attack_up: frameSlicer(swordSlashTexture, 81, 7, 1),
-    attack_down: frameSlicer(swordSlashTexture, 81, 7, 1),
-    attack_right: frameSlicer(swordSlashTexture, 81, 7, 0),
-    attack_left: frameSlicer(swordSlashTexture, 81, 7, 0),
-  };
-
-  const enemyFrames = {
-    idle_down: frameSlicer(goblinMaceShield, frameSize, 1, 0),
-    idle_left: frameSlicer(goblinMaceShield, frameSize, 1, 0),
-    idle_up: frameSlicer(goblinMaceShield, frameSize, 1, 0),
-    idle_right: frameSlicer(goblinMaceShield, frameSize, 1, 0),
-    walk_down: frameSlicer(goblinMaceShield, frameSize, 1, 0),
-    walk_right: frameSlicer(goblinMaceShield, frameSize, 1, 0),
-    walk_up: frameSlicer(goblinMaceShield, frameSize, 1, 0),
-    walk_left: frameSlicer(goblinMaceShield, frameSize, 1, 0),
-  };
 
   const elvenMageFrames = {
     idle_down: frameSlicer(elvenMageTexture, frameSize, 1, 0),
@@ -95,10 +73,6 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
   const elvenMage = new NPC(elvenMageFrames);
   const blacksmith = new NPC(blacksmithFrames);
 
-  const enemy01 = new Enemy(enemyFrames, player, daggerVFXFrames);
-  const enemy02 = new Enemy(enemyFrames, player, daggerVFXFrames);
-  const enemy03 = new Enemy(enemyFrames, player, daggerVFXFrames);
-
   const map = generateTestMap(
     frameSlicer(assets.getTexture("sprites/training-tiles"), 32, 3, 0),
     32,
@@ -106,10 +80,6 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
     2048,
     2048,
   );
-
-  enemy01.container.position.set(1200, 520);
-  enemy02.container.position.set(1000, 1000);
-  enemy03.container.position.set(1000, 512);
 
   elvenMage.setTag("Elven Mage");
   elvenMage.container.position.set(150, 270);
@@ -127,33 +97,31 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
   treePortal_3.position.set(350, 650);
 
   const portal = new WorldCollider({
+    id: "portal_01",
     posX: 330,
     posY: 750,
     width: 30,
     height: 30,
-  })
-    .setTrigger(true)
-    .setCallbacks({
-      onTriggerEnter: () => {
-        // request dungeon transition
-      },
-    });
+  }).setTrigger(true);
 
-  CollisionManager.registerWorldCollider(portal);
-
-  const enemies = [enemy01, enemy02, enemy03];
   const npcs = [elvenMage, blacksmith];
   const props = [fountain, tree, house, treePortal_2, treePortal_1, treePortal_3];
 
   return {
-    id: "1",
+    id: "main",
     map,
     playerSpawn: new Point(210, 380),
     props,
     npcs,
-    enemies,
+    enemies: [],
     worldColliders: [portal],
-    transitions: [],
+    transitions: [
+      {
+        id: "portal_01",
+        targetAreaId: "dungeon",
+        spawnId: "entry",
+      },
+    ],
   };
 }
 
