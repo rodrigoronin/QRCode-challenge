@@ -15,6 +15,7 @@ import { Player } from "@entities/Player";
 import { frameSlicer } from "@utils/FrameSlicer";
 import { SceneManager } from "@core/systems/SceneManager";
 import { createMainArea } from "./game/areas/MainArea";
+import { createDungeonArea } from "./game/areas/DungeonArea";
 
 (async () => {
   const game: Application = new Application();
@@ -64,17 +65,26 @@ import { createMainArea } from "./game/areas/MainArea";
 
   const player = new Player(frames, vfxFrames);
 
-  const area = createMainArea({ assets, player });
-  const scene = new MainScene(area, player);
-
   const commandMapper: InputCommandMapper = new InputCommandMapper(player, interactionSystem);
   const input = InputManager.get();
   const overlay = new GameOverlay();
 
   const world: Container = new Container();
   const worldVFX: Container = new Container();
-  const camera = new Camera(game, scene.map, player);
+  const mainArea = createMainArea({ assets, player });
+  const camera = new Camera(game, mainArea.map, player);
   const sceneManager = new SceneManager(world, interactionSystem, camera);
+  const requestSceneChange = sceneManager.requestSceneChange.bind(sceneManager);
+  const scene = new MainScene(mainArea, player, requestSceneChange);
+
+  sceneManager.registerSceneFactory(
+    "main",
+    () => new MainScene(createMainArea({ assets, player }), player, requestSceneChange),
+  );
+  sceneManager.registerSceneFactory(
+    "dungeon",
+    () => new MainScene(createDungeonArea({ assets, player }), player, requestSceneChange),
+  );
 
   // CONTAINER HIERARCHY
   game.stage.addChild(camera.container);

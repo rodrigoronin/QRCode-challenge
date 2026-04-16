@@ -6,19 +6,25 @@ import type { SceneDefinition } from "./SceneDefinition";
 import type { AreaDefinition } from "../areas/AreaDefinition";
 import type { WorldCollider } from "@core/WorldCollider";
 
+// TODO: transform this class into a scene factory
 export class MainScene implements SceneDefinition {
-  public readonly id = "main";
+  public readonly id: string;
   public readonly player: Player;
   public readonly map: Container;
   private area: AreaDefinition;
   private activeTriggers: Set<string> = new Set();
+  private pendingSceneChange: string | null = null;
+  private requestSceneChange: (id: string) => void;
 
   private readonly root: Container = new Container();
 
-  constructor(area: AreaDefinition, player: Player) {
+  constructor(area: AreaDefinition, player: Player, requestSceneChange: (id: string) => void) {
     this.area = area;
     this.player = player;
     this.map = area.map;
+    this.id = area.id;
+    this.requestSceneChange = requestSceneChange;
+    this.bindTriggerCallbacks();
   }
 
   public update(deltaMS: number) {
@@ -33,6 +39,7 @@ export class MainScene implements SceneDefinition {
     });
 
     this.updateTriggers();
+    this.flushSceneChange();
   }
 
   private updateTriggers(): void {
@@ -55,20 +62,45 @@ export class MainScene implements SceneDefinition {
   }
 
   private handleTriggerEnter(trigger: WorldCollider): void {
-    console.log(`Player entered the area ${trigger.id}`);
+    trigger.triggerEnter(this.player);
   }
 
   private handleTriggerExit(trigger: WorldCollider): void {
-    console.log(`Player exited the area ${trigger.id}`);
+    trigger.triggerExit(this.player);
   }
 
   private queueSceneChange(targetAreaId: string): void {
-    this.activeTriggers;
+    this.pendingSceneChange = targetAreaId;
+  }
+
+  private flushSceneChange(): void {
+    if (!this.pendingSceneChange) return;
+
+    const nextAreaId = this.pendingSceneChange;
+    this.pendingSceneChange = null;
+    this.requestSceneChange(nextAreaId);
+  }
+
+  private bindTriggerCallbacks(): void {
+    this.area.transitions.forEach((transition) => {
+      const trigger = this.area.worldColliders.find((collider) => collider.id === transition.id);
+
+      if (!trigger) return;
+
+      trigger.setCallbacks({
+        onTriggerEnter: () => {
+          this.queueSceneChange(transition.targetAreaId);
+        },
+      });
+    });
   }
 
   public mount(world: Container, interactionSystem: InteractionSystem) {
     this.registerInteractions(interactionSystem);
     this.area.enemies.forEach((enemy) => enemy.resume());
+    this.area.worldColliders.forEach((collider) =>
+      CollisionManager.registerWorldCollider(collider),
+    );
 
     this.player.container.position.set(this.area.playerSpawn.x, this.area.playerSpawn.y);
 
@@ -104,6 +136,9 @@ export class MainScene implements SceneDefinition {
       interactionSystem.unregister(npc.interactable);
     });
     this.area.enemies.forEach((enemy) => enemy.suspend());
+    this.area.worldColliders.forEach((collider) => CollisionManager.removeWorldCollider(collider));
+    this.activeTriggers.clear();
+    this.pendingSceneChange = null;
 
     this.root.parent?.removeChild(this.root);
   }
