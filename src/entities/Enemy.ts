@@ -1,12 +1,13 @@
 import { ColorMatrixFilter, Sprite, Texture, Point } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { Collider } from "../core/Collider";
-import { CollisionManager } from "../core/CollisionManager";
+import { CollisionManager } from "@core/systems/CollisionManager";
 import { Player } from "./Player";
 import { AttackComponent } from "../core/AttackComponent";
 import { AttackCollider } from "../core/AttackCollider";
 import { AnimationController } from "../core/AnimationController";
 import { StatsComponent } from "@core/components/StatsComponent";
+import type { DepthSortOptions } from "@core/systems/YSortSystem";
 
 type AttackState = "none" | "windup" | "active" | "recovery";
 // type Direction = "up" | "down" | "left" | "right";
@@ -64,8 +65,9 @@ export class Enemy extends Entity {
     playerRef: Player,
     VFXFrames: Record<string, Texture[]>,
     roamingArea: { x: number; y: number; width: number; height: number },
+    depthSortOptions: DepthSortOptions = {},
   ) {
-    super();
+    super(depthSortOptions);
 
     this.VFXFrames = VFXFrames;
     this.frames = frames;
@@ -73,6 +75,9 @@ export class Enemy extends Entity {
     this.sprite.anchor.set(0.5);
     this.anim = new AnimationController(this.sprite);
     this.setupAnimation();
+    if (depthSortOptions.depthSortOffsetY === undefined) {
+      this.setDepthSortOffsetY(this.sprite.height / 2);
+    }
 
     this.anim.play("idle_down");
 
@@ -164,10 +169,12 @@ export class Enemy extends Entity {
 
     console.log(`Enemy HP: ${this.stats.currentHP} / ${this.stats.maxHP}`);
 
-    if (this.stats.currentHP <= 0) this.die();
+    if (this.stats.currentHP <= 0) {
+      this.death();
+    }
   }
 
-  private die() {
+  private death() {
     this.isDead = true;
     CollisionManager.removeEntityCollider(this.collider);
     this.remove();

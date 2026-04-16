@@ -2,6 +2,7 @@ import { Sprite, Texture } from "pixi.js";
 import { Entity } from "../core/Entity";
 import { AnimationController } from "../core/AnimationController";
 import { InteractableComponent } from "@core/components/InteractableComponent";
+import type { DepthSortOptions } from "@core/systems/YSortSystem";
 
 class NPC extends Entity {
   public sprite: Sprite;
@@ -9,14 +10,17 @@ class NPC extends Entity {
   private frames: Record<string, Texture[]>;
   public interactable: InteractableComponent;
 
-  constructor(frames: Record<string, Texture[]>) {
-    super();
+  constructor(frames: Record<string, Texture[]>, depthSortOptions: DepthSortOptions = {}) {
+    super(depthSortOptions);
 
     this.sprite = new Sprite();
     this.sprite.anchor.set(0.5);
     this.frames = frames;
     this.anim = new AnimationController(this.sprite, true);
     this.setupAnimations();
+    if (depthSortOptions.depthSortOffsetY === undefined) {
+      this.setDepthSortOffsetY(this.sprite.height / 2);
+    }
     this.interactable = new InteractableComponent(this, 1, "Talk", this.onInteract.bind(this));
 
     this.container.addChild(this.sprite);

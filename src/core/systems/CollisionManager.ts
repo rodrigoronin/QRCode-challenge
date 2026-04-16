@@ -1,6 +1,6 @@
-import type { AttackCollider } from "./AttackCollider";
-import { Collider } from "./Collider";
-import { WorldCollider } from "./WorldCollider";
+import type { AttackCollider } from "@core/AttackCollider";
+import { Collider } from "@core/Collider";
+import { WorldCollider } from "@core/WorldCollider";
 
 interface IEntityData {
   x: number;

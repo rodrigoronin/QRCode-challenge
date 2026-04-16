@@ -5,6 +5,7 @@ import { frameSlicer } from "@utils/FrameSlicer";
 import { Container, Point, Rectangle, Sprite, Texture, TextureSource } from "pixi.js";
 import { WorldCollider } from "@core/WorldCollider";
 import { Enemy } from "@entities/Enemy";
+import { configureDepthSort } from "@core/systems/YSortSystem";
 
 type DungeonAreaConfig = {
   assets: AssetLoader;
@@ -67,6 +68,7 @@ export function createDungeonArea(config: DungeonAreaConfig): AreaDefinition {
       frame: new Rectangle(0, 0, 103, 140),
     }),
   );
+  configureDepthSort(tree, { depthSortOffsetY: tree.height });
   tree.position.set(180, 180);
 
   const house = new Sprite(
@@ -75,6 +77,7 @@ export function createDungeonArea(config: DungeonAreaConfig): AreaDefinition {
       frame: new Rectangle(0, 0, 218, 177),
     }),
   );
+  configureDepthSort(house, { depthSortOffsetY: house.height });
   house.position.set(320, 280);
 
   const portalBack = new WorldCollider({

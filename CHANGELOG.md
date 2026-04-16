@@ -1,14 +1,74 @@
 # Patch Notes
 
+## [0.8.0] - Y-Sorting Layer
+
+### ✨ Added
+
+- Y-position-based depth sorting for world actors and props
+- Configurable `depthSortOffsetY` on entities and world objects
+- Sorted gameplay layer separated from map and collider/debug layers
+
+### 🔧 Changes
+
+- Main scene now mounts map, actor, and collider layers separately
+- Entities can receive depth sort options at instantiation
+- Static props now define their depth offset so tall sprites sort from their foot position
+
+### ⚡ Improvements
+
+- World objects render in a more natural top-down order
+- Dead or destroyed entities are ignored by the sorter during sync
+
+### 🐛 Fixed
+
+- Render order no longer depends on add-child order alone
+
+### 📝 Notes
+
+- This release establishes the first sorting layer pass for the vertical slice
+
+---
+
+## [0.7.4] - Scene Transitions and Enemy AI
+
+### ✨ Added
+
+- Scene factory to store and reuse created scenes
+- Dungeon area for testing scene transitions
+- Trigger-based world collider events for area transitions
+
+### 🔧 Changes
+
+- Main scenes now suspend and resume enemies when switching areas
+- World colliders are registered and removed as scenes are entered and exited
+- Enemy creation now requires a roaming area
+- Enemy AI now includes player perception, chasing, and flanking during recovery
+
+### ⚡ Improvements
+
+- Cleaned up scene transition flow between main and dungeon areas
+- Enemy behavior is more readable and responsive during combat
+
+### 🐛 Fixed
+
+- Damage application to entities
+- Enemy hit flash now uses a white color matrix
+
+### 📝 Notes
+
+- This release focuses on scene transitions, dungeon setup, and enemy combat behavior
+
+---
+
 ## [0.7.0] - Interaction System (Initial)
 
 ### ✨ Added
 
-* Basic InteractionSystem
-* InteractableComponent
-* Player interaction input
-* Priority-based selection
-* Basic tag system for Entity
+- Basic InteractionSystem
+- InteractableComponent
+- Player interaction input
+- Priority-based selection
+- Basic tag system for Entity
 
 🔧 Changes
 
@@ -20,13 +80,13 @@ None
 
 🐛 Fixed
 
-* Blacksmith NPC was using Player class, changed to use NPC class
-* Preserve just-pressed input state across keyboard and gamepad sources
+- Blacksmith NPC was using Player class, changed to use NPC class
+- Preserve just-pressed input state across keyboard and gamepad sources
 
 📝 Notes
 
-* Initial implementation (no collider integration yet)
-Tooltip is placeholder
+- Initial implementation (no collider integration yet)
+  Tooltip is placeholder
 
 ---
 

@@ -1,6 +1,7 @@
 import { Container } from "pixi.js";
 import { Player } from "@entities/Player";
-import { CollisionManager } from "@core/CollisionManager";
+import { CollisionManager } from "@core/systems/CollisionManager";
+import { YSortSystem } from "@core/systems/YSortSystem";
 import type { InteractionSystem } from "@core/systems/InteractionSystem";
 import type { SceneDefinition } from "./SceneDefinition";
 import type { AreaDefinition } from "../areas/AreaDefinition";
@@ -17,6 +18,10 @@ export class MainScene implements SceneDefinition {
   private requestSceneChange: (id: string) => void;
 
   private readonly root: Container = new Container();
+  private readonly mapLayer: Container = new Container();
+  private readonly actorLayer: Container = new Container();
+  private readonly colliderLayer: Container = new Container();
+  private readonly ySortSystem: YSortSystem;
 
   constructor(area: AreaDefinition, player: Player, requestSceneChange: (id: string) => void) {
     this.area = area;
@@ -24,6 +29,7 @@ export class MainScene implements SceneDefinition {
     this.map = area.map;
     this.id = area.id;
     this.requestSceneChange = requestSceneChange;
+    this.ySortSystem = new YSortSystem(this.actorLayer);
     this.bindTriggerCallbacks();
   }
 
@@ -38,6 +44,7 @@ export class MainScene implements SceneDefinition {
       npc.update();
     });
 
+    this.ySortSystem.sync();
     this.updateTriggers();
     this.flushSceneChange();
   }
@@ -105,26 +112,35 @@ export class MainScene implements SceneDefinition {
     this.player.container.position.set(this.area.playerSpawn.x, this.area.playerSpawn.y);
 
     if (this.root.children.length === 0) {
-      this.root.addChild(this.map);
+      this.mapLayer.addChild(this.map);
+      this.root.addChild(this.mapLayer);
+      this.root.addChild(this.actorLayer);
+      this.root.addChild(this.colliderLayer);
 
       this.area.enemies.forEach((enemy) => {
-        this.root.addChild(enemy.container);
+        this.actorLayer.addChild(enemy.container);
       });
 
       this.area.npcs.forEach((npc) => {
-        this.root.addChild(npc.container);
+        this.actorLayer.addChild(npc.container);
       });
 
       this.area.worldColliders.forEach((collider) => {
-        this.root.addChild(collider.container);
+        this.colliderLayer.addChild(collider.container);
       });
 
       this.area.props.forEach((prop) => {
-        this.root.addChild(prop);
+        this.actorLayer.addChild(prop);
       });
 
-      this.root.addChild(this.player.container);
+      this.actorLayer.addChild(this.player.container);
     }
+
+    this.area.enemies.forEach((enemy) => this.ySortSystem.register(enemy.container));
+    this.area.npcs.forEach((npc) => this.ySortSystem.register(npc.container));
+    this.area.props.forEach((prop) => this.ySortSystem.register(prop));
+    this.ySortSystem.register(this.player.container);
+    this.ySortSystem.sync();
 
     if (this.root.parent !== world) {
       world.addChild(this.root);
@@ -139,6 +155,7 @@ export class MainScene implements SceneDefinition {
     this.area.worldColliders.forEach((collider) => CollisionManager.removeWorldCollider(collider));
     this.activeTriggers.clear();
     this.pendingSceneChange = null;
+    this.ySortSystem.clear();
 
     this.root.parent?.removeChild(this.root);
   }

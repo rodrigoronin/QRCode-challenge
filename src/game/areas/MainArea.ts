@@ -5,6 +5,7 @@ import { frameSlicer } from "@utils/FrameSlicer";
 import { Container, Point, Rectangle, Sprite, Texture, TextureSource } from "pixi.js";
 import NPC from "@entities/NPC";
 import { WorldCollider } from "@core/WorldCollider";
+import { configureDepthSort } from "@core/systems/YSortSystem";
 
 type MainAreaConfig = {
   assets: AssetLoader;
@@ -35,6 +36,16 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
       frame: new Rectangle(0, 0, 84, 71),
     }),
   );
+  configureDepthSort(fountain, { depthSortOffsetY: fountain.height });
+  fountain.position.set(167, 310);
+
+  const fountainCollider = new WorldCollider({
+    id: "fountain_1",
+    posX: fountain.position.x + 2,
+    posY: fountain.position.y + 18,
+    width: fountain.width - 4,
+    height: 20,
+  });
 
   const tree = new Sprite(
     new Texture({
@@ -42,6 +53,7 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
       frame: new Rectangle(0, 0, 103, 140),
     }),
   );
+  configureDepthSort(tree, { depthSortOffsetY: tree.height });
 
   const house = new Sprite(
     new Texture({
@@ -49,6 +61,16 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
       frame: new Rectangle(0, 0, 218, 177),
     }),
   );
+  configureDepthSort(house, { depthSortOffsetY: house.height });
+  house.position.set(100, 100);
+
+  const houseCollider = new WorldCollider({
+    id: "house_1",
+    posX: house.position.x + 5,
+    posY: house.position.y + 50,
+    width: house.width - 10,
+    height: 90,
+  });
 
   // Trees to represent the portal
   const treePortal_1 = new Sprite(
@@ -57,21 +79,36 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
       frame: new Rectangle(0, 0, 103, 140),
     }),
   );
+  configureDepthSort(treePortal_1, { depthSortOffsetY: treePortal_1.height });
   const treePortal_2 = new Sprite(
     new Texture({
       source: treeTexture.source,
       frame: new Rectangle(0, 0, 103, 140),
     }),
   );
+  configureDepthSort(treePortal_2, { depthSortOffsetY: treePortal_2.height });
   const treePortal_3 = new Sprite(
     new Texture({
       source: treeTexture.source,
       frame: new Rectangle(0, 0, 103, 140),
     }),
   );
+  configureDepthSort(treePortal_3, { depthSortOffsetY: treePortal_3.height });
+  // Portal position
+  treePortal_1.position.set(250, 650);
+  treePortal_2.position.set(300, 600);
+  treePortal_3.position.set(350, 650);
 
-  const elvenMage = new NPC(elvenMageFrames);
-  const blacksmith = new NPC(blacksmithFrames);
+  const treePortalCollider_1 = new WorldCollider({
+    id: "treePortal_1",
+    posX: treePortal_1.position.x + 25,
+    posY: treePortal_1.position.y + 100,
+    width: treePortal_1.width - 80,
+    height: 40,
+  });
+
+  const elvenMage = new NPC(elvenMageFrames, { depthSortOffsetY: frameSize / 2 });
+  const blacksmith = new NPC(blacksmithFrames, { depthSortOffsetY: frameSize / 2 });
 
   const map = generateTestMap(
     frameSlicer(assets.getTexture("sprites/training-tiles"), 32, 3, 0),
@@ -87,14 +124,7 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
   blacksmith.setTag("Blacksmith");
   blacksmith.container.position.set(270, 270);
 
-  fountain.position.set(167, 310);
   tree.position.set(1000, 350);
-  house.position.set(100, 100);
-
-  // Portal position
-  treePortal_1.position.set(250, 650);
-  treePortal_2.position.set(300, 600);
-  treePortal_3.position.set(350, 650);
 
   const portal = new WorldCollider({
     id: "portal_01",
@@ -114,7 +144,7 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
     props,
     npcs,
     enemies: [],
-    worldColliders: [portal],
+    worldColliders: [portal, fountainCollider, houseCollider, treePortalCollider_1],
     transitions: [
       {
         id: "portal_01",

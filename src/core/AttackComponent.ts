@@ -2,7 +2,7 @@ import type { Player } from "@entities/Player";
 import type { Enemy } from "@entities/Enemy";
 import type { AttackCollider } from "./AttackCollider";
 import type { Collider } from "./Collider";
-import { CollisionManager } from "./CollisionManager";
+import { CollisionManager } from "@core/systems/CollisionManager";
 import { DamageSystem } from "./systems/DamageSystem";
 
 interface Config {

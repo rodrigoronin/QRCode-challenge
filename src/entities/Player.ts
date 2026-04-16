@@ -4,9 +4,10 @@ import { InputManager } from "@input/InputManager";
 import { AnimationController } from "@core/AnimationController";
 import { Collider } from "@core/Collider";
 import { AttackCollider } from "@core/AttackCollider";
-import { CollisionManager } from "@core/CollisionManager";
+import { CollisionManager } from "@core/systems/CollisionManager";
 import { AttackComponent } from "@core/AttackComponent";
 import { StatsComponent } from "@core/components/StatsComponent";
+import type { DepthSortOptions } from "@core/systems/YSortSystem";
 
 type Direction = "up" | "down" | "left" | "right";
 type PlayerState = "idle" | "moving" | "attacking" | "dashing" | "conjuring" | "dead";
@@ -52,8 +53,12 @@ export class Player extends Entity {
   public isInvincible: boolean = false;
   private isImmortalObject: boolean = false;
 
-  constructor(frames: Record<string, Texture[]>, VFXFrames: Record<string, Texture[]>) {
-    super();
+  constructor(
+    frames: Record<string, Texture[]>,
+    VFXFrames: Record<string, Texture[]>,
+    depthSortOptions: DepthSortOptions = {},
+  ) {
+    super(depthSortOptions);
     this.frames = frames;
     this.VFXFrames = VFXFrames;
 
@@ -62,6 +67,9 @@ export class Player extends Entity {
     this.sprite.anchor.set(0.5);
     this.anim = new AnimationController(this.sprite, true);
     this.setupAnimations();
+    if (depthSortOptions.depthSortOffsetY === undefined) {
+      this.setDepthSortOffsetY(this.sprite.height / 2);
+    }
 
     this.dashSpeed = this.dashDistance / (this.dashDuration / 1000);
 
