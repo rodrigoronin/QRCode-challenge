@@ -57,7 +57,7 @@ export class AttackComponent {
         // TODO: adjust this check in the future for objects without stats
         // or just add the StatsComponent to the object (needs definition).
         // Change the check for hasComponent(StatsComponent) or Damageable interface
-        if (targetEntity?.stats && this.owner["stats"]) {
+        if (targetEntity) {
           DamageSystem.applyDamage(this.owner, targetEntity, this.direction);
         }
 

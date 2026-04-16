@@ -9,7 +9,7 @@ export class Collider {
   private offsetY: number;
   private debug: Graphics;
   public container: Container;
-  public owner: Enemy | Player;
+  public owner: Player | Enemy;
 
   constructor(
     width: number,
@@ -17,7 +17,7 @@ export class Collider {
     offsetX: number,
     offsetY: number,
     container: Container,
-    owner: Enemy | Player,
+    owner: Player | Enemy,
   ) {
     this.width = width;
     this.height = height;

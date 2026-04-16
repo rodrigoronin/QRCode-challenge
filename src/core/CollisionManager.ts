@@ -12,7 +12,7 @@ interface IEntityData {
 /**
  * CollisionManager - centralizes all collision logics and overlaps
  *
- * • WorldColliders -> objetos estáticos do cenário
+ * • WorldColliders -> static/non-living objects
  * • EntityColliders -> NPCs, player, enemies, projectiles, attacks...
  */
 export class CollisionManager {
@@ -25,6 +25,12 @@ export class CollisionManager {
 
   static registerWorldCollider(col: WorldCollider): void {
     this.worldColliders.add(col);
+  }
+
+  static removeWorldCollider(col: WorldCollider): void {
+    if (this.worldColliders.has(col)) {
+      this.worldColliders.delete(col);
+    }
   }
 
   static registerEntityCollider(col: Collider): void {
@@ -44,8 +50,9 @@ export class CollisionManager {
   // -------------------
   static canMove(collider: Collider, futureX: number, futureY: number): boolean {
     const futureBounds = collider.getBoundsAt(futureX, futureY);
-    for (const wall of this.worldColliders) {
-      if (this.rectIntersects(futureBounds, wall.getBounds())) return false;
+    for (const wCollider of this.worldColliders) {
+      if (wCollider.isTrigger) continue;
+      if (this.rectIntersects(futureBounds, wCollider.getBounds())) return false;
     }
 
     return true;

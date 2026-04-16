@@ -26,7 +26,6 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "ignoreDeprecations": "6.0", // to silence the error on baseUrl
     "baseUrl": ".",
     "paths": {
       "@entities/*": [

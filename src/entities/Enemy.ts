@@ -44,11 +44,12 @@ export class Enemy extends Entity {
   private attackTimer: number = 0;
   private isHitFlashing: boolean = false;
   private hitFlashingTimer: number = 0;
-  private HIT_FLASH_DURATION: number = 150;
+  private HIT_FLASH_DURATION: number = 200;
   private VFXFrames: Record<string, Texture[]>;
   // BEHAVIOUR
   private roamTarget: Point | null = null;
   private roamWaitTimer: number = 0;
+  private roamingArea: { x: number; y: number; width: number; height: number };
   private isInCombat: boolean = false;
   private isPassive: boolean = true;
   public isInvincible: boolean = false;
@@ -62,6 +63,7 @@ export class Enemy extends Entity {
     frames: Record<string, Texture[]>,
     playerRef: Player,
     VFXFrames: Record<string, Texture[]>,
+    roamingArea: { x: number; y: number; width: number; height: number },
   ) {
     super();
 
@@ -94,6 +96,8 @@ export class Enemy extends Entity {
       target: "player",
     });
 
+    this.roamingArea = roamingArea;
+
     this.playerRef = playerRef;
 
     this.collider.drawDebug();
@@ -103,7 +107,7 @@ export class Enemy extends Entity {
     if (!this.isDead) {
       this.updateHitFlashFilter(_deltaTime);
 
-      this.roaming({ x: 1000, y: 500, width: 300, height: 300 }, _deltaTime);
+      this.roaming(this.roamingArea, _deltaTime);
 
       if (!this.isPassive) {
         this.perceptionRadar();
@@ -153,7 +157,9 @@ export class Enemy extends Entity {
       this.isHitFlashing = true;
     }
 
-    this.hitFlashFilter.greyscale(1, false);
+    // Matrix for white color
+    this.hitFlashFilter.matrix = [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0];
+
     this.addFilter(this.hitFlashFilter);
 
     console.log(`Enemy HP: ${this.stats.currentHP} / ${this.stats.maxHP}`);
@@ -163,6 +169,28 @@ export class Enemy extends Entity {
 
   private die() {
     this.isDead = true;
+    CollisionManager.removeEntityCollider(this.collider);
+    this.remove();
+  }
+
+  public suspend() {
+    if (this.isDead) return;
+
+    this.attackComponent.deactivate();
+    this.attackCollider.deactivate();
+    CollisionManager.removeEntityCollider(this.collider);
+  }
+
+  public resume() {
+    if (this.isDead) return;
+
+    CollisionManager.registerEntityCollider(this.collider);
+  }
+
+  public dispose() {
+    this.isDead = true;
+    this.attackComponent.deactivate();
+    this.attackCollider.deactivate();
     CollisionManager.removeEntityCollider(this.collider);
     this.remove();
   }
