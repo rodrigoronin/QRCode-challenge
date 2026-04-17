@@ -22,7 +22,7 @@ export class Player extends Entity {
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private speed = 120; // pixels/second
+  private speed = 130; // pixels/second
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   // Dash variables

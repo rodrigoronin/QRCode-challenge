@@ -6,7 +6,7 @@ export class AnimationController {
   private current: string = "";
   private frameIndex = 0;
   private frameTime = 0;
-  private speed = 120; // ms por frame
+  private speed = 100; // ms por frame
   private loop?: boolean = true;
 
   constructor(sprite: Sprite, loop: boolean = true) {

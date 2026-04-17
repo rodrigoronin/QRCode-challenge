@@ -14,10 +14,10 @@ import "./style.css";
 import { Player } from "@entities/Player";
 import { frameSlicer } from "@utils/FrameSlicer";
 import { SceneManager } from "@core/systems/SceneManager";
-import { createMainArea } from "./game/areas/MainArea";
+import { createMainArea } from "./game/areas/Town";
 import { createDungeonArea } from "./game/areas/DungeonArea";
 
-(async () => {
+async function init() {
   const game: Application = new Application();
   await game.init({
     width: Constants.LOGICAL_WIDTH,
@@ -41,14 +41,14 @@ import { createDungeonArea } from "./game/areas/DungeonArea";
     idle_down: frameSlicer(playerTexture, frameSize, 1, 1, 0),
     walk_down: frameSlicer(playerTexture, frameSize, 1, 1, 0),
 
+    idle_right: frameSlicer(playerTexture, frameSize, 1, 0),
+    walk_right: frameSlicer(playerTexture, frameSize, 8, 0, 1),
+
     idle_left: frameSlicer(playerTexture, frameSize, 1, 0),
-    walk_left: frameSlicer(playerTexture, frameSize, 6, 0, 1),
+    walk_left: frameSlicer(playerTexture, frameSize, 8, 0, 1),
 
     idle_up: frameSlicer(playerTexture, frameSize, 1, 2, 0),
     walk_up: frameSlicer(playerTexture, frameSize, 1, 2, 0),
-
-    idle_right: frameSlicer(playerTexture, frameSize, 1, 0),
-    walk_right: frameSlicer(playerTexture, frameSize, 6, 0, 1),
 
     dash_down: frameSlicer(playerTexture, frameSize, 1, 0),
     dash_right: frameSlicer(playerTexture, frameSize, 1, 0),
@@ -125,4 +125,6 @@ import { createDungeonArea } from "./game/areas/DungeonArea";
     sceneManager.update(deltaMS);
     camera.update();
   }
-})();
+}
+
+await init();

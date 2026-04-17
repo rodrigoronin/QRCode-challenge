@@ -31,7 +31,7 @@ export class WorldCollider {
     this.debugGraphics = new Graphics();
 
     this.container.addChild(this.debugGraphics);
-    this.drawDebug();
+    // this.drawDebug();
   }
 
   public setTrigger(enabled = true): this {
