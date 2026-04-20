@@ -1,14 +1,15 @@
 import { Container, Graphics, Texture, Sprite, Point } from "pixi.js";
-import { Collider } from "./Collider";
 import { type Player } from "@entities/Player";
 import { type Enemy } from "@entities/Enemy";
 import { AnimationController } from "./AnimationController";
+import { debugState } from "./systems/DebugState";
 
 export class AttackCollider {
   private container: Container;
   private attackContainer: Container;
-  public collider: Collider;
-  private debugGraphics: Graphics;
+  private debugGraphics: Graphics | null;
+  private unsubscribeDebug?: () => void;
+  private debugEnabled = true;
   private width: number;
   private height: number;
   private offsetX!: number;
@@ -42,9 +43,15 @@ export class AttackCollider {
     this.attackContainer = new Container();
     this.container = container;
     this.container.addChild(this.attackContainer);
-    this.collider = new Collider(12, 12, 0, 0, this.container, owner);
 
     this.debugGraphics = new Graphics();
+    this.unsubscribeDebug = debugState.subscribe((enabled) => {
+      this.debugEnabled = enabled;
+
+      if (!this.debugGraphics || this.debugGraphics.destroyed) return;
+
+      this.syncDebug();
+    });
   }
 
   update(delta: number) {
@@ -60,12 +67,13 @@ export class AttackCollider {
   }
 
   attachTo(container: Container) {
+    if (!this.debugGraphics || this.debugGraphics.destroyed) return;
     if (this.debugGraphics.parent === container) return;
     container.addChild(this.debugGraphics);
   }
 
   activate(direction: Point, dist: number) {
-    if (!this.debugGraphics.parent) this.attachTo(this.container);
+    if (this.debugGraphics && !this.debugGraphics.parent) this.attachTo(this.container);
 
     this.active = true;
     this.timer = this.duration;
@@ -99,16 +107,17 @@ export class AttackCollider {
         this.VFXAnim.setSpeed(60);
       }
     }
+
+    this.syncDebug();
   }
 
   deactivate() {
     this.active = false;
     this.attackContainer.position.x = 0;
     this.attackContainer.position.y = 0;
+    this.debugGraphics?.clear();
 
-    this.debugGraphics.clear();
-
-    if (this.debugGraphics.parent) this.debugGraphics.parent.removeChild(this.debugGraphics);
+    if (this.debugGraphics?.parent) this.debugGraphics.parent.removeChild(this.debugGraphics);
 
     if (this.VFXSprite) {
       this.attackContainer.removeChild(this.VFXSprite);
@@ -120,6 +129,7 @@ export class AttackCollider {
 
   updatePosition() {
     if (!this.active) return;
+    if (!this.debugGraphics || this.debugGraphics.destroyed) return;
 
     this.debugGraphics.x = this.attackContainer.position.x;
     this.debugGraphics.y = this.attackContainer.position.y;
@@ -134,13 +144,36 @@ export class AttackCollider {
     };
   }
 
+  private syncDebug() {
+    if (!this.debugGraphics || this.debugGraphics.destroyed) return;
+
+    const shouldShow = this.debugEnabled && this.active;
+    this.debugGraphics.visible = shouldShow;
+
+    if (!shouldShow) {
+      this.debugGraphics.clear();
+      return;
+    }
+
+    this.drawDebug();
+    this.updatePosition();
+  }
+
   drawDebug() {
     if (!this.active) return;
+    if (!this.debugGraphics || this.debugGraphics.destroyed) return;
 
     this.debugGraphics.clear();
     this.debugGraphics
       .rect(0, 0, this.width, this.height)
       .fill({ color: 0xffa500, alpha: 0.2 })
       .stroke({ width: 1, color: 0xffa500 });
+  }
+
+  destroy() {
+    this.unsubscribeDebug?.();
+    this.unsubscribeDebug = undefined;
+    this.debugGraphics?.destroy();
+    this.debugGraphics = null;
   }
 }

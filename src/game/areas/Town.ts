@@ -2,7 +2,7 @@ import type { AssetLoader } from "@core/AssetLoader";
 import type { Player } from "@entities/Player";
 import type { AreaDefinition } from "./AreaDefinition";
 import { frameSlicer } from "@utils/FrameSlicer";
-import { Container, Point, Rectangle, Sprite, Texture, TextureSource } from "pixi.js";
+import { Point, Rectangle, Sprite, Texture } from "pixi.js";
 import NPC from "@entities/NPC";
 import { WorldCollider } from "@core/WorldCollider";
 import { configureDepthSort } from "@core/systems/YSortSystem";
@@ -19,7 +19,6 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
   const blackSmithTexture = assets.getTexture("sprites/blacksmith");
   const fountainTexture = assets.getTexture("sprites/fountain");
   const treeTexture = assets.getTexture("sprites/tree");
-  const treeTexture2 = assets.getTexture("sprites/town/tree_2");
   const treeTexture3 = assets.getTexture("sprites/town/tree_3");
   const treeTextureSmall = assets.getTexture("sprites/town/tree_small");
   const townGroundTexture = assets.getTexture("sprites/town/town_ground-sheet");
@@ -246,30 +245,4 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
       },
     ],
   };
-}
-
-function generateTestMap(
-  tiles: Texture<TextureSource<any>>[],
-  tileWidth: number,
-  tileHeight: number,
-  mapWidth: number,
-  mapHeight: number,
-): Container {
-  const container = new Container();
-  const cols = Math.ceil(mapWidth / tileWidth);
-  const rows = Math.ceil(mapHeight / tileHeight);
-
-  for (let y = 0; y < rows; y++) {
-    const isEvenRow = y % 2 === 0;
-    const tileA = isEvenRow ? tiles[0] : tiles[2];
-    const tileB = isEvenRow ? tiles[1] : tiles[0];
-
-    for (let x = 0; x < cols; x++) {
-      const sprite = new Sprite(x % 2 === 0 ? tileA : tileB);
-      sprite.position.set(x * tileWidth, y * tileHeight);
-      container.addChild(sprite);
-    }
-  }
-
-  return container;
 }

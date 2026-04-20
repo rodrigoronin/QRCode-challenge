@@ -1,5 +1,6 @@
 import { Container, Graphics } from "pixi.js";
 import type { Entity } from "./Entity";
+import { debugState } from "./systems/DebugState";
 
 interface WorldColliderProps {
   id: string;
@@ -16,7 +17,8 @@ export class WorldCollider {
   private onTriggerExit?: (entity: Entity) => void;
   private width: number;
   private height: number;
-  private debugGraphics: Graphics;
+  private debugGraphics: Graphics | null;
+  private unsubscribeDebug?: () => void;
   public container: Container;
 
   constructor({ id, posX, posY, width, height }: WorldColliderProps) {
@@ -29,9 +31,16 @@ export class WorldCollider {
     this.container.y = posY;
 
     this.debugGraphics = new Graphics();
-
     this.container.addChild(this.debugGraphics);
-    // this.drawDebug();
+
+    this.unsubscribeDebug = debugState.subscribe((enabled) => {
+      if (!this.debugGraphics || this.debugGraphics.destroyed) return;
+
+      this.debugGraphics.visible = enabled;
+
+      if (enabled) this.drawDebug();
+      else this.debugGraphics.clear();
+    });
   }
 
   public setTrigger(enabled = true): this {
@@ -67,10 +76,20 @@ export class WorldCollider {
   }
 
   drawDebug(): void {
+    if (!this.debugGraphics || this.debugGraphics.destroyed) return;
+
     this.debugGraphics.clear();
+
     this.debugGraphics
       .rect(0, 0, this.width, this.height)
       .fill({ color: 0x00aaff, alpha: 0.2 })
       .stroke({ width: 1, color: 0x00aaff });
+  }
+
+  destroy() {
+    this.unsubscribeDebug?.();
+    this.unsubscribeDebug = undefined;
+    this.debugGraphics?.destroy();
+    this.debugGraphics = null;
   }
 }
