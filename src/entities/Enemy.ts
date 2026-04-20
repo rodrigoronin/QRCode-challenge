@@ -104,8 +104,6 @@ export class Enemy extends Entity {
     this.roamingArea = roamingArea;
 
     this.playerRef = playerRef;
-
-    this.collider.drawDebug();
   }
 
   update(_deltaTime: number): void {
@@ -177,6 +175,8 @@ export class Enemy extends Entity {
   private death() {
     this.isDead = true;
     CollisionManager.removeEntityCollider(this.collider);
+    this.attackCollider.destroy();
+    this.collider.destroy();
     this.remove();
   }
 
@@ -186,6 +186,8 @@ export class Enemy extends Entity {
     this.attackComponent.deactivate();
     this.attackCollider.deactivate();
     CollisionManager.removeEntityCollider(this.collider);
+    this.attackCollider.destroy();
+    this.collider.destroy();
   }
 
   public resume() {
@@ -199,6 +201,8 @@ export class Enemy extends Entity {
     this.attackComponent.deactivate();
     this.attackCollider.deactivate();
     CollisionManager.removeEntityCollider(this.collider);
+    this.attackCollider.destroy();
+    this.collider.destroy();
     this.remove();
   }
 

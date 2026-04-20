@@ -118,8 +118,6 @@ export class Player extends Entity {
       this.updateAttackLock(deltaTime);
 
       if (this.attackCollider?.active) {
-        this.attackCollider.drawDebug();
-        this.attackCollider.updatePosition();
         this.attackCollider.update(deltaTime);
       }
     }
