@@ -107,6 +107,8 @@ async function init() {
     if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
     if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(ticker.deltaMS);
     if (input.wasJustPressed("INTERACT")) commandMapper.get("INTERACT")?.execute(ticker.deltaMS);
+    if (input.wasJustPressed("DEBUG_MODE"))
+      commandMapper.get("DEBUG_MODE")?.execute(ticker.deltaMS);
 
     overlay.update(interactionSystem, player);
 
@@ -116,9 +118,10 @@ async function init() {
     // FIXED UPDATE
     while (step >= Constants.FIXED_TIMESTEP) {
       updateGame(Constants.FIXED_TIMESTEP);
-      input.commit();
       step -= Constants.FIXED_TIMESTEP;
     }
+
+    input.commit();
   });
 
   function updateGame(deltaMS: number) {
