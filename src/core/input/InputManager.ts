@@ -1,4 +1,4 @@
-export type InputAction = "ATTACK" | "DASH" | "INTERACT" | "DEBUG_MODE";
+export type InputAction = "ATTACK" | "DASH" | "INTERACT" | "DEBUG_MODE" | "RUN";
 
 export class InputManager {
   private gamepadButtons: Record<string, boolean> = {};
@@ -49,6 +49,7 @@ export class InputManager {
       Space: "DASH",
       KeyE: "INTERACT",
       F2: "DEBUG_MODE",
+      Shift: "RUN", // TODO: Fixd shift not working
     };
 
     window.addEventListener("keydown", (e) => {
@@ -153,6 +154,7 @@ export class InputManager {
       if (this.gamepadActive) break;
     }
 
+    // TODO: Add a key to RUN later
     // ATTACK (XBOX X)
     if (gamePadMapper.x) this.gamepadButtons[keyToAction.x] = true;
     else this.gamepadButtons[keyToAction.x] = false;

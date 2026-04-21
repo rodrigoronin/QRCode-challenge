@@ -1,8 +1,8 @@
 import { Application, Container } from "pixi.js";
 import { AssetLoader } from "@core/AssetLoader";
 import { GameOverlay } from "@core/GameOverlay";
-import { InputCommandMapper } from "@input/InputCommandMapper";
-import { InputManager } from "@input/InputManager";
+import { InputCommandMapper } from "@core/input/InputCommandMapper";
+import { InputManager } from "@core/input/InputManager";
 import * as Constants from "@utils/Constants";
 import { Time } from "@core/Time";
 import { Camera } from "./core/Camera";
@@ -38,17 +38,20 @@ async function init() {
   const frameSize = 64;
 
   const frames = {
-    idle_down: frameSlicer(playerTexture, frameSize, 1, 1, 0),
-    walk_down: frameSlicer(playerTexture, frameSize, 1, 1, 0),
+    idle_down: frameSlicer(playerTexture, frameSize, 1, 0, 1),
+    walk_down: frameSlicer(playerTexture, frameSize, 1, 0, 1),
 
-    idle_right: frameSlicer(playerTexture, frameSize, 1, 0),
-    walk_right: frameSlicer(playerTexture, frameSize, 8, 0, 1),
+    idle_right: frameSlicer(playerTexture, frameSize, 1, 0, 2),
+    walk_right: frameSlicer(playerTexture, frameSize, 8, 1),
 
-    idle_left: frameSlicer(playerTexture, frameSize, 1, 0),
-    walk_left: frameSlicer(playerTexture, frameSize, 8, 0, 1),
+    idle_left: frameSlicer(playerTexture, frameSize, 1, 0, 2),
+    walk_left: frameSlicer(playerTexture, frameSize, 8, 1),
 
-    idle_up: frameSlicer(playerTexture, frameSize, 1, 2, 0),
-    walk_up: frameSlicer(playerTexture, frameSize, 1, 2, 0),
+    idle_up: frameSlicer(playerTexture, frameSize, 1, 0, 3),
+    walk_up: frameSlicer(playerTexture, frameSize, 1, 0, 3),
+
+    run_right: frameSlicer(playerTexture, frameSize, 8, 2, 0),
+    run_left: frameSlicer(playerTexture, frameSize, 8, 2, 0),
 
     dash_down: frameSlicer(playerTexture, frameSize, 1, 0),
     dash_right: frameSlicer(playerTexture, frameSize, 1, 0),
@@ -64,7 +67,6 @@ async function init() {
   };
 
   const player = new Player(frames, vfxFrames);
-
   const commandMapper: InputCommandMapper = new InputCommandMapper(player, interactionSystem);
   const input = InputManager.get();
   const overlay = new GameOverlay();
