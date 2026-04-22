@@ -1,6 +1,6 @@
 import { Sprite, Texture, ColorMatrixFilter, Point } from "pixi.js";
 import { Entity } from "@core/Entity";
-import { InputManager } from "@input/InputManager";
+import { InputManager } from "@core/input/InputManager";
 import { AnimationController } from "@core/AnimationController";
 import { Collider } from "@core/Collider";
 import { AttackCollider } from "@core/AttackCollider";
@@ -10,7 +10,7 @@ import { StatsComponent } from "@core/components/StatsComponent";
 import type { DepthSortOptions } from "@core/systems/YSortSystem";
 
 type Direction = "up" | "down" | "left" | "right";
-type PlayerState = "idle" | "moving" | "attacking" | "dashing" | "conjuring" | "dead";
+type PlayerState = "idle" | "attacking" | "dashing" | "conjuring" | "dead";
 
 export class Player extends Entity {
   private sprite: Sprite;
@@ -22,7 +22,9 @@ export class Player extends Entity {
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private speed = 120; // pixels/second
+  private walkSpeed = 130; // pixels/second
+  private runSpeed = 230; // pixels/second
+  private speed = this.walkSpeed;
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   // Dash variables
@@ -118,14 +120,16 @@ export class Player extends Entity {
       this.updateAttackLock(deltaTime);
 
       if (this.attackCollider?.active) {
-        this.attackCollider.drawDebug();
-        this.attackCollider.updatePosition();
         this.attackCollider.update(deltaTime);
       }
     }
 
     // movement
     if (!this.isAttacking) {
+      const isMoving = move.x !== 0 || move.y !== 0;
+      const isRunning = isMoving && this.input.isPressed("RUN");
+      this.speed = isRunning ? this.runSpeed : this.walkSpeed;
+
       const futureX = this.container.x + move.x * this.speed * deltaSec;
       const futureY = this.container.y + move.y * this.speed * deltaSec;
 
@@ -139,13 +143,8 @@ export class Player extends Entity {
 
       this.updateDirection(move);
 
-      if (move.x !== 0 || move.y !== 0) {
-        this.applyFacingToSprite();
-        this.anim.play(`walk_${this.currentDir}`);
-      } else {
-        this.applyFacingToSprite();
-        this.anim.play(`idle_${this.currentDir}`);
-      }
+      this.applyFacingToSprite();
+      this.anim.play(isMoving ? `${isRunning ? "run" : "walk"}_${this.currentDir}` : `idle_${this.currentDir}`);
 
       this.anim.update(deltaTime);
 

@@ -152,11 +152,14 @@ export class MainScene implements SceneDefinition {
       interactionSystem.unregister(npc.interactable);
     });
     this.area.enemies.forEach((enemy) => enemy.suspend());
-    this.area.worldColliders.forEach((collider) => CollisionManager.removeWorldCollider(collider));
+    this.area.worldColliders.forEach((collider) => {
+      CollisionManager.removeWorldCollider(collider);
+      collider.destroy?.();
+    });
+
     this.activeTriggers.clear();
     this.pendingSceneChange = null;
     this.ySortSystem.clear();
-
     this.root.parent?.removeChild(this.root);
   }
 

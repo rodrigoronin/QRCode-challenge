@@ -1,4 +1,4 @@
-export type InputAction = "ATTACK" | "DASH" | "INTERACT";
+export type InputAction = "ATTACK" | "DASH" | "INTERACT" | "DEBUG_MODE" | "RUN";
 
 export class InputManager {
   private gamepadButtons: Record<string, boolean> = {};
@@ -7,7 +7,15 @@ export class InputManager {
   private static instance: InputManager;
 
   public static get() {
-    if (!this.instance) this.instance = new InputManager();
+    const globalScope = globalThis as typeof globalThis & {
+      __exuviaInputManager?: InputManager;
+    };
+
+    if (!globalScope.__exuviaInputManager) {
+      globalScope.__exuviaInputManager = new InputManager();
+    }
+
+    this.instance = globalScope.__exuviaInputManager;
     return this.instance;
   }
 
@@ -40,11 +48,21 @@ export class InputManager {
       KeyJ: "ATTACK",
       Space: "DASH",
       KeyE: "INTERACT",
+      F2: "DEBUG_MODE",
+      Shift: "RUN", // TODO: Fixd shift not working
     };
 
     window.addEventListener("keydown", (e) => {
       const mappedKey = map[e.code];
       const action = keyToAction[e.code];
+
+      // if (action === "DEBUG_MODE") {
+      //   if (e.repeat) return;
+      //   e.preventDefault();
+      //   e.stopPropagation();
+      //   this.buttons[action] = true;
+      //   return;
+      // }
 
       if (action) this.buttons[action] = true;
 
@@ -59,6 +77,13 @@ export class InputManager {
     window.addEventListener("keyup", (e) => {
       const mappedKey = map[e.code];
       const action = keyToAction[e.code];
+
+      // if (action === "DEBUG_MODE") {
+      //   e.preventDefault();
+      //   e.stopPropagation();
+      //   this.buttons[action] = false;
+      //   return;
+      // }
 
       if (action) this.buttons[action] = false;
 
@@ -129,6 +154,7 @@ export class InputManager {
       if (this.gamepadActive) break;
     }
 
+    // TODO: Add a key to RUN later
     // ATTACK (XBOX X)
     if (gamePadMapper.x) this.gamepadButtons[keyToAction.x] = true;
     else this.gamepadButtons[keyToAction.x] = false;
