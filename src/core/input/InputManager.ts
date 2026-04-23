@@ -129,10 +129,10 @@ export class InputManager {
     }
 
     const gamePadMapper = {
-      x: pads[0]?.buttons[2].pressed,
       a: pads[0]?.buttons[0].pressed,
-      y: pads[0]?.buttons[3].pressed,
       b: pads[0]?.buttons[1].pressed,
+      x: pads[0]?.buttons[2].pressed,
+      y: pads[0]?.buttons[3].pressed,
     };
 
     for (const pad of pads) {

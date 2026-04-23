@@ -127,7 +127,7 @@ export class Player extends Entity {
     // movement
     if (!this.isAttacking) {
       const isMoving = move.x !== 0 || move.y !== 0;
-      const isRunning = isMoving && this.input.isPressed("RUN");
+      const isRunning = isMoving && this.input.isPressed("DASH");
       this.speed = isRunning ? this.runSpeed : this.walkSpeed;
 
       const futureX = this.container.x + move.x * this.speed * deltaSec;
@@ -144,7 +144,9 @@ export class Player extends Entity {
       this.updateDirection(move);
 
       this.applyFacingToSprite();
-      this.anim.play(isMoving ? `${isRunning ? "run" : "walk"}_${this.currentDir}` : `idle_${this.currentDir}`);
+      this.anim.play(
+        isMoving ? `${isRunning ? "run" : "walk"}_${this.currentDir}` : `idle_${this.currentDir}`,
+      );
 
       this.anim.update(deltaTime);
 
