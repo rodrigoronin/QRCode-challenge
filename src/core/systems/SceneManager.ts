@@ -5,10 +5,11 @@ import type { InteractionSystem } from "./InteractionSystem";
 
 export class SceneManager {
   public currentScene: SceneDefinition | null = null;
-  private readonly sceneFactories: Map<string, () => SceneDefinition> = new Map();
+  public readonly sceneFactories: Map<string, () => SceneDefinition> = new Map();
   private readonly world: Container;
   private readonly interactions: InteractionSystem;
   private readonly camera: Camera;
+  private isTransitioning: boolean = false;
 
   constructor(world: Container, interactions: InteractionSystem, camera: Camera) {
     this.world = world;
@@ -36,15 +37,18 @@ export class SceneManager {
   }
 
   public changeScene(nextScene: SceneDefinition): void {
+    if (this.isTransitioning) return;
     if (this.currentScene?.id === nextScene.id) return;
 
-    if (this.currentScene) {
-      this.currentScene.unmount(this.interactions);
-    }
+    this.isTransitioning = true;
 
+    this.currentScene?.exit(this.interactions);
     this.interactions.clear();
+
     this.currentScene = nextScene;
-    this.currentScene.mount(this.world, this.interactions);
+    this.currentScene.enter(this.world, this.interactions);
     this.camera.setMapRef(this.currentScene.map);
+
+    this.isTransitioning = false;
   }
 }
