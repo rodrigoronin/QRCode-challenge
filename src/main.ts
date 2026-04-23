@@ -1,21 +1,10 @@
-import { Application, Container } from "pixi.js";
-import { AssetLoader } from "@core/AssetLoader";
-import { GameOverlay } from "@core/GameOverlay";
-import { InputCommandMapper } from "@core/input/InputCommandMapper";
-import { InputManager } from "@core/input/InputManager";
+import { Application } from "pixi.js";
 import * as Constants from "@utils/Constants";
 import { Time } from "@core/Time";
-import { Camera } from "./core/Camera";
-import { InteractionSystem } from "@core/systems/InteractionSystem";
 import { DamageNumberSystem } from "@fx/DamageNumberSystem";
-import { MainScene } from "./game/scenes/MainScene";
 
 import "./style.css";
-import { Player } from "@entities/Player";
-import { frameSlicer } from "@utils/FrameSlicer";
-import { SceneManager } from "@core/systems/SceneManager";
-import { createMainArea } from "./game/areas/Town";
-import { createDungeonArea } from "./game/areas/DungeonArea";
+import { loadGame } from "./game/LoadGame";
 
 async function init() {
   const game: Application = new Application();
@@ -29,71 +18,8 @@ async function init() {
   });
   document.body.appendChild(game.canvas);
 
-  const assets = new AssetLoader();
-  await assets.init();
-  const interactionSystem = new InteractionSystem();
-
-  const playerTexture = assets.getTexture("sprites/mage");
-  const swordSlashTexture = assets.getTexture("sprites/_sword_slash");
-  const frameSize = 64;
-
-  const frames = {
-    idle_down: frameSlicer(playerTexture, frameSize, 1, 0, 1),
-    walk_down: frameSlicer(playerTexture, frameSize, 1, 0, 1),
-
-    idle_right: frameSlicer(playerTexture, frameSize, 1, 0, 2),
-    walk_right: frameSlicer(playerTexture, frameSize, 8, 1),
-
-    idle_left: frameSlicer(playerTexture, frameSize, 1, 0, 2),
-    walk_left: frameSlicer(playerTexture, frameSize, 8, 1),
-
-    idle_up: frameSlicer(playerTexture, frameSize, 1, 0, 3),
-    walk_up: frameSlicer(playerTexture, frameSize, 1, 0, 3),
-
-    run_right: frameSlicer(playerTexture, frameSize, 8, 2, 0),
-    run_left: frameSlicer(playerTexture, frameSize, 8, 2, 0),
-
-    dash_down: frameSlicer(playerTexture, frameSize, 1, 0),
-    dash_right: frameSlicer(playerTexture, frameSize, 1, 0),
-    dash_up: frameSlicer(playerTexture, frameSize, 1, 0),
-    dash_left: frameSlicer(playerTexture, frameSize, 1, 0),
-  };
-  const vfxFrames = {
-    attack_up: frameSlicer(swordSlashTexture, 81, 7, 1),
-    attack_down: frameSlicer(swordSlashTexture, 81, 7, 1),
-
-    attack_right: frameSlicer(swordSlashTexture, 81, 7, 0),
-    attack_left: frameSlicer(swordSlashTexture, 81, 7, 0),
-  };
-
-  const player = new Player(frames, vfxFrames);
-  const commandMapper: InputCommandMapper = new InputCommandMapper(player, interactionSystem);
-  const input = InputManager.get();
-  const overlay = new GameOverlay();
-
-  const world: Container = new Container();
-  const worldVFX: Container = new Container();
-  const mainArea = createMainArea({ assets, player });
-  const camera = new Camera(game, mainArea.map, player);
-  const sceneManager = new SceneManager(world, interactionSystem, camera);
-  const requestSceneChange = sceneManager.requestSceneChange.bind(sceneManager);
-  const scene = new MainScene(mainArea, player, requestSceneChange);
-
-  sceneManager.registerSceneFactory(
-    "main",
-    () => new MainScene(createMainArea({ assets, player }), player, requestSceneChange),
-  );
-  sceneManager.registerSceneFactory(
-    "dungeon",
-    () => new MainScene(createDungeonArea({ assets, player }), player, requestSceneChange),
-  );
-
-  // CONTAINER HIERARCHY
-  game.stage.addChild(camera.container);
-  camera.container.addChild(world, worldVFX);
-  sceneManager.changeScene(scene);
-
-  DamageNumberSystem.initialize(worldVFX);
+  const core = await loadGame(game);
+  const { input, interactionSystem, player, camera, commandMapper, sceneManager, overlay } = core;
 
   let step: number = 0;
 
