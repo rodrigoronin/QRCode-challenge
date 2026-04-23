@@ -12,7 +12,7 @@ type MainAreaConfig = {
   player: Player;
 };
 
-export function createMainArea(config: MainAreaConfig): AreaDefinition {
+export function town(config: MainAreaConfig): AreaDefinition {
   const { assets } = config;
 
   const elvenMageTexture = assets.getTexture("sprites/elven_mage");
@@ -192,14 +192,6 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
     }),
   );
   map.position.set(0);
-
-  // const map = generateTestMap(
-  //   frameSlicer(assets.getTexture("sprites/training-tiles"), 32, 3, 0),
-  //   32,
-  //   32,
-  //   2048,
-  //   2048,
-  // );
 
   elvenMage.setTag("Elven Mage");
   elvenMage.container.position.set(150, 270);

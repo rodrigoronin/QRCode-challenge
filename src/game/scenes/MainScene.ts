@@ -102,7 +102,7 @@ export class MainScene implements SceneDefinition {
     });
   }
 
-  public mount(world: Container, interactionSystem: InteractionSystem) {
+  public enter(world: Container, interactionSystem: InteractionSystem) {
     this.registerInteractions(interactionSystem);
     this.area.enemies.forEach((enemy) => enemy.resume());
     this.area.worldColliders.forEach((collider) =>
@@ -147,7 +147,7 @@ export class MainScene implements SceneDefinition {
     }
   }
 
-  public unmount(interactionSystem: InteractionSystem) {
+  public exit(interactionSystem: InteractionSystem) {
     this.area.npcs.forEach((npc) => {
       interactionSystem.unregister(npc.interactable);
     });
