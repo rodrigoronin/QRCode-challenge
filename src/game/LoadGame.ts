@@ -67,11 +67,12 @@ export async function loadGame(game: Application) {
 
   sceneManager.registerSceneFactory(
     "town",
-    () => new MainScene(town({ assets, player }), player, requestSceneChange),
+    () => new MainScene(town({ assets, player, requestSceneChange }), player),
   );
   sceneManager.registerSceneFactory(
     "dungeon",
-    () => new MainScene(createDungeonArea({ assets, player }), player, requestSceneChange),
+    () =>
+      new MainScene(createDungeonArea({ assets, player, requestSceneChange }), player),
   );
 
   // CONTAINER HIERARCHY
