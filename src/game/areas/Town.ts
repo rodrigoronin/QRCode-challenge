@@ -2,17 +2,19 @@ import type { AssetLoader } from "@core/AssetLoader";
 import type { Player } from "@entities/Player";
 import type { AreaDefinition } from "./AreaDefinition";
 import { frameSlicer } from "@utils/FrameSlicer";
-import { Point, Rectangle, Sprite, Texture } from "pixi.js";
+import { Rectangle, Sprite, Texture } from "pixi.js";
 import NPC from "@entities/NPC";
 import { WorldCollider } from "@core/WorldCollider";
 import { configureDepthSort } from "@core/systems/YSortSystem";
+import type { Entity } from "@core/Entity";
 
-type MainAreaConfig = {
+type TownConfig = {
   assets: AssetLoader;
   player: Player;
+  requestSceneChange: (targetAreaId: string, spawnId: string) => void;
 };
 
-export function town(config: MainAreaConfig): AreaDefinition {
+export function town(config: TownConfig): AreaDefinition {
   const { assets } = config;
 
   const elvenMageTexture = assets.getTexture("sprites/elven_mage");
@@ -207,13 +209,22 @@ export function town(config: MainAreaConfig): AreaDefinition {
     height: 30,
   }).setTrigger(true);
 
+  fieldPortal_south.setCallbacks({
+    onTriggerEnter: (entity: Entity) => {
+      console.log(entity);
+      config.requestSceneChange("dungeon", "dungeon_north_gate");
+    },
+  });
+
   const npcs = [elvenMage, blacksmith];
   const props = [fountain, smallTree, tree, tree3, house, house2, house3, house4, house5];
 
   return {
-    id: "main",
+    id: "town",
     map,
-    playerSpawn: new Point(512, 450),
+    spawnPoints: {
+      town_south_portal: { x: 512, y: 950 },
+    },
     props,
     npcs,
     enemies: [],
@@ -233,7 +244,7 @@ export function town(config: MainAreaConfig): AreaDefinition {
       {
         id: "field_portal",
         targetAreaId: "dungeon",
-        spawnId: "entry",
+        spawnId: "dungeon_north_gate",
       },
     ],
   };

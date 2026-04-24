@@ -2,7 +2,7 @@ import type { AssetLoader } from "@core/AssetLoader";
 import type { AreaDefinition } from "./AreaDefinition";
 import type { Player } from "@entities/Player";
 import { frameSlicer } from "@utils/FrameSlicer";
-import { Container, Point, Rectangle, Sprite, Texture, TextureSource } from "pixi.js";
+import { Container, Rectangle, Sprite, Texture, TextureSource } from "pixi.js";
 import { WorldCollider } from "@core/WorldCollider";
 import { Enemy } from "@entities/Enemy";
 import { configureDepthSort } from "@core/systems/YSortSystem";
@@ -10,6 +10,7 @@ import { configureDepthSort } from "@core/systems/YSortSystem";
 type DungeonAreaConfig = {
   assets: AssetLoader;
   player: Player;
+  requestSceneChange: (targetAreaId: string, spawnId: string) => void;
 };
 
 export function createDungeonArea(config: DungeonAreaConfig): AreaDefinition {
@@ -81,28 +82,35 @@ export function createDungeonArea(config: DungeonAreaConfig): AreaDefinition {
   house.position.set(320, 280);
 
   const portalBack = new WorldCollider({
-    id: "portal_back_main",
+    id: "city_entrance",
     posX: 700,
     posY: 700,
     width: 30,
     height: 30,
   }).setTrigger(true);
+  portalBack.setCallbacks({
+    onTriggerEnter: () => {
+      config.requestSceneChange("town", "town_south_portal");
+    },
+  });
 
   const enemies = [enemy01, enemy02, enemy03];
 
   return {
     id: "dungeon",
     map,
-    playerSpawn: new Point(90, 120),
+    spawnPoints: {
+      dungeon_north_gate: { x: 80, y: 200 },
+    },
     props: [tree, house],
     npcs: [],
     enemies,
     worldColliders: [portalBack],
     transitions: [
       {
-        id: "portal_back_main",
-        targetAreaId: "main",
-        spawnId: "entry",
+        id: "city_entrance",
+        targetAreaId: "town",
+        spawnId: "town_south_portal",
       },
     ],
   };
