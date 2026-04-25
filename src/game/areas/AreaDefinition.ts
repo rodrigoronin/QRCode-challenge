@@ -17,5 +17,5 @@ export type AreaDefinition = {
   npcs: NPC[];
   enemies: Enemy[];
   worldColliders: WorldCollider[];
-  transitions: AreaTransitionDefinition[];
+  transitions: Map<string, AreaTransitionDefinition>;
 };

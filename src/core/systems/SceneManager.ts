@@ -30,7 +30,7 @@ export class SceneManager {
   public requestSceneChange(targetAreaId: string, spawnId?: string): void {
     this.pendingSceneChange = {
       targetAreaId,
-      spawnId: spawnId ?? "default",
+      spawnId: spawnId ?? "entry",
     };
   }
 

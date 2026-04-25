@@ -21,10 +21,7 @@ export class MainScene implements SceneDefinition {
   private readonly colliderLayer: Container = new Container();
   private readonly ySortSystem: YSortSystem;
 
-  constructor(
-    area: AreaDefinition,
-    player: Player,
-  ) {
+  constructor(area: AreaDefinition, player: Player) {
     this.area = area;
     this.player = player;
     this.map = area.map;
@@ -81,14 +78,12 @@ export class MainScene implements SceneDefinition {
       CollisionManager.registerWorldCollider(collider),
     );
 
-    if (spawnId !== "default") {
-      this.player.container.position.set(
-        this.area.spawnPoints[spawnId].x,
-        this.area.spawnPoints[spawnId].y,
-      );
-    } else {
-      this.player.container.position.set(512, 450);
-    }
+    // Will spawn in a fixed place called entry if not spaw point was passed
+    // every map layour should have a "entry" point for safety
+    this.player.container.position.set(
+      this.area.spawnPoints[spawnId].x,
+      this.area.spawnPoints[spawnId].y,
+    );
 
     if (this.root.children.length === 0) {
       this.mapLayer.addChild(this.map);

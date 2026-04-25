@@ -93,6 +93,17 @@ export function createDungeonArea(config: DungeonAreaConfig): AreaDefinition {
       config.requestSceneChange("town", "town_south_portal");
     },
   });
+  const transitions = new Map();
+  transitions.set("town_south_portal", {
+    id: "city_entrance",
+    targetAreaId: "town",
+    spawnId: "town_south_portal",
+  });
+  transitions.set("entry", {
+    id: "field_transition",
+    targetAreaId: "dungeon",
+    spawnId: "entry",
+  });
 
   const enemies = [enemy01, enemy02, enemy03];
 
@@ -101,18 +112,13 @@ export function createDungeonArea(config: DungeonAreaConfig): AreaDefinition {
     map,
     spawnPoints: {
       dungeon_north_gate: { x: 80, y: 200 },
+      entry: { x: 100, y: 100 },
     },
     props: [tree, house],
     npcs: [],
     enemies,
     worldColliders: [portalBack],
-    transitions: [
-      {
-        id: "city_entrance",
-        targetAreaId: "town",
-        spawnId: "town_south_portal",
-      },
-    ],
+    transitions,
   };
 }
 

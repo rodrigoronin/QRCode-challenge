@@ -6,7 +6,6 @@ import { Rectangle, Sprite, Texture } from "pixi.js";
 import NPC from "@entities/NPC";
 import { WorldCollider } from "@core/WorldCollider";
 import { configureDepthSort } from "@core/systems/YSortSystem";
-import type { Entity } from "@core/Entity";
 
 type TownConfig = {
   assets: AssetLoader;
@@ -196,24 +195,39 @@ export function town(config: TownConfig): AreaDefinition {
   map.position.set(0);
 
   elvenMage.setTag("Elven Mage");
-  elvenMage.container.position.set(150, 270);
+  elvenMage.container.position.set(150, 370);
 
   blacksmith.setTag("Blacksmith");
-  blacksmith.container.position.set(270, 270);
+  blacksmith.container.position.set(250, 962);
+  blacksmith.sprite.scale.x = -1;
 
   const fieldPortal_south = new WorldCollider({
-    id: "field_portal",
+    id: "dungeon_north_gate",
     posX: map.width / 2 - 50,
     posY: map.height - 30,
     width: 80,
     height: 30,
-  }).setTrigger(true);
+  })
+    .setTrigger(true)
+    .setCallbacks({
+      onTriggerEnter: () => {
+        config.requestSceneChange(
+          transitions.get(fieldPortal_south.id).targetAreaId,
+          transitions.get(fieldPortal_south.id).spawnId,
+        );
+      },
+    });
 
-  fieldPortal_south.setCallbacks({
-    onTriggerEnter: (entity: Entity) => {
-      console.log(entity);
-      config.requestSceneChange("dungeon", "dungeon_north_gate");
-    },
+  const transitions = new Map();
+  transitions.set("dungeon_north_gate", {
+    id: "field_transition",
+    targetAreaId: "dungeon",
+    spawnId: "dungeon_north_gate",
+  });
+  transitions.set("entry", {
+    id: "field_transition",
+    targetAreaId: "town",
+    spawnId: "entry",
   });
 
   const npcs = [elvenMage, blacksmith];
@@ -223,7 +237,8 @@ export function town(config: TownConfig): AreaDefinition {
     id: "town",
     map,
     spawnPoints: {
-      town_south_portal: { x: 512, y: 950 },
+      town_south_portal: { x: 512, y: 880 },
+      entry: { x: 512, y: 540 },
     },
     props,
     npcs,
@@ -240,12 +255,6 @@ export function town(config: TownConfig): AreaDefinition {
       treeCollider3_1,
       smallTreeCollider,
     ],
-    transitions: [
-      {
-        id: "field_portal",
-        targetAreaId: "dungeon",
-        spawnId: "dungeon_north_gate",
-      },
-    ],
+    transitions,
   };
 }
