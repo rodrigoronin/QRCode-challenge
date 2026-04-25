@@ -19,29 +19,30 @@ export async function loadGame(game: Application) {
   const interactionSystem = new InteractionSystem();
 
   const playerTexture = assets.getTexture("sprites/mage");
+  const movementAtlas = assets.getTexture("sprites/movement_atlas");
   const swordSlashTexture = assets.getTexture("sprites/_sword_slash");
   const frameSize = 64;
 
   const frames = {
-    idle_down: frameSlicer(playerTexture, frameSize, 1, 0, 1),
-    walk_down: frameSlicer(playerTexture, frameSize, 1, 0, 1),
+    idle_down: frameSlicer(playerTexture, frameSize, 1, 0),
+    idle_right: frameSlicer(playerTexture, frameSize, 1, 0, 1),
+    idle_left: frameSlicer(playerTexture, frameSize, 1, 0, 1),
+    idle_up: frameSlicer(playerTexture, frameSize, 1, 0, 2),
 
-    idle_right: frameSlicer(playerTexture, frameSize, 1, 0, 2),
-    walk_right: frameSlicer(playerTexture, frameSize, 8, 1),
+    walk_down: frameSlicer(movementAtlas, frameSize, 1, 2),
+    walk_right: frameSlicer(movementAtlas, frameSize, 8, 0),
+    walk_left: frameSlicer(movementAtlas, frameSize, 8, 0),
+    walk_up: frameSlicer(movementAtlas, frameSize, 1, 2),
 
-    idle_left: frameSlicer(playerTexture, frameSize, 1, 0, 2),
-    walk_left: frameSlicer(playerTexture, frameSize, 8, 1),
+    run_down: frameSlicer(movementAtlas, frameSize, 8, 2, 0),
+    run_right: frameSlicer(movementAtlas, frameSize, 8, 1, 0),
+    run_left: frameSlicer(movementAtlas, frameSize, 8, 1, 0),
+    run_up: frameSlicer(movementAtlas, frameSize, 8, 2, 0),
 
-    idle_up: frameSlicer(playerTexture, frameSize, 1, 0, 3),
-    walk_up: frameSlicer(playerTexture, frameSize, 1, 0, 3),
-
-    run_right: frameSlicer(playerTexture, frameSize, 8, 2, 0),
-    run_left: frameSlicer(playerTexture, frameSize, 8, 2, 0),
-
-    dash_down: frameSlicer(playerTexture, frameSize, 1, 0),
-    dash_right: frameSlicer(playerTexture, frameSize, 1, 0),
-    dash_up: frameSlicer(playerTexture, frameSize, 1, 0),
-    dash_left: frameSlicer(playerTexture, frameSize, 1, 0),
+    dash_down: frameSlicer(movementAtlas, frameSize, 1, 2),
+    dash_right: frameSlicer(movementAtlas, frameSize, 1, 1, 3),
+    dash_up: frameSlicer(movementAtlas, frameSize, 1, 2),
+    dash_left: frameSlicer(movementAtlas, frameSize, 1, 1, 3),
   };
   const vfxFrames = {
     attack_up: frameSlicer(swordSlashTexture, 81, 7, 1),
@@ -71,8 +72,7 @@ export async function loadGame(game: Application) {
   );
   sceneManager.registerSceneFactory(
     "dungeon",
-    () =>
-      new MainScene(createDungeonArea({ assets, player, requestSceneChange }), player),
+    () => new MainScene(createDungeonArea({ assets, player, requestSceneChange }), player),
   );
 
   // CONTAINER HIERARCHY

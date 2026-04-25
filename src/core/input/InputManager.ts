@@ -49,20 +49,12 @@ export class InputManager {
       Space: "DASH",
       KeyE: "INTERACT",
       F2: "DEBUG_MODE",
-      Shift: "RUN", // TODO: Fixd shift not working
+      ShiftLeft: "RUN",
     };
 
     window.addEventListener("keydown", (e) => {
       const mappedKey = map[e.code];
       const action = keyToAction[e.code];
-
-      // if (action === "DEBUG_MODE") {
-      //   if (e.repeat) return;
-      //   e.preventDefault();
-      //   e.stopPropagation();
-      //   this.buttons[action] = true;
-      //   return;
-      // }
 
       if (action) this.buttons[action] = true;
 
@@ -77,13 +69,6 @@ export class InputManager {
     window.addEventListener("keyup", (e) => {
       const mappedKey = map[e.code];
       const action = keyToAction[e.code];
-
-      // if (action === "DEBUG_MODE") {
-      //   e.preventDefault();
-      //   e.stopPropagation();
-      //   this.buttons[action] = false;
-      //   return;
-      // }
 
       if (action) this.buttons[action] = false;
 

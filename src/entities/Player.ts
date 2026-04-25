@@ -22,16 +22,16 @@ export class Player extends Entity {
   private frames: Record<string, Texture[]>;
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
-  private walkSpeed = 130; // pixels/second
-  private runSpeed = 230; // pixels/second
+  private walkSpeed = 100; // pixels/second
+  private runSpeed = this.walkSpeed * 2; // pixels/second
   private speed = this.walkSpeed;
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
   // Dash variables
-  private dashDistance: number = 150;
+  private dashDistance: number = 130;
   private dashTime: number = 0;
   // how many frames is the dash in millisecons (60 = 1 frame)
-  private dashDuration: number = 180;
+  private dashDuration: number = 240;
   private dashCooldown: number = 2000; // in milliseconds (1000 = 1 second)
   private dashCooldownTimer: number = 0;
   private dashSpeed: number;
@@ -127,7 +127,7 @@ export class Player extends Entity {
     // movement
     if (!this.isAttacking) {
       const isMoving = move.x !== 0 || move.y !== 0;
-      const isRunning = isMoving && this.input.isPressed("DASH");
+      const isRunning = isMoving && this.input.isPressed("RUN");
       this.speed = isRunning ? this.runSpeed : this.walkSpeed;
 
       const futureX = this.container.x + move.x * this.speed * deltaSec;
@@ -142,11 +142,19 @@ export class Player extends Entity {
       }
 
       this.updateDirection(move);
-
       this.applyFacingToSprite();
-      this.anim.play(
-        isMoving ? `${isRunning ? "run" : "walk"}_${this.currentDir}` : `idle_${this.currentDir}`,
-      );
+
+      // TODO: add a speed value on animation creation to remove manual setting
+      if (isMoving && !isRunning) {
+        this.anim.setSpeed(100);
+        this.anim.play(`walk_${this.currentDir}`);
+      } else if (isRunning) {
+        this.anim.setSpeed(80);
+        this.anim.play(`run_${this.currentDir}`);
+      } else {
+        this.anim.setSpeed(100);
+        this.anim.play(`idle_${this.currentDir}`);
+      }
 
       this.anim.update(deltaTime);
 

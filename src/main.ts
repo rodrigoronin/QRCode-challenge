@@ -34,6 +34,7 @@ async function init() {
 
     if (input.isPressed("ATTACK")) commandMapper.get("ATTACK")?.execute(ticker.deltaMS);
     if (input.wasJustPressed("DASH")) commandMapper.get("DASH")?.execute(ticker.deltaMS);
+    if (input.wasJustPressed("RUN")) commandMapper.get("RUN")?.execute(ticker.deltaMS);
     if (input.wasJustPressed("INTERACT")) commandMapper.get("INTERACT")?.execute(ticker.deltaMS);
     if (input.wasJustPressed("DEBUG_MODE"))
       commandMapper.get("DEBUG_MODE")?.execute(ticker.deltaMS);
