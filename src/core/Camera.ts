@@ -16,7 +16,7 @@ export class Camera {
 
   private readonly CAMERA_LERP: number = 0.1;
 
-  private zoom: number = 2;
+  private zoom: number = 3;
   private readonly MIN_ZOOM = 1;
   private readonly MAX_ZOOM = 3;
 

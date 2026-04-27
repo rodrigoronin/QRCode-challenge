@@ -1,6 +1,6 @@
 import type { AssetLoader } from "@core/AssetLoader";
 import type { Player } from "@entities/Player";
-import type { AreaDefinition } from "./AreaDefinition";
+import type { AreaDefinition } from "../AreaDefinition";
 import { frameSlicer } from "@utils/FrameSlicer";
 import { Rectangle, Sprite, Texture } from "pixi.js";
 import NPC from "@entities/NPC";
@@ -13,7 +13,7 @@ type TownConfig = {
   requestSceneChange: (targetAreaId: string, spawnId: string) => void;
 };
 
-export function village(config: TownConfig): AreaDefinition {
+export function load(config: TownConfig): AreaDefinition {
   const { assets } = config;
 
   const elvenMageTexture = assets.getTexture("sprites/elven_mage");

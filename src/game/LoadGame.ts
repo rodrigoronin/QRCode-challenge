@@ -3,15 +3,13 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
 import { Player } from "@entities/Player";
 import { frameSlicer } from "@utils/FrameSlicer";
 import { Application, Container } from "pixi.js";
-import { village } from "./areas/Village";
 import { Camera } from "@core/Camera";
 import { SceneManager } from "@core/systems/SceneManager";
-import { MainScene } from "./scenes/MainScene";
 import { InputCommandMapper } from "@core/input/InputCommandMapper";
 import { DamageNumberSystem } from "@fx/DamageNumberSystem";
-import { createDungeonArea } from "./areas/DungeonArea";
 import { InputManager } from "@core/input/InputManager";
 import { GameOverlay } from "@core/GameOverlay";
+import { loadAllMaps } from "@core/MapLoader";
 
 export async function loadGame(game: Application) {
   const assets = new AssetLoader();
@@ -66,14 +64,7 @@ export async function loadGame(game: Application) {
   const sceneManager = new SceneManager(world, interactionSystem, camera);
   const requestSceneChange = sceneManager.requestSceneChange.bind(sceneManager);
 
-  sceneManager.registerSceneFactory(
-    "village",
-    () => new MainScene(village({ assets, player, requestSceneChange }), player),
-  );
-  sceneManager.registerSceneFactory(
-    "dungeon",
-    () => new MainScene(createDungeonArea({ assets, player, requestSceneChange }), player),
-  );
+  await loadAllMaps(sceneManager, assets, player, requestSceneChange);
 
   // CONTAINER HIERARCHY
   game.stage.addChild(camera.container);

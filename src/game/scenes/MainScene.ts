@@ -3,8 +3,8 @@ import { Player } from "@entities/Player";
 import { CollisionManager } from "@core/systems/CollisionManager";
 import { YSortSystem } from "@core/systems/YSortSystem";
 import type { InteractionSystem } from "@core/systems/InteractionSystem";
-import type { SceneDefinition } from "./SceneDefinition";
-import type { AreaDefinition } from "../areas/AreaDefinition";
+import type { SceneDefinition } from "../SceneDefinition";
+import type { AreaDefinition } from "../AreaDefinition";
 import type { WorldCollider } from "@core/WorldCollider";
 
 // TODO: transform this class into a scene factory
