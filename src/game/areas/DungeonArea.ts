@@ -82,7 +82,7 @@ export function createDungeonArea(config: DungeonAreaConfig): AreaDefinition {
   house.position.set(320, 280);
 
   const portalBack = new WorldCollider({
-    id: "city_entrance",
+    id: "village_entrance",
     posX: 700,
     posY: 700,
     width: 30,
@@ -90,14 +90,14 @@ export function createDungeonArea(config: DungeonAreaConfig): AreaDefinition {
   }).setTrigger(true);
   portalBack.setCallbacks({
     onTriggerEnter: () => {
-      config.requestSceneChange("town", "town_south_portal");
+      config.requestSceneChange("village", "village_south_portal");
     },
   });
   const transitions = new Map();
-  transitions.set("town_south_portal", {
-    id: "city_entrance",
-    targetAreaId: "town",
-    spawnId: "town_south_portal",
+  transitions.set("village_south_portal", {
+    id: "village_entrance",
+    targetAreaId: "village",
+    spawnId: "village_south_portal",
   });
   transitions.set("entry", {
     id: "field_transition",

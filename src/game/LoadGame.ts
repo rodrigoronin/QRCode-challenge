@@ -3,7 +3,7 @@ import { InteractionSystem } from "@core/systems/InteractionSystem";
 import { Player } from "@entities/Player";
 import { frameSlicer } from "@utils/FrameSlicer";
 import { Application, Container } from "pixi.js";
-import { town } from "./areas/Town";
+import { village } from "./areas/Village";
 import { Camera } from "@core/Camera";
 import { SceneManager } from "@core/systems/SceneManager";
 import { MainScene } from "./scenes/MainScene";
@@ -67,8 +67,8 @@ export async function loadGame(game: Application) {
   const requestSceneChange = sceneManager.requestSceneChange.bind(sceneManager);
 
   sceneManager.registerSceneFactory(
-    "town",
-    () => new MainScene(town({ assets, player, requestSceneChange }), player),
+    "village",
+    () => new MainScene(village({ assets, player, requestSceneChange }), player),
   );
   sceneManager.registerSceneFactory(
     "dungeon",
@@ -78,7 +78,7 @@ export async function loadGame(game: Application) {
   // CONTAINER HIERARCHY
   game.stage.addChild(camera.container);
   camera.container.addChild(world, worldVFX);
-  sceneManager.requestSceneChange("town");
+  sceneManager.requestSceneChange("village");
 
   DamageNumberSystem.initialize(worldVFX);
 

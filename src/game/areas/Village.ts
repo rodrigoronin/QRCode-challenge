@@ -13,7 +13,7 @@ type TownConfig = {
   requestSceneChange: (targetAreaId: string, spawnId: string) => void;
 };
 
-export function town(config: TownConfig): AreaDefinition {
+export function village(config: TownConfig): AreaDefinition {
   const { assets } = config;
 
   const elvenMageTexture = assets.getTexture("sprites/elven_mage");
@@ -226,7 +226,7 @@ export function town(config: TownConfig): AreaDefinition {
   });
   transitions.set("entry", {
     id: "field_transition",
-    targetAreaId: "town",
+    targetAreaId: "village",
     spawnId: "entry",
   });
 
@@ -234,10 +234,10 @@ export function town(config: TownConfig): AreaDefinition {
   const props = [fountain, smallTree, tree, tree3, house, house2, house3, house4, house5];
 
   return {
-    id: "town",
+    id: "village",
     map,
     spawnPoints: {
-      town_south_portal: { x: 512, y: 880 },
+      village_south_portal: { x: 512, y: 880 },
       entry: { x: 512, y: 540 },
     },
     props,
