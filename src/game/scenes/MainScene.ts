@@ -14,8 +14,6 @@ export class MainScene implements SceneDefinition {
   public readonly map: Container;
   private area: AreaDefinition;
   private activeTriggers: Set<string> = new Set();
-  private pendingSceneChange: string | null = null;
-  private requestSceneChange: (id: string) => void;
 
   private readonly root: Container = new Container();
   private readonly mapLayer: Container = new Container();
@@ -23,14 +21,12 @@ export class MainScene implements SceneDefinition {
   private readonly colliderLayer: Container = new Container();
   private readonly ySortSystem: YSortSystem;
 
-  constructor(area: AreaDefinition, player: Player, requestSceneChange: (id: string) => void) {
+  constructor(area: AreaDefinition, player: Player) {
     this.area = area;
     this.player = player;
     this.map = area.map;
     this.id = area.id;
-    this.requestSceneChange = requestSceneChange;
     this.ySortSystem = new YSortSystem(this.actorLayer);
-    this.bindTriggerCallbacks();
   }
 
   public update(deltaMS: number) {
@@ -46,7 +42,6 @@ export class MainScene implements SceneDefinition {
 
     this.ySortSystem.sync();
     this.updateTriggers();
-    this.flushSceneChange();
   }
 
   private updateTriggers(): void {
@@ -76,40 +71,19 @@ export class MainScene implements SceneDefinition {
     trigger.triggerExit(this.player);
   }
 
-  private queueSceneChange(targetAreaId: string): void {
-    this.pendingSceneChange = targetAreaId;
-  }
-
-  private flushSceneChange(): void {
-    if (!this.pendingSceneChange) return;
-
-    const nextAreaId = this.pendingSceneChange;
-    this.pendingSceneChange = null;
-    this.requestSceneChange(nextAreaId);
-  }
-
-  private bindTriggerCallbacks(): void {
-    this.area.transitions.forEach((transition) => {
-      const trigger = this.area.worldColliders.find((collider) => collider.id === transition.id);
-
-      if (!trigger) return;
-
-      trigger.setCallbacks({
-        onTriggerEnter: () => {
-          this.queueSceneChange(transition.targetAreaId);
-        },
-      });
-    });
-  }
-
-  public mount(world: Container, interactionSystem: InteractionSystem) {
+  public enter(world: Container, interactionSystem: InteractionSystem, spawnId: string) {
     this.registerInteractions(interactionSystem);
     this.area.enemies.forEach((enemy) => enemy.resume());
     this.area.worldColliders.forEach((collider) =>
       CollisionManager.registerWorldCollider(collider),
     );
 
-    this.player.container.position.set(this.area.playerSpawn.x, this.area.playerSpawn.y);
+    // Will spawn in a fixed place called entry if not spaw point was passed
+    // every map layour should have a "entry" point for safety
+    this.player.container.position.set(
+      this.area.spawnPoints[spawnId].x,
+      this.area.spawnPoints[spawnId].y,
+    );
 
     if (this.root.children.length === 0) {
       this.mapLayer.addChild(this.map);
@@ -147,7 +121,7 @@ export class MainScene implements SceneDefinition {
     }
   }
 
-  public unmount(interactionSystem: InteractionSystem) {
+  public exit(interactionSystem: InteractionSystem) {
     this.area.npcs.forEach((npc) => {
       interactionSystem.unregister(npc.interactable);
     });
@@ -158,7 +132,6 @@ export class MainScene implements SceneDefinition {
     });
 
     this.activeTriggers.clear();
-    this.pendingSceneChange = null;
     this.ySortSystem.clear();
     this.root.parent?.removeChild(this.root);
   }

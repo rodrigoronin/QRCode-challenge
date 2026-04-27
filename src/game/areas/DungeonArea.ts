@@ -2,7 +2,7 @@ import type { AssetLoader } from "@core/AssetLoader";
 import type { AreaDefinition } from "./AreaDefinition";
 import type { Player } from "@entities/Player";
 import { frameSlicer } from "@utils/FrameSlicer";
-import { Container, Point, Rectangle, Sprite, Texture, TextureSource } from "pixi.js";
+import { Container, Rectangle, Sprite, Texture, TextureSource } from "pixi.js";
 import { WorldCollider } from "@core/WorldCollider";
 import { Enemy } from "@entities/Enemy";
 import { configureDepthSort } from "@core/systems/YSortSystem";
@@ -10,6 +10,7 @@ import { configureDepthSort } from "@core/systems/YSortSystem";
 type DungeonAreaConfig = {
   assets: AssetLoader;
   player: Player;
+  requestSceneChange: (targetAreaId: string, spawnId: string) => void;
 };
 
 export function createDungeonArea(config: DungeonAreaConfig): AreaDefinition {
@@ -81,30 +82,43 @@ export function createDungeonArea(config: DungeonAreaConfig): AreaDefinition {
   house.position.set(320, 280);
 
   const portalBack = new WorldCollider({
-    id: "portal_back_main",
+    id: "village_entrance",
     posX: 700,
     posY: 700,
     width: 30,
     height: 30,
   }).setTrigger(true);
+  portalBack.setCallbacks({
+    onTriggerEnter: () => {
+      config.requestSceneChange("village", "village_south_portal");
+    },
+  });
+  const transitions = new Map();
+  transitions.set("village_south_portal", {
+    id: "village_entrance",
+    targetAreaId: "village",
+    spawnId: "village_south_portal",
+  });
+  transitions.set("entry", {
+    id: "field_transition",
+    targetAreaId: "dungeon",
+    spawnId: "entry",
+  });
 
   const enemies = [enemy01, enemy02, enemy03];
 
   return {
     id: "dungeon",
     map,
-    playerSpawn: new Point(90, 120),
+    spawnPoints: {
+      dungeon_north_gate: { x: 80, y: 200 },
+      entry: { x: 100, y: 100 },
+    },
     props: [tree, house],
     npcs: [],
     enemies,
     worldColliders: [portalBack],
-    transitions: [
-      {
-        id: "portal_back_main",
-        targetAreaId: "main",
-        spawnId: "entry",
-      },
-    ],
+    transitions,
   };
 }
 

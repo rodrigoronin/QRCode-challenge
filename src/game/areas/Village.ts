@@ -2,17 +2,18 @@ import type { AssetLoader } from "@core/AssetLoader";
 import type { Player } from "@entities/Player";
 import type { AreaDefinition } from "./AreaDefinition";
 import { frameSlicer } from "@utils/FrameSlicer";
-import { Point, Rectangle, Sprite, Texture } from "pixi.js";
+import { Rectangle, Sprite, Texture } from "pixi.js";
 import NPC from "@entities/NPC";
 import { WorldCollider } from "@core/WorldCollider";
 import { configureDepthSort } from "@core/systems/YSortSystem";
 
-type MainAreaConfig = {
+type TownConfig = {
   assets: AssetLoader;
   player: Player;
+  requestSceneChange: (targetAreaId: string, spawnId: string) => void;
 };
 
-export function createMainArea(config: MainAreaConfig): AreaDefinition {
+export function village(config: TownConfig): AreaDefinition {
   const { assets } = config;
 
   const elvenMageTexture = assets.getTexture("sprites/elven_mage");
@@ -193,35 +194,52 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
   );
   map.position.set(0);
 
-  // const map = generateTestMap(
-  //   frameSlicer(assets.getTexture("sprites/training-tiles"), 32, 3, 0),
-  //   32,
-  //   32,
-  //   2048,
-  //   2048,
-  // );
-
   elvenMage.setTag("Elven Mage");
-  elvenMage.container.position.set(150, 270);
+  elvenMage.container.position.set(150, 370);
 
   blacksmith.setTag("Blacksmith");
-  blacksmith.container.position.set(270, 270);
+  blacksmith.container.position.set(250, 962);
+  blacksmith.sprite.scale.x = -1;
 
   const fieldPortal_south = new WorldCollider({
-    id: "field_portal",
+    id: "dungeon_north_gate",
     posX: map.width / 2 - 50,
     posY: map.height - 30,
     width: 80,
     height: 30,
-  }).setTrigger(true);
+  })
+    .setTrigger(true)
+    .setCallbacks({
+      onTriggerEnter: () => {
+        config.requestSceneChange(
+          transitions.get(fieldPortal_south.id).targetAreaId,
+          transitions.get(fieldPortal_south.id).spawnId,
+        );
+      },
+    });
+
+  const transitions = new Map();
+  transitions.set("dungeon_north_gate", {
+    id: "field_transition",
+    targetAreaId: "dungeon",
+    spawnId: "dungeon_north_gate",
+  });
+  transitions.set("entry", {
+    id: "field_transition",
+    targetAreaId: "village",
+    spawnId: "entry",
+  });
 
   const npcs = [elvenMage, blacksmith];
   const props = [fountain, smallTree, tree, tree3, house, house2, house3, house4, house5];
 
   return {
-    id: "main",
+    id: "village",
     map,
-    playerSpawn: new Point(512, 450),
+    spawnPoints: {
+      village_south_portal: { x: 512, y: 880 },
+      entry: { x: 512, y: 540 },
+    },
     props,
     npcs,
     enemies: [],
@@ -237,12 +255,6 @@ export function createMainArea(config: MainAreaConfig): AreaDefinition {
       treeCollider3_1,
       smallTreeCollider,
     ],
-    transitions: [
-      {
-        id: "field_portal",
-        targetAreaId: "dungeon",
-        spawnId: "entry",
-      },
-    ],
+    transitions,
   };
 }
