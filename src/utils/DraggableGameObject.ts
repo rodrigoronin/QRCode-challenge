@@ -32,7 +32,7 @@ export function makeDraggable(obj: Container | Sprite | Graphics, onDragEnd?: (o
     if (!dragging) return;
     dragging = false;
     obj.cursor = "grab";
-    // TODO: use this to save GameObjects positions before closing
+    // TODO: use this to save GameObjects positions before exiting dev mode
     onDragEnd?.(obj);
   };
 

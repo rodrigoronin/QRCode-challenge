@@ -83,7 +83,7 @@ export function load(config: TownConfig): AreaDefinition {
   );
 
   const fieldPortal_south = new WorldCollider({
-    id: "vllg_fild01",
+    id: "village_fild01",
     posX: map.width / 2 - 50,
     posY: map.height - 30,
     width: 80,
@@ -114,7 +114,7 @@ export function load(config: TownConfig): AreaDefinition {
   const props = [smallTree, tree, tree3];
 
   return {
-    id: "villge",
+    id: "village_fild01",
     map,
     spawnPoints: {
       village_south_portal: { x: 512, y: 880 },

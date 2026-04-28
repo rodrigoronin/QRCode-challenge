@@ -202,7 +202,7 @@ export function load(config: TownConfig): AreaDefinition {
   blacksmith.sprite.scale.x = -1;
 
   const fieldPortal_south = new WorldCollider({
-    id: "dungeon_north_gate",
+    id: "village_fild01_n",
     posX: map.width / 2 - 50,
     posY: map.height - 30,
     width: 80,
@@ -219,10 +219,10 @@ export function load(config: TownConfig): AreaDefinition {
     });
 
   const transitions = new Map();
-  transitions.set("dungeon_north_gate", {
+  transitions.set("village_fild01_n", {
     id: "field_transition",
-    targetAreaId: "dungeon",
-    spawnId: "dungeon_north_gate",
+    targetAreaId: "village_fild01",
+    spawnId: "village_south_portal",
   });
   transitions.set("entry", {
     id: "field_transition",
