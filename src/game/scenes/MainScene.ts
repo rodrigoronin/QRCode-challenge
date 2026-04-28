@@ -1,4 +1,4 @@
-import { Container } from "pixi.js";
+import { Application, Container } from "pixi.js";
 import { Player } from "@entities/Player";
 import { CollisionManager } from "@core/systems/CollisionManager";
 import { YSortSystem } from "@core/systems/YSortSystem";
@@ -6,6 +6,7 @@ import type { InteractionSystem } from "@core/systems/InteractionSystem";
 import type { SceneDefinition } from "../SceneDefinition";
 import type { AreaDefinition } from "../AreaDefinition";
 import type { WorldCollider } from "@core/WorldCollider";
+import { makeDraggable } from "@utils/DraggableGameObject";
 
 // TODO: transform this class into a scene factory
 export class MainScene implements SceneDefinition {
@@ -97,7 +98,12 @@ export class MainScene implements SceneDefinition {
 
       this.area.npcs.forEach((npc) => {
         this.actorLayer.addChild(npc.container);
+        makeDraggable(npc.container, () => {
+          console.log(npc.container.position);
+        });
       });
+
+      makeDraggable(this.player.container);
 
       this.area.worldColliders.forEach((collider) => {
         this.colliderLayer.addChild(collider.container);
