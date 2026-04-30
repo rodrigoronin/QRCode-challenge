@@ -3,6 +3,7 @@ import type { AssetLoader } from "./AssetLoader";
 import type { SceneManager } from "./systems/SceneManager";
 import type { AreaDefinition } from "src/game/AreaDefinition";
 import { MainScene } from "../game/scenes/MainScene";
+import type { SceneStore } from "./persistence/SceneStore";
 
 interface ICallback {
   assets: AssetLoader;
@@ -15,6 +16,7 @@ export async function loadAllMaps(
   assets: AssetLoader,
   player: Player,
   requestSceneChange: (targetAreaId: string, spawnId: string) => void,
+  saveStore: SceneStore,
 ) {
   const modules: Record<string, (callback: ICallback) => AreaDefinition> = import.meta.glob(
     "../game/areas/*.ts",
@@ -31,7 +33,7 @@ export async function loadAllMaps(
 
     sceneManager.registerSceneFactory(
       name,
-      () => new MainScene(createAreaFn({ assets, player, requestSceneChange }), player),
+      () => new MainScene(createAreaFn({ assets, player, requestSceneChange }), player, saveStore),
     );
   }
 }

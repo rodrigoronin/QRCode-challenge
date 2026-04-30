@@ -10,22 +10,25 @@ import { DamageNumberSystem } from "@fx/DamageNumberSystem";
 import { InputManager } from "@core/input/InputManager";
 import { GameOverlay } from "@core/GameOverlay";
 import { loadAllMaps } from "@core/MapLoader";
+import { SceneStore } from "@core/persistence/SceneStore";
 
 export async function loadGame(game: Application) {
   const assets = new AssetLoader();
   await assets.init();
   const interactionSystem = new InteractionSystem();
 
-  const playerTexture = assets.getTexture("sprites/mage");
+  const saveStore = new SceneStore();
+
+  const templateHumanMale = assets.getTexture("sprites/template-human-male");
   const movementAtlas = assets.getTexture("sprites/movement_atlas");
   const swordSlashTexture = assets.getTexture("sprites/_sword_slash");
   const frameSize = 64;
 
   const frames = {
-    idle_down: frameSlicer(playerTexture, frameSize, 1, 0),
-    idle_right: frameSlicer(playerTexture, frameSize, 1, 0, 1),
-    idle_left: frameSlicer(playerTexture, frameSize, 1, 0, 1),
-    idle_up: frameSlicer(playerTexture, frameSize, 1, 0, 2),
+    idle_down: frameSlicer(templateHumanMale, frameSize, 1, 1),
+    idle_right: frameSlicer(templateHumanMale, frameSize, 1, 0),
+    idle_left: frameSlicer(templateHumanMale, frameSize, 1, 0),
+    idle_up: frameSlicer(templateHumanMale, frameSize, 1, 2),
 
     walk_down: frameSlicer(movementAtlas, frameSize, 1, 2),
     walk_right: frameSlicer(movementAtlas, frameSize, 8, 0),
@@ -64,7 +67,7 @@ export async function loadGame(game: Application) {
   const sceneManager = new SceneManager(world, interactionSystem, camera);
   const requestSceneChange = sceneManager.requestSceneChange.bind(sceneManager);
 
-  await loadAllMaps(sceneManager, assets, player, requestSceneChange);
+  await loadAllMaps(sceneManager, assets, player, requestSceneChange, saveStore);
 
   // CONTAINER HIERARCHY
   game.stage.addChild(camera.container);
@@ -81,5 +84,6 @@ export async function loadGame(game: Application) {
     sceneManager,
     camera,
     overlay,
+    saveStore,
   };
 }
