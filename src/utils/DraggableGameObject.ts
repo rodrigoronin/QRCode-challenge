@@ -1,11 +1,30 @@
-import { Container, Sprite, Graphics, FederatedPointerEvent } from "pixi.js";
+import {
+  Point,
+  type Container,
+  type FederatedPointerEvent,
+  type Graphics,
+  type Sprite,
+} from "pixi.js";
 
-export function makeDraggable(obj: Container | Sprite | Graphics, onDragEnd?: (obj: any) => void) {
+type GameObject = Container | Sprite | Graphics;
+
+type DragEndPayload = {
+  id: string;
+  x: number;
+  y: number;
+};
+
+export function makeDraggable(
+  obj: GameObject,
+  objId: string,
+  onDragEnd?: (payload: DragEndPayload) => void,
+) {
   obj.eventMode = "dynamic";
   obj.cursor = "grab";
 
   let dragging = false;
-  let dragOffset = { x: 0, y: 0 };
+
+  let dragOffset = new Point(0, 0);
 
   obj.on("pointerdown", (e: FederatedPointerEvent) => {
     dragging = true;
@@ -22,22 +41,26 @@ export function makeDraggable(obj: Container | Sprite | Graphics, onDragEnd?: (o
     if (!dragging) return;
 
     if (obj.parent) {
-      const newPos = obj.parent.toLocal(e.global);
-      obj.x = newPos.x - dragOffset.x;
-      obj.y = newPos.y - dragOffset.y;
+      const localPos = obj.parent.toLocal(e.global);
+      obj.x = localPos.x - dragOffset.x;
+      obj.y = localPos.y - dragOffset.y;
     }
   };
 
   const onPointerUp = () => {
     if (!dragging) return;
+
     dragging = false;
     obj.cursor = "grab";
-    // TODO: use this to save GameObjects positions before exiting dev mode
-    onDragEnd?.(obj);
+
+    onDragEnd?.({
+      id: objId,
+      x: obj.x,
+      y: obj.y,
+    });
   };
 
+  obj.on("pointerup", onPointerUp);
   obj.on("pointermove", onPointerMove);
   obj.on("globalpointermove", onPointerMove);
-  obj.on("pointerup", onPointerUp);
-  obj.on("pointerupoutside", onPointerUp);
 }

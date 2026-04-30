@@ -1,4 +1,4 @@
-import { Application, Container } from "pixi.js";
+import { Container } from "pixi.js";
 import { Player } from "@entities/Player";
 import { CollisionManager } from "@core/systems/CollisionManager";
 import { YSortSystem } from "@core/systems/YSortSystem";
@@ -7,6 +7,7 @@ import type { SceneDefinition } from "../SceneDefinition";
 import type { AreaDefinition } from "../AreaDefinition";
 import type { WorldCollider } from "@core/WorldCollider";
 import { makeDraggable } from "@utils/DraggableGameObject";
+import { SceneStore } from "@core/persistence/SceneStore";
 
 // TODO: transform this class into a scene factory
 export class MainScene implements SceneDefinition {
@@ -14,6 +15,7 @@ export class MainScene implements SceneDefinition {
   public readonly player: Player;
   public readonly map: Container;
   private area: AreaDefinition;
+  private saveStore: SceneStore;
   private activeTriggers: Set<string> = new Set();
 
   private readonly root: Container = new Container();
@@ -22,12 +24,13 @@ export class MainScene implements SceneDefinition {
   private readonly colliderLayer: Container = new Container();
   private readonly ySortSystem: YSortSystem;
 
-  constructor(area: AreaDefinition, player: Player) {
+  constructor(area: AreaDefinition, player: Player, saveStore: SceneStore) {
     this.area = area;
     this.player = player;
     this.map = area.map;
     this.id = area.id;
     this.ySortSystem = new YSortSystem(this.actorLayer);
+    this.saveStore = saveStore;
   }
 
   public update(deltaMS: number) {
@@ -98,12 +101,16 @@ export class MainScene implements SceneDefinition {
 
       this.area.npcs.forEach((npc) => {
         this.actorLayer.addChild(npc.container);
-        makeDraggable(npc.container, () => {
-          console.log(npc.container.position);
+
+        makeDraggable(npc.container, npc.tag, () => {
+          console.log(npc.container.position, npc.tag);
+
+          this.saveStore.setPosition(this.id, npc.tag, {
+            x: npc.container.position.x,
+            y: npc.container.position.y,
+          });
         });
       });
-
-      makeDraggable(this.player.container);
 
       this.area.worldColliders.forEach((collider) => {
         this.colliderLayer.addChild(collider.container);
@@ -112,6 +119,8 @@ export class MainScene implements SceneDefinition {
       this.area.props.forEach((prop) => {
         this.actorLayer.addChild(prop);
       });
+
+      makeDraggable(this.player.container, this.player.tag);
 
       this.actorLayer.addChild(this.player.container);
     }
@@ -146,5 +155,14 @@ export class MainScene implements SceneDefinition {
     this.area.npcs.forEach((npc) => {
       interactionSystem.register(npc.interactable);
     });
+  }
+
+  private loadPositions(sceneId: string, objId: string, obj: { x: number; y: number }) {
+    const saved = this.saveStore.getPosition(sceneId, objId);
+
+    if (saved) {
+      obj.x = saved.x;
+      obj.y = saved.y;
+    }
   }
 }
