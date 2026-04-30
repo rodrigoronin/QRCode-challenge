@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Exuvia Engine v0.8.0",
-        "width": 640,
-        "height": 360,
+        "width": 1600,
+        "height": 900,
         "resizable": true,
         "fullscreen": false,
         "maximized": false
