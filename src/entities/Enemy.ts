@@ -10,14 +10,14 @@ import { StatsComponent } from "@core/components/StatsComponent";
 import type { DepthSortOptions } from "@core/systems/YSortSystem";
 
 type AttackState = "none" | "windup" | "active" | "recovery";
-// type Direction = "up" | "down" | "left" | "right";
+type Direction = "up" | "down" | "left" | "right";
 
 export class Enemy extends Entity {
   // RENDER
   private sprite: Sprite;
   private collider: Collider;
   public tag: string = "enemy";
-  public currentDir: string = "down";
+  public currentDir: Direction = "down";
   private frames: Record<string, Texture[]>;
   private anim: AnimationController;
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
@@ -39,6 +39,7 @@ export class Enemy extends Entity {
   private attackComponent: AttackComponent;
   private attackCollider: AttackCollider;
   private attackDirection: Point | null = null;
+  private lockedAttackDir: Direction | null = null;
   private WINDUP_TIME: number = 450;
   private ACTIVE_TIME: number = 420;
   private RECOVERY_TIME: number = 1000;
@@ -52,7 +53,7 @@ export class Enemy extends Entity {
   private roamWaitTimer: number = 0;
   private roamingArea: { x: number; y: number; width: number; height: number };
   private isInCombat: boolean = false;
-  private isPassive: boolean = true;
+  private isPassive: boolean = false;
   public isInvincible: boolean = false;
   private moveDir: Point = new Point(0, 0);
   private flankSign: 1 | -1 = 1;
@@ -238,17 +239,22 @@ export class Enemy extends Entity {
   protected chaseTarget(deltaMS: number) {
     if (!this.target) return;
 
-    // Don't slide during telegraph; just face the player.
     if (this.attackState === "windup") {
-      const dx = this.target.container.x - this.container.x;
-      const dy = this.target.container.y - this.container.y;
-      this.updateDirection({ x: dx, y: dy });
-      this.applyFacingToSprite({ x: dx, y: dy });
-      this.anim.play(`idle_${this.currentDir}`);
+      if (this.lockedAttackDir) {
+        this.currentDir = this.lockedAttackDir;
+        this.applyFacingToSpriteFromCurrentDir();
+        this.anim.play(`idle_${this.currentDir}`);
+      }
       return;
     }
 
-    if (this.attackState === "active") return;
+    if (this.attackState === "active") {
+      if (this.lockedAttackDir) {
+        this.currentDir = this.lockedAttackDir;
+        this.applyFacingToSpriteFromCurrentDir();
+      }
+      return;
+    }
 
     // While recovering (cooldown), strafe sideways around the player.
     if (this.attackState === "recovery") {
@@ -359,7 +365,7 @@ export class Enemy extends Entity {
       this.container.y += moveY;
 
     this.updateDirection({ x: moveX, y: moveY });
-    this.applyFacingToSprite({ x: moveX, y: moveY });
+    this.applyFacingToSpriteFromCurrentDir();
 
     if (this.container.x !== 0 || this.container.y !== 0) {
       this.anim.play(`walk_${this.currentDir}`);
@@ -424,12 +430,17 @@ export class Enemy extends Entity {
     this.sprite.tint = 0xff5555;
 
     this.attackDirection = this.getAttackDirection();
+    this.lockedAttackDir = this.directionFromVector(this.attackDirection);
+    this.currentDir = this.lockedAttackDir;
+
+    this.applyFacingToSpriteFromCurrentDir();
+    this.anim.play(`idle_${this.currentDir}`);
 
     this.addFilter(this.windupFilter);
   }
 
   protected basicAttack() {
-    if (!this.attackDirection) return;
+    if (!this.attackDirection || !this.lockedAttackDir) return;
 
     this.attackState = "active";
     this.attackTimer = this.ACTIVE_TIME;
@@ -438,6 +449,9 @@ export class Enemy extends Entity {
     this.removeFilter(this.windupFilter);
     this.sprite.tint = 0xffffff;
 
+    this.currentDir = this.lockedAttackDir;
+    this.attackComponent.direction = this.lockedAttackDir;
+    this.applyFacingToSpriteFromCurrentDir();
     this.attackCollider.activate(this.attackDirection, 45);
     this.attackComponent.activate();
   }
@@ -454,7 +468,6 @@ export class Enemy extends Entity {
         this.attackComponent.update();
         this.attackCollider.update(deltaMS);
         this.attackCollider.updatePosition();
-        this.attackCollider.drawDebug();
 
         if (this.attackTimer <= 0) this.enterRecovery();
         break;
@@ -475,6 +488,7 @@ export class Enemy extends Entity {
     this.attackCollider.deactivate();
 
     this.attackDirection = null;
+    this.lockedAttackDir = null;
 
     // Pick a strafe direction for the cooldown window.
     this.flankSign = (Math.random() < 0.5 ? -1 : 1) as 1 | -1;
@@ -489,8 +503,16 @@ export class Enemy extends Entity {
     }
   }
 
-  protected applyFacingToSprite(m: { x: number; y: number }) {
-    m.x > 0 ? (this.sprite.scale.x = -1) : (this.sprite.scale.x = 1);
+  protected applyFacingToSpriteFromCurrentDir() {
+    this.sprite.scale.x = this.currentDir === "right" ? -1 : 1;
+  }
+
+  private directionFromVector(dir: Point): Direction {
+    if (Math.abs(dir.x) > Math.abs(dir.y)) {
+      return dir.x > 0 ? "right" : "left";
+    }
+
+    return dir.y > 0 ? "down" : "up";
   }
 
   private addFilter(filter: ColorMatrixFilter) {
