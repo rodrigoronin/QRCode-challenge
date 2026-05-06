@@ -18,7 +18,7 @@ export function load(config: TownConfig): AreaDefinition {
 
   const elvenMageTexture = assets.getTexture("sprites/elven_mage");
   const blackSmithTexture = assets.getTexture("sprites/blacksmith");
-  const fountainTexture = assets.getTexture("sprites/fountain");
+  const trainingDummyTexture = assets.getTexture("sprites/training-dummy");
   const treeTexture = assets.getTexture("sprites/tree");
   const treeTexture3 = assets.getTexture("sprites/town/tree_3");
   const treeTextureSmall = assets.getTexture("sprites/town/tree_small");
@@ -31,27 +31,27 @@ export function load(config: TownConfig): AreaDefinition {
   const frameSize = 64;
 
   const elvenMageFrames = {
-    idle_down: frameSlicer(elvenMageTexture, frameSize, 1, 0),
+    idle_down: frameSlicer(elvenMageTexture, frameSize, frameSize, 1, 0),
   };
 
   const blacksmithFrames = {
-    idle_down: frameSlicer(blackSmithTexture, frameSize, 1, 0),
+    idle_down: frameSlicer(blackSmithTexture, frameSize, frameSize, 1, 0),
   };
 
-  const fountain = new Sprite(
+  const dummy = new Sprite(
     new Texture({
-      source: fountainTexture.source,
-      frame: new Rectangle(0, 0, 84, 71),
+      source: trainingDummyTexture.source,
+      frame: new Rectangle(0, 0, 96, 96),
     }),
   );
-  configureDepthSort(fountain, { depthSortOffsetY: fountain.height });
-  fountain.position.set(470, 470);
-  const fountainCollider = new WorldCollider({
-    id: "fountain_1",
-    posX: fountain.position.x + 2,
-    posY: fountain.position.y + 18,
-    width: fountain.width - 4,
-    height: 20,
+  configureDepthSort(dummy, { depthSortOffsetY: dummy.height });
+  dummy.position.set(470, 440);
+  const dummyCollider = new WorldCollider({
+    id: "dummy_1",
+    posX: dummy.position.x + 33,
+    posY: dummy.position.y + 20,
+    width: dummy.width - 70,
+    height: 60,
   });
 
   const tree = new Sprite(
@@ -231,21 +231,21 @@ export function load(config: TownConfig): AreaDefinition {
   });
 
   const npcs = [elvenMage, blacksmith];
-  const props = [fountain, smallTree, tree, tree3, house, house2, house3, house4, house5];
+  const props = [dummy, smallTree, tree, tree3, house, house2, house3, house4, house5];
 
   return {
     id: "village",
     map,
     spawnPoints: {
       village_south_portal: { x: 512, y: 880 },
-      entry: { x: 512, y: 540 },
+      entry: { x: 460, y: 480 },
     },
     props,
     npcs,
     enemies: [],
     worldColliders: [
       fieldPortal_south,
-      fountainCollider,
+      dummyCollider,
       houseCollider2,
       houseCollider3,
       houseCollider4,

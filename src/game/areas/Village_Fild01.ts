@@ -1,5 +1,6 @@
 import type { AssetLoader } from "@core/AssetLoader";
 import type { Player } from "@entities/Player";
+import { Enemy } from "@entities/Enemy";
 import type { AreaDefinition } from "../AreaDefinition";
 import { Container, Rectangle, Sprite, Texture, TextureSource } from "pixi.js";
 import { WorldCollider } from "@core/WorldCollider";
@@ -13,11 +14,42 @@ type TownConfig = {
 };
 
 export function load(config: TownConfig): AreaDefinition {
-  const { assets } = config;
+  const { assets, player } = config;
 
+  const goblinMaceShield = assets.getTexture("sprites/goblin-mace-shield");
+  const swordSlashTexture = assets.getTexture("sprites/_sword_slash");
   const treeTexture = assets.getTexture("sprites/tree");
   const treeTexture3 = assets.getTexture("sprites/town/tree_3");
   const treeTextureSmall = assets.getTexture("sprites/town/tree_small");
+  const frameSize = 64;
+
+  const daggerVFXFrames = {
+    attack_up: frameSlicer(swordSlashTexture, 81, 81, 7, 1),
+    attack_down: frameSlicer(swordSlashTexture, 81, 81, 7, 1),
+    attack_right: frameSlicer(swordSlashTexture, 81, 81, 7, 0),
+    attack_left: frameSlicer(swordSlashTexture, 81, 81, 7, 0),
+  };
+
+  const enemyFrames = {
+    idle_down: frameSlicer(goblinMaceShield, frameSize, frameSize, 1, 0),
+    idle_left: frameSlicer(goblinMaceShield, frameSize, frameSize, 1, 0),
+    idle_up: frameSlicer(goblinMaceShield, frameSize, frameSize, 1, 0),
+    idle_right: frameSlicer(goblinMaceShield, frameSize, frameSize, 1, 0),
+    walk_down: frameSlicer(goblinMaceShield, frameSize, frameSize, 1, 0),
+    walk_right: frameSlicer(goblinMaceShield, frameSize, frameSize, 1, 0),
+    walk_up: frameSlicer(goblinMaceShield, frameSize, frameSize, 1, 0),
+    walk_left: frameSlicer(goblinMaceShield, frameSize, frameSize, 1, 0),
+  };
+
+  const goblinRoamingArea = {
+    x: 420,
+    y: 500,
+    width: 220,
+    height: 220,
+  };
+
+  const testGoblin = new Enemy(enemyFrames, player, daggerVFXFrames, goblinRoamingArea);
+  testGoblin.container.position.set(560, 610);
 
   const tree = new Sprite(
     new Texture({
@@ -75,7 +107,7 @@ export function load(config: TownConfig): AreaDefinition {
   });
 
   const map = generateTestMap(
-    frameSlicer(assets.getTexture("sprites/training-tiles"), 32, 3, 0),
+    frameSlicer(assets.getTexture("sprites/training-tiles"), 32, 32, 3, 0),
     32,
     32,
     1024,
@@ -122,7 +154,7 @@ export function load(config: TownConfig): AreaDefinition {
     },
     props,
     npcs: [],
-    enemies: [],
+    enemies: [testGoblin],
     worldColliders: [
       fieldPortal_south,
       treeCollider,
