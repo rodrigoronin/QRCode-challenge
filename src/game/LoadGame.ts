@@ -19,7 +19,6 @@ export async function loadGame(game: Application) {
 
   const saveStore = new SceneStore();
 
-  // const templateHumanMale = assets.getTexture("sprites/template-human-male");
   const humanFemaleTemplate = assets.getTexture("sprites/human-female-template");
   const movementAtlas = assets.getTexture("sprites/movement_atlas");
   const swordNShieldAtlas = assets.getTexture("sprites/sns-atlas");

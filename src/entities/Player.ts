@@ -23,7 +23,7 @@ export class Player extends Entity {
   private VFXFrames: Record<string, Texture[]>;
   private anim: AnimationController;
   private walkSpeed = 100; // pixels/second
-  private runSpeed = this.walkSpeed * 2; // pixels/second
+  private runSpeed = this.walkSpeed * 2.5; // pixels/second
   private speed = this.walkSpeed;
   private hitFlashFilter: ColorMatrixFilter = new ColorMatrixFilter();
 
@@ -99,10 +99,6 @@ export class Player extends Entity {
 
   update(deltaTime: number) {
     const deltaSec = deltaTime / 1000;
-    const move = this.input.getMovementVector();
-
-    // saves the current direction the player is looking
-    this.moveVector.set(move.x, move.y);
 
     this.updateHitFlashFilter(deltaTime);
 
@@ -126,35 +122,7 @@ export class Player extends Entity {
 
     // movement
     if (!this.isAttacking) {
-      const isMoving = move.x !== 0 || move.y !== 0;
-      const isRunning = isMoving && this.input.isPressed("RUN");
-      this.speed = isRunning ? this.runSpeed : this.walkSpeed;
-
-      const futureX = this.container.x + move.x * this.speed * deltaSec;
-      const futureY = this.container.y + move.y * this.speed * deltaSec;
-
-      // checking the axis isolated enable player do slide on walls
-      if (CollisionManager.canMove(this.collider, futureX, this.container.y)) {
-        this.container.x = futureX;
-      }
-      if (CollisionManager.canMove(this.collider, this.container.x, futureY)) {
-        this.container.y = futureY;
-      }
-
-      this.updateDirection(move);
-      this.applyFacingToSprite();
-
-      // TODO: add a speed value on animation creation to remove manual setting
-      if (isMoving && !isRunning) {
-        this.anim.setSpeed(100);
-        this.anim.play(`walk_${this.currentDir}`);
-      } else if (isRunning) {
-        this.anim.setSpeed(80);
-        this.anim.play(`run_${this.currentDir}`);
-      } else {
-        this.anim.setSpeed(100);
-        this.anim.play(`idle_${this.currentDir}`);
-      }
+      this.move(deltaSec);
 
       this.anim.update(deltaTime);
 
@@ -162,8 +130,42 @@ export class Player extends Entity {
         this.dashCooldownTimer -= deltaTime;
       }
     }
+  }
 
-    // this.collider.drawDebug();
+  move(deltaSec: number) {
+    const move = this.input.getMovementVector();
+
+    // saves the current direction the player is looking
+    this.moveVector.set(move.x, move.y);
+    const isMoving = move.x !== 0 || move.y !== 0;
+    const isRunning = isMoving && this.input.isPressed("RUN");
+    this.speed = isRunning ? this.runSpeed : this.walkSpeed;
+
+    const futureX = this.container.x + move.x * this.speed * deltaSec;
+    const futureY = this.container.y + move.y * this.speed * deltaSec;
+
+    // checking the axis isolated enable player do slide on walls
+    if (CollisionManager.canMove(this.collider, futureX, this.container.y)) {
+      this.container.x = futureX;
+    }
+    if (CollisionManager.canMove(this.collider, this.container.x, futureY)) {
+      this.container.y = futureY;
+    }
+
+    this.updateDirection(move);
+    this.applyFacingToSprite();
+
+    // TODO: add a speed value on animation play to remove manual setting
+    if (isMoving && !isRunning) {
+      this.anim.setSpeed(100);
+      this.anim.play(`walk_${this.currentDir}`);
+    } else if (isRunning) {
+      this.anim.setSpeed(80);
+      this.anim.play(`run_${this.currentDir}`);
+    } else {
+      this.anim.setSpeed(100);
+      this.anim.play(`idle_${this.currentDir}`);
+    }
   }
 
   get currentHP() {
@@ -291,6 +293,8 @@ export class Player extends Entity {
     this.attackComponent.activate();
 
     this.applyFacingToSprite();
+    this.anim.play(`attack_${this.currentDir}`);
+
     this.attackCollider?.activate(this.getActionDirectionVector(), 40);
     this.attackTimer = this.ATTACK_LOCK_DURATION;
   }
@@ -303,6 +307,8 @@ export class Player extends Entity {
 
       this.state = "idle";
     }
+
+    this.anim.update(deltaMS);
   }
 
   private cancelAttack() {
