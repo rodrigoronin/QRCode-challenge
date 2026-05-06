@@ -53,6 +53,8 @@ export class InputManager {
     };
 
     window.addEventListener("keydown", (e) => {
+      e.preventDefault();
+
       const mappedKey = map[e.code];
       const action = keyToAction[e.code];
 
@@ -67,6 +69,8 @@ export class InputManager {
     });
 
     window.addEventListener("keyup", (e) => {
+      e.preventDefault();
+
       const mappedKey = map[e.code];
       const action = keyToAction[e.code];
 

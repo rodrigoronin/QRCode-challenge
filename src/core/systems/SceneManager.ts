@@ -1,6 +1,6 @@
 import type { Container } from "pixi.js";
 import type { Camera } from "@core/Camera";
-import type { SceneDefinition } from "../../game/scenes/SceneDefinition";
+import type { SceneDefinition } from "../../game/SceneDefinition";
 import type { InteractionSystem } from "./InteractionSystem";
 
 export class SceneManager {

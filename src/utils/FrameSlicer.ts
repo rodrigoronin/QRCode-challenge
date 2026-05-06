@@ -3,7 +3,8 @@ import { Rectangle, Texture } from "pixi.js";
 // To help speed animations during MVP
 export function frameSlicer(
   texture: Texture,
-  frameSize: number,
+  frameWidth: number,
+  frameHeight: number = 96,
   frameCount: number,
   startRow: number,
   startColumn: number = 0,
@@ -14,7 +15,12 @@ export function frameSlicer(
     frames.push(
       new Texture({
         source: texture.source,
-        frame: new Rectangle(startColumn * frameSize, startRow * frameSize, frameSize, frameSize),
+        frame: new Rectangle(
+          startColumn * frameWidth,
+          startRow * frameHeight,
+          frameWidth,
+          frameHeight,
+        ),
       }),
     );
 
@@ -26,7 +32,7 @@ export function frameSlicer(
     frames.push(
       new Texture({
         source: texture.source,
-        frame: new Rectangle(i * frameSize, startRow * frameSize, frameSize, frameSize),
+        frame: new Rectangle(i * frameWidth, startRow * frameHeight, frameWidth, frameHeight),
       }),
     );
   }

@@ -1,5 +1,5 @@
 import type { AssetLoader } from "@core/AssetLoader";
-import type { AreaDefinition } from "./AreaDefinition";
+import type { AreaDefinition } from "../AreaDefinition";
 import type { Player } from "@entities/Player";
 import { frameSlicer } from "@utils/FrameSlicer";
 import { Container, Rectangle, Sprite, Texture, TextureSource } from "pixi.js";
@@ -13,7 +13,7 @@ type DungeonAreaConfig = {
   requestSceneChange: (targetAreaId: string, spawnId: string) => void;
 };
 
-export function createDungeonArea(config: DungeonAreaConfig): AreaDefinition {
+export function load(config: DungeonAreaConfig): AreaDefinition {
   const { assets, player } = config;
 
   const goblinMaceShield = assets.getTexture("sprites/goblin-mace-shield");
