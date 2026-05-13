@@ -84,7 +84,7 @@ export class Player extends Entity {
       this.ATTACK_LOCK_DURATION,
       this.container,
       this,
-      this.VFXFrames,
+      // this.VFXFrames,
     );
 
     this.attackComponent = new AttackComponent(this, {
